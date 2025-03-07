@@ -1,68 +1,48 @@
 api/
-│── Controllers/                       # Xử lý request từ frontend
-│   ├── AccountController.cs           # Xử lý đăng ký, đăng nhập, quản lý tài khoản
-│   ├── BookingController.cs           # Xử lý đặt sân, quản lý lịch đặt
-│   ├── FieldController.cs             # Xử lý sân thể thao (thêm, sửa, xóa)
-│   ├── PaymentController.cs           # Xử lý thanh toán (nếu có)
-│   ├── ReportController.cs            # Thống kê doanh thu cho chủ sân
+│── Controllers/                      // Chứa các controller xử lý request từ client
+│   ├── AccountController.cs          // Xử lý đăng ký, đăng nhập, quản lý tài khoản
+│   ├── RoleController.cs             // Xử lý quản lý roles (Admin, User, Owner)
 │
-├── Data/                              # Quản lý database
-│   ├── ApplicationDbContext.cs        # DbContext quản lý database
+├── Data/                             // Chứa lớp làm việc với cơ sở dữ liệu
+│   ├── ApplicationDbContext.cs       // DbContext của Entity Framework để quản lý database
 │
-├── Dtos/                              # Các lớp DTO để truyền dữ liệu
+├── Dtos/                             // Chứa các lớp DTO để truyền dữ liệu giữa client và server
 │   ├── Account/
-│   │   ├── LoginDto.cs                # DTO đăng nhập
-│   │   ├── RegisterDto.cs             # DTO đăng ký
-│   │
-│   ├── Booking/
-│   │   ├── BookingDto.cs              # DTO trả về thông tin đặt sân
-│   │   ├── CreateBookingDto.cs        # DTO yêu cầu đặt sân
-│   │
-│   ├── Field/
-│   │   ├── FieldDto.cs                # DTO cho sân thể thao
-│   │   ├── CreateFieldDto.cs          # DTO tạo sân mới
-│   │
-│   ├── Payment/
-│   │   ├── PaymentDto.cs              # DTO cho thanh toán
-│   │
-│   ├── Report/
-│       ├── RevenueReportDto.cs        # DTO thống kê doanh thu
+│   │   ├── LoginDto.cs               // DTO cho yêu cầu đăng nhập
+│   │   ├── RegisterDto.cs            // DTO cho yêu cầu đăng ký
+│   │   ├── UserDto.cs                // DTO trả về thông tin user
 │
-├── Extensions/                        # Tiện ích mở rộng
-│   ├── ClaimsExtensions.cs            # Xử lý JWT Claims
+├── Extensions/                       // Chứa các phương thức mở rộng (extension methods)
+│   ├── ClaimsExtensions.cs           // Mở rộng Claims để lấy thông tin user từ token
 │
-├── Helpers/                           # Hỗ trợ logic nghiệp vụ
-│   ├── BookingQueryObject.cs          # Hỗ trợ tìm kiếm, lọc đặt sân
+├── Helpers/                          // Chứa các class hỗ trợ xử lý logic
+│   ├── JwtTokenHelper.cs             // Hỗ trợ tạo và xác minh JWT token
 │
-├── Interfaces/                        # Interface định nghĩa các dịch vụ
-│   ├── IBookingRepository.cs          # Interface cho booking
-│   ├── IFieldRepository.cs            # Interface cho sân thể thao
-│   ├── IPaymentService.cs             # Interface cho thanh toán
-│   ├── IReportService.cs              # Interface cho thống kê
-│   ├── ITokenService.cs               # Interface cho JWT token
+├── Interfaces/                       // Chứa các interface định nghĩa hợp đồng cho service/repository
+│   ├── IAuthService.cs               // Interface cho service xác thực
+│   ├── ITokenService.cs              // Interface cho service xử lý JWT token
 │
-├── Mappers/                           # Chuyển đổi giữa Model và DTO
-│   ├── BookingMapper.cs               # Mapping Booking -> BookingDto
-│   ├── FieldMapper.cs                 # Mapping Field -> FieldDto
+├── Mappers/                          // Chứa các lớp ánh xạ dữ liệu giữa Model và DTO
+│   ├── UserMapper.cs                 // Chuyển đổi giữa User model và UserDto
 │
-├── Migrations/                        # File migration của Entity Framework
+├── Migrations/                       // Chứa các file migration của Entity Framework
+│   ├── ...                           // Các file migration được tự động tạo ra khi cập nhật database
 │
-├── Models/                            # Định nghĩa các entity
-│   ├── AppUser.cs                     # Người dùng (User / Owner / Admin)
-│   ├── Booking.cs                     # Đơn đặt sân
-│   ├── Field.cs                        # Sân thể thao
-│   ├── Payment.cs                      # Giao dịch thanh toán
-│   ├── Report.cs                       # Báo cáo doanh thu
+├── Models/                           // Chứa các entity chính của ứng dụng
+│   ├── AppUser.cs                    // Mô tả người dùng (User) trong hệ thống
 │
-├── Repository/                         # Repository xử lý truy vấn database
-│   ├── BookingRepository.cs            # Xử lý đặt sân
-│   ├── FieldRepository.cs              # Xử lý sân thể thao
+├── Properties/                       // Chứa file cấu hình môi trường chạy ứng dụng
+│   ├── launchSettings.json           // Cấu hình môi trường chạy ứng dụng khi debug
 │
-├── Services/                           # Xử lý logic nghiệp vụ
-│   ├── PaymentService.cs               # Xử lý thanh toán
-│   ├── ReportService.cs                # Xử lý thống kê doanh thu
-│   ├── TokenService.cs                 # Xử lý JWT
+├── Repository/                       // Chứa các lớp repository thực thi truy vấn dữ liệu
+│   ├── AuthRepository.cs             // Repository xử lý đăng nhập, đăng ký
 │
-├── Program.cs                          # Điểm khởi động ứng dụng
-├── appsettings.json                    # Cấu hình ứng dụng
-└── .gitignore                           # File ignore Git
+├── Service/                          // Chứa các service xử lý logic nghiệp vụ
+│   ├── AuthService.cs                // Service xử lý xác thực
+│   ├── TokenService.cs               // Service tạo và xác minh JWT token
+│
+├── .gitignore                        // Loại trừ các file không cần thiết khỏi git
+├── Program.cs                        // Điểm khởi động của ứng dụng
+├── api.csproj                        // File cấu hình dự án ASP.NET Core
+├── appsettings.Development.json      // Cấu hình ứng dụng trong môi trường phát triển
+└── appsettings.json                  // Cấu hình chung của ứng dụng (database, JWT, v.v.)

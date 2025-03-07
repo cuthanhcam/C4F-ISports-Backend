@@ -7,12 +7,26 @@ Install Entity Framework Core - .NET 8:
 	dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.3
 
 Install Identity:
-    	Microsoft.Extensions.Identity.Core
-    	Microsoft.AspNetCore.Identity.EntityFrameworkCore
-   	Microsoft.AspNetCore.Authentication.JwtBearer
+    Microsoft.Extensions.Identity.Core --version 8.0.3
+    Microsoft.AspNetCore.Identity.EntityFrameworkCore --version 8.0.3
+   	Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.3
 
 Create and Update database - using migrations:
 	dotnet ef migrations add InitialCreate
 	dotnet ef database update
 
 dotnet ef migrations add SeedRole
+
+
+Installed packages:
+
+dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.3
+dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore --version 8.0.3
+dotnet add package Microsoft.AspNetCore.Mvc.NewtonsoftJson --version 8.0.3
+dotnet add package Microsoft.AspNetCore.OpenApi --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.3
+dotnet add package Microsoft.Extensions.Identity.Core --version 8.0.3
+dotnet add package Newtonsoft.Json --version 13.0.3
+dotnet add package Swashbuckle.AspNetCore --version 6.6.2
