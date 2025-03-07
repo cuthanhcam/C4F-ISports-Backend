@@ -1,71 +1,68 @@
 api/
-│── Controllers/                      # Chứa các controller xử lý request từ client
-│   ├── AccountController.cs          # Xử lý đăng ký, đăng nhập, quản lý tài khoản
-│   ├── CommentController.cs          # Xử lý CRUD cho bình luận
-│   ├── PortfolioController.cs        # Xử lý danh mục đầu tư của người dùng
-│   ├── StockController.cs            # Xử lý dữ liệu về cổ phiếu
+│── Controllers/                       # Xử lý request từ frontend
+│   ├── AccountController.cs           # Xử lý đăng ký, đăng nhập, quản lý tài khoản
+│   ├── BookingController.cs           # Xử lý đặt sân, quản lý lịch đặt
+│   ├── FieldController.cs             # Xử lý sân thể thao (thêm, sửa, xóa)
+│   ├── PaymentController.cs           # Xử lý thanh toán (nếu có)
+│   ├── ReportController.cs            # Thống kê doanh thu cho chủ sân
 │
-├── Data/                             # Chứa lớp làm việc với cơ sở dữ liệu
-│   ├── ApplicationDBContext.cs       # DbContext của Entity Framework để quản lý database
+├── Data/                              # Quản lý database
+│   ├── ApplicationDbContext.cs        # DbContext quản lý database
 │
-├── Dtos/                             # Chứa các lớp DTO để truyền dữ liệu giữa client và server
+├── Dtos/                              # Các lớp DTO để truyền dữ liệu
 │   ├── Account/
-│   │   ├── LoginDto.cs               # DTO cho yêu cầu đăng nhập
-│   │   ├── NewUserDto.cs             # DTO cho người dùng mới
-│   │   ├── RegisterDto.cs            # DTO cho yêu cầu đăng ký
+│   │   ├── LoginDto.cs                # DTO đăng nhập
+│   │   ├── RegisterDto.cs             # DTO đăng ký
 │   │
-│   ├── Comment/
-│   │   ├── CommentDto.cs             # DTO để trả về thông tin bình luận
-│   │   ├── CreateCommentDto.cs       # DTO cho yêu cầu tạo bình luận mới
-│   │   ├── UpdateCommentRequestDto.cs # DTO cho yêu cầu cập nhật bình luận
+│   ├── Booking/
+│   │   ├── BookingDto.cs              # DTO trả về thông tin đặt sân
+│   │   ├── CreateBookingDto.cs        # DTO yêu cầu đặt sân
 │   │
-│   ├── Stock/
-│       ├── CreateStockRequestDto.cs  # DTO cho yêu cầu thêm cổ phiếu mới
-│       ├── FMPStock.cs               # DTO nhận dữ liệu từ API bên thứ ba (FMP API)
-│       ├── StockDto.cs               # DTO để trả về thông tin cổ phiếu
-│       ├── UpdateStockRequestDto.cs  # DTO cho yêu cầu cập nhật cổ phiếu
+│   ├── Field/
+│   │   ├── FieldDto.cs                # DTO cho sân thể thao
+│   │   ├── CreateFieldDto.cs          # DTO tạo sân mới
+│   │
+│   ├── Payment/
+│   │   ├── PaymentDto.cs              # DTO cho thanh toán
+│   │
+│   ├── Report/
+│       ├── RevenueReportDto.cs        # DTO thống kê doanh thu
 │
-├── Extensions/                       # Chứa các phương thức mở rộng (extension methods)
-│   ├── ClaimsExtensions.cs           # Mở rộng Claims để lấy thông tin user từ token
+├── Extensions/                        # Tiện ích mở rộng
+│   ├── ClaimsExtensions.cs            # Xử lý JWT Claims
 │
-├── Helpers/                          # Chứa các class hỗ trợ xử lý logic
-│   ├── CommentQueryObject.cs         # Hỗ trợ truy vấn dữ liệu bình luận
-│   ├── QueryObject.cs                # Xây dựng truy vấn linh hoạt cho các thực thể
+├── Helpers/                           # Hỗ trợ logic nghiệp vụ
+│   ├── BookingQueryObject.cs          # Hỗ trợ tìm kiếm, lọc đặt sân
 │
-├── Interfaces/                       # Chứa các interface định nghĩa hợp đồng cho service/repository
-│   ├── ICommentRepository.cs         # Interface cho repository của bình luận
-│   ├── IFMPService.cs                # Interface cho service gọi API bên thứ ba (FMP API)
-│   ├── IPortfolioRepository.cs       # Interface cho repository của danh mục đầu tư
-│   ├── IStockRepository.cs           # Interface cho repository của cổ phiếu
-│   ├── ITokenService.cs              # Interface cho service xử lý JWT token
+├── Interfaces/                        # Interface định nghĩa các dịch vụ
+│   ├── IBookingRepository.cs          # Interface cho booking
+│   ├── IFieldRepository.cs            # Interface cho sân thể thao
+│   ├── IPaymentService.cs             # Interface cho thanh toán
+│   ├── IReportService.cs              # Interface cho thống kê
+│   ├── ITokenService.cs               # Interface cho JWT token
 │
-├── Mappers/                          # Chứa các lớp ánh xạ dữ liệu giữa Model và DTO
-│   ├── CommentMapper.cs              # Chuyển đổi giữa Comment model và CommentDto
-│   ├── StockMapper.cs                # Chuyển đổi giữa Stock model và StockDto
+├── Mappers/                           # Chuyển đổi giữa Model và DTO
+│   ├── BookingMapper.cs               # Mapping Booking -> BookingDto
+│   ├── FieldMapper.cs                 # Mapping Field -> FieldDto
 │
-├── Migrations/                       # Chứa các file migration của Entity Framework
-│   ├── ...                           # Các file migration được tự động tạo ra khi cập nhật database
+├── Migrations/                        # File migration của Entity Framework
 │
-├── Models/                           # Chứa các entity chính của ứng dụng
-│   ├── AppUser.cs                    # Mô tả người dùng (User) trong hệ thống
-│   ├── Comment.cs                    # Mô tả thực thể bình luận
-│   ├── Portfolio.cs                  # Mô tả thực thể danh mục đầu tư
-│   ├── Stock.cs                      # Mô tả thực thể cổ phiếu
+├── Models/                            # Định nghĩa các entity
+│   ├── AppUser.cs                     # Người dùng (User / Owner / Admin)
+│   ├── Booking.cs                     # Đơn đặt sân
+│   ├── Field.cs                        # Sân thể thao
+│   ├── Payment.cs                      # Giao dịch thanh toán
+│   ├── Report.cs                       # Báo cáo doanh thu
 │
-├── Properties/                       # Chứa file cấu hình môi trường chạy ứng dụng
-│   ├── launchSettings.json           # Cấu hình môi trường chạy ứng dụng khi debug
+├── Repository/                         # Repository xử lý truy vấn database
+│   ├── BookingRepository.cs            # Xử lý đặt sân
+│   ├── FieldRepository.cs              # Xử lý sân thể thao
 │
-├── Repository/                       # Chứa các lớp repository thực thi truy vấn dữ liệu
-│   ├── CommentRepository.cs          # Repository của bình luận
-│   ├── PortfolioRepository.cs        # Repository của danh mục đầu tư
-│   ├── StockRepository.cs            # Repository của cổ phiếu
+├── Services/                           # Xử lý logic nghiệp vụ
+│   ├── PaymentService.cs               # Xử lý thanh toán
+│   ├── ReportService.cs                # Xử lý thống kê doanh thu
+│   ├── TokenService.cs                 # Xử lý JWT
 │
-├── Service/                          # Chứa các service xử lý logic nghiệp vụ
-│   ├── FMPService.cs                 # Service để lấy dữ liệu cổ phiếu từ API FMP
-│   ├── TokenService.cs               # Service để tạo và xác minh JWT token
-│
-├── .gitignore                        # Loại trừ các file không cần thiết khỏi git
-├── Program.cs                        # Điểm khởi động của ứng dụng
-├── api.csproj                        # File cấu hình dự án ASP.NET Core
-├── appsettings.Development.json      # Cấu hình ứng dụng trong môi trường phát triển
-└── appsettings.json                  # Cấu hình chung của ứng dụng (database, JWT, v.v.)
+├── Program.cs                          # Điểm khởi động ứng dụng
+├── appsettings.json                    # Cấu hình ứng dụng
+└── .gitignore                           # File ignore Git
