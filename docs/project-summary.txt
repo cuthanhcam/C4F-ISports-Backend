@@ -1,0 +1,18 @@
+C4F-ISports: Ứng dụng quản lý sân thể thao và đặt lịch trực tuyến
+
+1. Chức năng cho người dùng (Khách hàng)
+- Tìm kiếm sân thể thao: Người dùng có thể tìm kiếm sân gần nhất theo vị trí, loại sân (bóng đá, cầu lông, pickleball...), thời gian trống.
+- Đặt lịch trực tuyến: Cho phép chọn sân, thời gian và thanh toán trực tuyến (hoặc đặt cọc).
+- Quản lý lịch đặt: Xem, hủy hoặc thay đổi lịch đặt nếu còn trong thời gian cho phép.
+- Đánh giá & bình luận: Người dùng có thể đánh giá chất lượng sân và dịch vụ.
+- Hệ thống thông báo: Nhắc lịch, cập nhật trạng thái đặt sân qua email hoặc thông báo trên ứng dụng.
+
+2. Chức năng cho chủ sân
+Quản lý sân: Thêm, chỉnh sửa thông tin sân (địa chỉ, giá, thời gian hoạt động...).
+Quản lý đặt sân: Xem lịch đặt theo ngày, tuần, tháng; xác nhận hoặc từ chối yêu cầu đặt sân.
+Thống kê & báo cáo doanh thu: Báo cáo doanh thu theo ngày/tháng/năm, số lượt đặt sân, phản hồi khách hàng.
+
+3. Chức năng chung
+Xác thực & phân quyền: Đăng ký, đăng nhập (Google, Facebook, tài khoản thường), phân quyền giữa người dùng và chủ sân.
+Tích hợp bản đồ: Hiển thị sân thể thao trên bản đồ, giúp người dùng dễ dàng tìm đường.
+Giao diện responsive: Thiết kế UI bằng React + Tailwind, hỗ trợ cả máy tính và điện thoại.

@@ -1,0 +1,18 @@
+Create ASP.NET core Web API
+	dotnet new webapi -n api
+	
+Install Entity Framework Core - .NET 8:
+	dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.3
+	dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.3	
+	dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.3
+
+Install Identity:
+    	Microsoft.Extensions.Identity.Core
+    	Microsoft.AspNetCore.Identity.EntityFrameworkCore
+   	Microsoft.AspNetCore.Authentication.JwtBearer
+
+Create and Update database - using migrations:
+	dotnet ef migrations add InitialCreate
+	dotnet ef database update
+
+dotnet ef migrations add SeedRole

@@ -185,3 +185,5 @@ node_modules/
 # NCrunch Files #
 ##################
 _NCrunch*          
+
+appsettings.json
