@@ -1,42 +1,47 @@
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
-using Microsoft.Extensions.Options;
-using System;
-using System.IO;
+using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 
-public class CloudinarySettings
+namespace api.Services
 {
-    public string CloudName { get; set; }
-    public string ApiKey { get; set; }
-    public string ApiSecret { get; set; }
-}
-
-public class CloudinaryService
-{
-    private readonly Cloudinary _cloudinary;
-
-    public CloudinaryService(IOptions<CloudinarySettings> config)
+    public class CloudinaryService
     {
-        var account = new Account(
-            config.Value.CloudName,
-            config.Value.ApiKey,
-            config.Value.ApiSecret
-        );
-        _cloudinary = new Cloudinary(account);
-    }
+        private readonly Cloudinary _cloudinary;
 
-    public async Task<string> UploadImageAsync(Stream fileStream, string fileName)
-    {
-        var uploadParams = new ImageUploadParams()
+        public CloudinaryService(IConfiguration configuration)
         {
-            File = new FileDescription(fileName, fileStream),
-            PublicId = $"uploads/{Guid.NewGuid()}_{fileName}",
-            Overwrite = true,
-            Transformation = new Transformation().Quality("auto").FetchFormat("auto")
-        };
+            var cloudinarySettings = configuration.GetSection("CloudinarySettings");
+            var account = new Account(
+                cloudinarySettings["CloudName"],
+                cloudinarySettings["ApiKey"],
+                cloudinarySettings["ApiSecret"]
+            );
+            _cloudinary = new Cloudinary(account);
+        }
 
-        var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-        return uploadResult.SecureUrl.AbsoluteUri;
+        // Upload hình ảnh từ IFormFile
+        public async Task<string> UploadImageAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                throw new ArgumentException("File is empty or null.");
+
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(file.FileName, file.OpenReadStream()),
+                Transformation = new Transformation().Width(800).Height(800).Crop("limit") // Tùy chỉnh kích thước
+            };
+
+            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+            return uploadResult.SecureUrl.ToString(); // Trả về URL an toàn
+        }
+
+        // Xóa hình ảnh theo publicId
+        public async Task<bool> DeleteImageAsync(string publicId)
+        {
+            var deletionParams = new DeletionParams(publicId);
+            var result = await _cloudinary.DestroyAsync(deletionParams);
+            return result.Result == "ok";
+        }
     }
 }

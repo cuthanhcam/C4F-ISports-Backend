@@ -1,16 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using api.Data.Seeders;
-using api.Models;
 using Microsoft.EntityFrameworkCore;
+using api.Models;
+using api.Data.Configurations;
 
 namespace api.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) 
+            : base(options) { }
+
+        // Các DbSet cho tất cả các entity
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<BookingService> BookingServices { get; set; }
@@ -31,25 +30,10 @@ namespace api.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder); // This is required
+            base.OnModelCreating(modelBuilder);
+
+            // Áp dụng tất cả các configuration từ assembly
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
-            AccountSeeder.Seed(modelBuilder);
-            // BookingSeeder.Seed(modelBuilder);
-            // BookingServiceSeeder.Seed(modelBuilder);
-            FieldSeeder.Seed(modelBuilder);
-            // FieldAmenitySeeder.Seed(modelBuilder);
-            // FieldDescriptionSeeder.Seed(modelBuilder);
-            FieldImageSeeder.Seed(modelBuilder);
-            // FieldPricingSeeder.Seed(modelBuilder);
-            // NotificationSeeder.Seed(modelBuilder);
-            OwnerSeeder.Seed(modelBuilder);
-            // PaymentSeeder.Seed(modelBuilder);
-            // PromotionSeeder.Seed(modelBuilder);
-            // RefreshTokenSeeder.Seed(modelBuilder);
-            // ReviewSeeder.Seed(modelBuilder);
-            // ServiceSeeder.Seed(modelBuilder);
-            SportSeeder.Seed(modelBuilder);
-            UserSeeder.Seed(modelBuilder);
         }
     }
 }
