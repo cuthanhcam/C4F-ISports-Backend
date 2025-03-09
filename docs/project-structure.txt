@@ -14,32 +14,51 @@ api/
 │   │   ├── OwnerConfiguration.cs        
 │   │   ├── SportConfiguration.cs        
 │   │   ├── FieldConfiguration.cs        
+│   │   ├── FieldDescriptionConfiguration.cs
+│   │   ├── FieldImageConfiguration.cs   
+│   │   ├── FieldAmenityConfiguration.cs 
+│   │   ├── FieldPricingConfiguration.cs 
+│   │   ├── ServiceConfiguration.cs      
 │   │   ├── BookingConfiguration.cs      
+│   │   ├── BookingServiceConfiguration.cs
 │   │   ├── PaymentConfiguration.cs      
 │   │   ├── ReviewConfiguration.cs       
 │   │   ├── NotificationConfiguration.cs 
 │   │   ├── PromotionConfiguration.cs    
-│   │   └── RefreshTokenConfiguration.cs 
+│   │   ├── RefreshTokenConfiguration.cs 
+│   │   └── ...                          # Các cấu hình khác
 │   ├── Seeders/                         # Chứa các Seeder để thêm dữ liệu mẫu vào database
 │   │   ├── AccountSeeder.cs             
 │   │   ├── UserSeeder.cs                
 │   │   ├── OwnerSeeder.cs               
 │   │   ├── SportSeeder.cs               
 │   │   ├── FieldSeeder.cs               
+│   │   ├── FieldDescriptionSeeder.cs    
+│   │   ├── FieldImageSeeder.cs          
+│   │   ├── FieldAmenitySeeder.cs        
+│   │   ├── FieldPricingSeeder.cs        
+│   │   ├── ServiceSeeder.cs             
 │   │   ├── BookingSeeder.cs             
+│   │   ├── BookingServiceSeeder.cs      
 │   │   ├── PaymentSeeder.cs             
 │   │   ├── ReviewSeeder.cs              
 │   │   ├── NotificationSeeder.cs        
 │   │   ├── PromotionSeeder.cs           
-│   │   └── RefreshTokenSeeder.cs        
-
+│   │   ├── RefreshTokenSeeder.cs        
+│   │   └── ...                          # Các Seeder khác
 │── Models/                              # Tầng Model (Lớp ánh xạ với Database)
 │   ├── Account.cs
 │   ├── User.cs
 │   ├── Owner.cs
 │   ├── Sport.cs
 │   ├── Field.cs
+│   ├── FieldDescription.cs
+│   ├── FieldImage.cs
+│   ├── FieldAmenity.cs
+│   ├── FieldPricing.cs
+│   ├── Service.cs
 │   ├── Booking.cs
+│   ├── BookingService.cs
 │   ├── Payment.cs
 │   ├── Review.cs
 │   ├── Notification.cs

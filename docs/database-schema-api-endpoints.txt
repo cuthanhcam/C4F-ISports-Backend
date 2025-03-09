@@ -2,7 +2,7 @@ Database
 Cần bổ sung:
 - Indexing: Đảm bảo rằng các trường thường xuyên được tìm kiếm (ví dụ: Email, FieldId, UserId) được đánh index để tăng hiệu suất truy vấn.
 
-1. Accounts (Tài khoản người dùng hệ thống) - Bảng gốc quản lý thông tin đăng nhập và phân quyền
+1. Account (Tài khoản người dùng hệ thống) - Bảng gốc quản lý thông tin đăng nhập và phân quyền
     AccountId int (PK) - Mã tài khoản
     Email nvarchar(255) - Email đăng nhập (UNIQUE)
     Password nvarchar(255) - Mật khẩu (hash)
@@ -13,7 +13,7 @@ Cần bổ sung:
     RefreshToken nvarchar - Token làm mới
     RefreshTokenExpiry datetime - Thời gian hết hạn của token
 
-2. Users (Người dùng là khách hàng) - Phụ thuộc vào Accounts
+2. User (Người dùng là khách hàng) - Phụ thuộc vào Accounts
     UserId int (PK) - Mã user
     AccountId (FK) - Mã tài khoản
     FullName nvarchar(100) - Tên người dùng
@@ -23,18 +23,18 @@ Cần bổ sung:
     DateOfBirth	date - Ngày sinh
     AvatarUrl nvarchar(255) - Ảnh đại diện
 
-3. Owners (Chủ sân) - Phụ thuộc vào Accounts
+3. Owner (Chủ sân) - Phụ thuộc vào Accounts
     OwnerId	int (PK) - Mã chủ sân
     AccountId (FK) - Mã tài khoản
     FullName nvarchar(100) - Tên chủ sân
     Phone nvarchar(20) - Số điện thoại
     Email nvarchar(255) - Email
 
-4. Sports (Loại thể thao) - Bảng gốc, độc lập
+4. Sport (Loại thể thao) - Bảng gốc, độc lập
     SportId int (PK) - Mã loại thể thao
     SportName nvarchar(50) - Tên loại thể thao (VD: Bóng đá, Cầu lông)
 
-5. Fields (Sân thể thao) - Phụ thuộc vào Sports và Owners
+5. Field (Sân thể thao) - Phụ thuộc vào Sports và Owners
     FieldId	int (PK) - Mã sân
     SportId	int (FK) - Liên kết với bảng Sports
     FieldName nvarchar(100) - Tên sân
@@ -48,37 +48,38 @@ Cần bổ sung:
     CreatedAt datetime - Ngày tạo
     UpdatedAt datetime - Ngày cập nhật
 
-6. FieldDescriptions (Mô tả chi tiết sân) - Phụ thuộc vào Fields
-    DescriptionId int (PK) - Mã mô tả
+6. FieldDescription (Mô tả chi tiết sân) - Phụ thuộc vào Fields
+    FieldDescriptionId int (PK) - Mã mô tả
     FieldId	int (FK) - Liên kết với sân
     Description	nvarchar(MAX) - Nội dung mô tả
 
-7. FieldImages (Hình ảnh sân) - Phụ thuộc vào Fields
-    ImageId	int (PK) - Mã ảnh
+7. FieldImage (Hình ảnh sân) - Phụ thuộc vào Fields
+    FieldImageId	int (PK) - Mã ảnh
     FieldId	int (FK) - Sân liên kết
     Thumbnail nvarchar(255) - Ảnh đại diện sân
-    ImageUrls nvarchar(MAX) - Danh sách ảnh (nếu nhiều ảnh có thể lưu JSON hoặc tạo bảng con)
-
-8. FieldAmenities (Tiện ích của sân) - Phụ thuộc vào Fields
-    AmenityId int (PK) - Mã tiện ích
+    ImageUrl nvarchar(MAX) - Danh sách ảnh (nếu nhiều ảnh có thể lưu JSON hoặc tạo bảng con)
+    
+    
+8. FieldAmenity (Tiện ích của sân) - Phụ thuộc vào Fields
+    FieldAmenityId int (PK) - Mã tiện ích
     FieldId int (FK) - Liên kết với sân
-    Name nvarchar(100) - Tên tiện ích (vd: Có wifi, có phòng thay đồ...)
+    AmenityName nvarchar(100) - Tên tiện ích (vd: Có wifi, có phòng thay đồ...)
 
 9. FieldPricing (Giá thuê sân theo khung giờ) - Phụ thuộc vào Fields
-    PriceId	int (PK) - Mã giá
+    FieldPricingId	int (PK) - Mã giá
     FieldId	int (FK) - Liên kết với sân
     StartTime time - Giờ bắt đầu
     EndTime	time - Giờ kết thúc
     DayOfWeek int - (0-6) Phân biệt các ngày trong tuần/cuối tuần 
     Price decimal(10,2) - Giá trong khung giờ
 
-10. Services (Dịch vụ đi kèm) - Phụ thuộc vào Fields
+10. Service (Dịch vụ đi kèm) - Phụ thuộc vào Fields
     ServiceId int (PK) - Mã dịch vụ
     FieldId	int (FK) - Liên kết với sân
     ServiceName	nvarchar(100) - Tên dịch vụ
     Price decimal(10,2) - Giá dịch vụ
 
-11. Promotions (Khuyến mãi) - Bảng độc lập
+11. Promotion (Khuyến mãi) - Bảng độc lập
     PromotionId int (PK) - Mã khuyến mãi
     Code nvarchar(50) - Mã code
     Description nvarchar(255) - Mô tả
@@ -90,7 +91,7 @@ Cần bổ sung:
     MaxDiscountAmount decimal(10,2) - Giá trị giảm tối đa
     IsActive bit - Trạng thái
 
-12. Bookings (Đặt sân) - Phụ thuộc vào Users và Fields
+12. Booking (Đặt sân) - Phụ thuộc vào Users và Fields
     BookingId int (PK) - Mã đặt sân
     UserId int (FK) - Người đặt
     FieldId int (FK) - Sân được đặt
@@ -103,14 +104,14 @@ Cần bổ sung:
     CreatedAt datetime - Ngày tạo đơn
     UpdatedAt datetime - Ngày cập nhật
 
-13. BookingServices (Dịch vụ đi kèm với đơn đặt sân) - Phụ thuộc vào Bookings và Services
+13. BookingService (Dịch vụ đi kèm với đơn đặt sân) - Phụ thuộc vào Bookings và Services
     BookingServiceId int (PK) - Mã booking service
     BookingId int (FK) - Liên kết với booking
     ServiceId int (FK) - Liên kết với dịch vụ
     Quantity int - Số lượng
     Price decimal(10,2) - Giá tại thời điểm đặt
 
-14. Payments (Thanh toán) - Phụ thuộc vào Bookings
+14. Payment (Thanh toán) - Phụ thuộc vào Bookings
     PaymentId int (PK) - Mã thanh toán
     BookingId int (FK) - Đơn đặt sân
     Amount decimal(10,2) - Số tiền
@@ -119,7 +120,7 @@ Cần bổ sung:
     Status nvarchar(20) - Trạng thái (Success, Failed, Pending)
     CreatedAt datetime - Ngày tạo
 
-15. Reviews (Đánh giá từ khách hàng) - Phụ thuộc vào Users và Fields
+15. Review (Đánh giá từ khách hàng) - Phụ thuộc vào Users và Fields
     ReviewId int (PK) - Mã đánh giá
     UserId int (FK) - Mã khách hàng
     FieldId int (FK) - Sân được đánh giá
@@ -127,7 +128,7 @@ Cần bổ sung:
     Comment	nvarchar(MAX) - Nội dung đánh giá
     CreatedAt datetime - Ngày đánh giá
 
-16. Notifications (Thông báo) - Phụ thuộc vào Users
+16. Notification (Thông báo) - Phụ thuộc vào Users
     NotificationId int (PK) - Mã thông báo
     UserId int (FK) - Người nhận thông báo
     Title nvarchar(100) - Tiêu đề
@@ -135,8 +136,8 @@ Cần bổ sung:
     IsRead bit - Đã đọc chưa
     CreatedAt datetime - Ngày tạo
 
-17. RefreshTokens (Quản lý refresh token) - Phụ thuộc vào Accounts
-    TokenId int (PK) - Mã token
+17. RefreshToken (Quản lý refresh token) - Phụ thuộc vào Accounts
+    RefreshTokenId int (PK) - Mã token
     AccountId int (FK) - Tài khoản sở hữu
     Token nvarchar(255) - Token string
     Expires datetime - Thời gian hết hạn
