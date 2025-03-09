@@ -50,9 +50,9 @@ dotnet add package Serilog.AspNetCore --version 8.0.1
 dotnet add package Hangfire.AspNetCore --version 1.8.0
 dotnet add package Microsoft.AspNetCore.Mvc.NewtonsoftJson --version 8.0.3
 
-# Tạo các thư mục và file cần thiết theo cấu trúc:
+# BCrypt.Net để hash mật khẩu
 
-mkdir -p Data/{Configurations,Seeders,Migrations} Models Interfaces Repositories Services Mappers Dtos/{Auth,User,Field,Booking,Payment,Review} Controllers Middlewares Helpers Configurations Utils BackgroundServices Properties
+dotnet add package BCrypt.Net-Next --version 4.0.3
 
 
 --------------------------------------------------------------------------------------------------------------
@@ -69,3 +69,4 @@ dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.3
 dotnet add package Microsoft.Extensions.Identity.Core --version 8.0.3
 dotnet add package Newtonsoft.Json --version 13.0.3
 dotnet add package Swashbuckle.AspNetCore --version 6.6.2
+
