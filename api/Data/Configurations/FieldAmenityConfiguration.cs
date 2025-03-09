@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
 
 namespace api.Data.Configurations
 {
@@ -13,10 +9,12 @@ namespace api.Data.Configurations
         public void Configure(EntityTypeBuilder<FieldAmenity> builder)
         {
             builder.HasKey(fa => fa.FieldAmenityId);
+            builder.Property(fa => fa.FieldId).IsRequired();
+            builder.Property(fa => fa.AmenityName).IsRequired().HasMaxLength(100);
+
             builder.HasOne(fa => fa.Field)
                    .WithMany()
                    .HasForeignKey(fa => fa.FieldId);
-            builder.Property(fa => fa.AmenityName).HasMaxLength(100).IsRequired();
         }
     }
 }
