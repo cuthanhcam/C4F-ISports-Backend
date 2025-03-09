@@ -1,22 +1,59 @@
-Create ASP.NET core Web API
-	dotnet new webapi -n api
-	
-Install Entity Framework Core - .NET 8:
-	dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.3
-	dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.3	
-	dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.3
+Use packages:
+--version 8.0.3
 
-Install Identity:
-    Microsoft.Extensions.Identity.Core --version 8.0.3
-    Microsoft.AspNetCore.Identity.EntityFrameworkCore --version 8.0.3
-   	Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.3
+# Entity Framework Core và SQL Server
+dotnet add package Microsoft.EntityFrameworkCore --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.3
 
-Create and Update database - using migrations:
-	dotnet ef migrations add InitialCreate
-	dotnet ef database update
+# Quản lý Token & Xác thực (JWT)
+dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.3
 
-dotnet ef migrations add SeedRole
+# AutoMapper (Chuyển đổi Model ↔ DTO)
+dotnet add package AutoMapper --version 12.0.1
+dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection --version 12.0.1
 
+# Bảo mật (Mã hóa mật khẩu)
+dotnet add package Microsoft.AspNetCore.Identity --version 8.0.3
+
+# Hỗ trợ Logging
+dotnet add package Serilog.AspNetCore --version 8.0.3
+dotnet add package Serilog.Sinks.Console --version 8.0.3
+dotnet add package Serilog.Sinks.File --version 8.0.3
+
+# Swagger (Tài liệu API)
+dotnet add package Swashbuckle.AspNetCore --version 8.0.3
+
+# Xử lý môi trường (Cấu hình settings từ appsettings.json)
+dotnet add package Microsoft.Extensions.Configuration.Json --version 8.0.3
+
+# Hỗ trợ các phương thức HTTP nâng cao
+dotnet add package Microsoft.AspNetCore.Mvc.NewtonsoftJson --version 8.0.3
+
+
+dotnet add package Microsoft.EntityFrameworkCore --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.3
+dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore --version 8.0.3
+dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.3
+dotnet add package AutoMapper --version 12.0.1
+dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection --version 12.0.1
+dotnet add package Microsoft.Extensions.Configuration --version 8.0.0
+dotnet add package Microsoft.Extensions.Configuration.Json --version 8.0.0
+dotnet add package Microsoft.Extensions.Configuration.EnvironmentVariables --version 8.0.0
+dotnet add package Microsoft.Extensions.DependencyInjection --version 8.0.0
+dotnet add package Microsoft.Extensions.Logging --version 8.0.0
+dotnet add package Serilog.AspNetCore --version 8.0.1
+dotnet add package Hangfire.AspNetCore --version 1.8.0
+dotnet add package Microsoft.AspNetCore.Mvc.NewtonsoftJson --version 8.0.3
+
+# Tạo các thư mục và file cần thiết theo cấu trúc:
+
+mkdir -p Data/{Configurations,Seeders,Migrations} Models Interfaces Repositories Services Mappers Dtos/{Auth,User,Field,Booking,Payment,Review} Controllers Middlewares Helpers Configurations Utils BackgroundServices Properties
+
+
+--------------------------------------------------------------------------------------------------------------
 
 Installed packages:
 

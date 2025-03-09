@@ -1,0 +1,252 @@
+Database
+Cần bổ sung:
+- Indexing: Đảm bảo rằng các trường thường xuyên được tìm kiếm (ví dụ: Email, FieldId, UserId) được đánh index để tăng hiệu suất truy vấn.
+
+1. Accounts (Tài khoản người dùng hệ thống) - Bảng gốc quản lý thông tin đăng nhập và phân quyền
+    AccountId int (PK) - Mã tài khoản
+    Email nvarchar(255) - Email đăng nhập (UNIQUE)
+    Password nvarchar(255) - Mật khẩu (hash)
+    Role nvarchar(20) - Vai trò (User, Owner, Admin)
+    IsActive bit - Trạng thái tài khoản
+    CreatedAt datetime - Ngày tạo
+    LastLogin datetime - Lần đăng nhập cuối
+    RefreshToken nvarchar - Token làm mới
+    RefreshTokenExpiry datetime - Thời gian hết hạn của token
+
+2. Users (Người dùng là khách hàng) - Phụ thuộc vào Accounts
+    UserId int (PK) - Mã user
+    AccountId (FK) - Mã tài khoản
+    FullName nvarchar(100) - Tên người dùng
+    Email nvarchar(255) - Email (duy nhất)
+    Phone nvarchar(20) - Số điện thoại
+    Gender nvarchar(10) - Giới tính
+    DateOfBirth	date - Ngày sinh
+    AvatarUrl nvarchar(255) - Ảnh đại diện
+
+3. Owners (Chủ sân) - Phụ thuộc vào Accounts
+    OwnerId	int (PK) - Mã chủ sân
+    AccountId (FK) - Mã tài khoản
+    FullName nvarchar(100) - Tên chủ sân
+    Phone nvarchar(20) - Số điện thoại
+    Email nvarchar(255) - Email
+
+4. Sports (Loại thể thao) - Bảng gốc, độc lập
+    SportId int (PK) - Mã loại thể thao
+    SportName nvarchar(50) - Tên loại thể thao (VD: Bóng đá, Cầu lông)
+
+5. Fields (Sân thể thao) - Phụ thuộc vào Sports và Owners
+    FieldId	int (PK) - Mã sân
+    SportId	int (FK) - Liên kết với bảng Sports
+    FieldName nvarchar(100) - Tên sân
+    Phone nvarchar(20) - Số điện thoại đặt lịch
+    Address	nvarchar(255) - Địa chỉ sân
+    OpenHours nvarchar(100) - Khung giờ mở cửa
+    OwnerId	int (FK) - Liên kết với Owners (chủ sân)
+    Status nvarchar(20) - (Active (hoạt động), Inactive (không hoạt động), Maintenance(bảo trì))
+    Latitude decimal(9,6) - Vĩ độ 
+    Longitude decimal(9,6) - Kinh độ
+    CreatedAt datetime - Ngày tạo
+    UpdatedAt datetime - Ngày cập nhật
+
+6. FieldDescriptions (Mô tả chi tiết sân) - Phụ thuộc vào Fields
+    DescriptionId int (PK) - Mã mô tả
+    FieldId	int (FK) - Liên kết với sân
+    Description	nvarchar(MAX) - Nội dung mô tả
+
+7. FieldImages (Hình ảnh sân) - Phụ thuộc vào Fields
+    ImageId	int (PK) - Mã ảnh
+    FieldId	int (FK) - Sân liên kết
+    Thumbnail nvarchar(255) - Ảnh đại diện sân
+    ImageUrls nvarchar(MAX) - Danh sách ảnh (nếu nhiều ảnh có thể lưu JSON hoặc tạo bảng con)
+
+8. FieldAmenities (Tiện ích của sân) - Phụ thuộc vào Fields
+    AmenityId int (PK) - Mã tiện ích
+    FieldId int (FK) - Liên kết với sân
+    Name nvarchar(100) - Tên tiện ích (vd: Có wifi, có phòng thay đồ...)
+
+9. FieldPricing (Giá thuê sân theo khung giờ) - Phụ thuộc vào Fields
+    PriceId	int (PK) - Mã giá
+    FieldId	int (FK) - Liên kết với sân
+    StartTime time - Giờ bắt đầu
+    EndTime	time - Giờ kết thúc
+    DayOfWeek int - (0-6) Phân biệt các ngày trong tuần/cuối tuần 
+    Price decimal(10,2) - Giá trong khung giờ
+
+10. Services (Dịch vụ đi kèm) - Phụ thuộc vào Fields
+    ServiceId int (PK) - Mã dịch vụ
+    FieldId	int (FK) - Liên kết với sân
+    ServiceName	nvarchar(100) - Tên dịch vụ
+    Price decimal(10,2) - Giá dịch vụ
+
+11. Promotions (Khuyến mãi) - Bảng độc lập
+    PromotionId int (PK) - Mã khuyến mãi
+    Code nvarchar(50) - Mã code
+    Description nvarchar(255) - Mô tả
+    DiscountType nvarchar(20) - Loại giảm giá (Percentage, Fixed)
+    DiscountValue decimal(10,2) - Giá trị giảm
+    StartDate datetime - Ngày bắt đầu
+    EndDate datetime - Ngày kết thúc
+    MinBookingValue decimal(10,2) - Giá trị đơn tối thiểu
+    MaxDiscountAmount decimal(10,2) - Giá trị giảm tối đa
+    IsActive bit - Trạng thái
+
+12. Bookings (Đặt sân) - Phụ thuộc vào Users và Fields
+    BookingId int (PK) - Mã đặt sân
+    UserId int (FK) - Người đặt
+    FieldId int (FK) - Sân được đặt
+    BookingDate date - Ngày đặt sân
+    StartTime time - Giờ bắt đầu
+    EndTime time - Giờ kết thúc
+    TotalPrice decimal(10,2) - Tổng tiền
+    Status nvarchar(20) - Trạng thái (Pending, Confirmed, Canceled, Completed)
+    PaymentStatus nvarchar(20) - Trạng thái thanh toán (Unpaid, Partially Paid, Paid)
+    CreatedAt datetime - Ngày tạo đơn
+    UpdatedAt datetime - Ngày cập nhật
+
+13. BookingServices (Dịch vụ đi kèm với đơn đặt sân) - Phụ thuộc vào Bookings và Services
+    BookingServiceId int (PK) - Mã booking service
+    BookingId int (FK) - Liên kết với booking
+    ServiceId int (FK) - Liên kết với dịch vụ
+    Quantity int - Số lượng
+    Price decimal(10,2) - Giá tại thời điểm đặt
+
+14. Payments (Thanh toán) - Phụ thuộc vào Bookings
+    PaymentId int (PK) - Mã thanh toán
+    BookingId int (FK) - Đơn đặt sân
+    Amount decimal(10,2) - Số tiền
+    PaymentMethod nvarchar(50) - Phương thức thanh toán
+    TransactionId nvarchar(100) - Mã giao dịch
+    Status nvarchar(20) - Trạng thái (Success, Failed, Pending)
+    CreatedAt datetime - Ngày tạo
+
+15. Reviews (Đánh giá từ khách hàng) - Phụ thuộc vào Users và Fields
+    ReviewId int (PK) - Mã đánh giá
+    UserId int (FK) - Mã khách hàng
+    FieldId int (FK) - Sân được đánh giá
+    Rating int - Số sao (1 - 5)
+    Comment	nvarchar(MAX) - Nội dung đánh giá
+    CreatedAt datetime - Ngày đánh giá
+
+16. Notifications (Thông báo) - Phụ thuộc vào Users
+    NotificationId int (PK) - Mã thông báo
+    UserId int (FK) - Người nhận thông báo
+    Title nvarchar(100) - Tiêu đề
+    Content nvarchar(MAX) - Nội dung
+    IsRead bit - Đã đọc chưa
+    CreatedAt datetime - Ngày tạo
+
+17. RefreshTokens (Quản lý refresh token) - Phụ thuộc vào Accounts
+    TokenId int (PK) - Mã token
+    AccountId int (FK) - Tài khoản sở hữu
+    Token nvarchar(255) - Token string
+    Expires datetime - Thời gian hết hạn
+    Created datetime - Thời gian tạo
+    Revoked datetime - Thời gian thu hồi (nullable)
+    ReplacedByToken nvarchar(255) - Token thay thế (nullable)
+
+--------------------------------------------------------------------------------------------------------------
+
+Mô hình quan hệ chi tiết
+
+- Account (1) ---- (0..1) User
+- Account (1) ---- (0..1) Owner
+- Owner (1) ---- (0..n) Field
+- Sport (1) ---- (0..n) Field
+- Field (1) ---- (0..n) FieldDescription
+- Field (1) ---- (0..n) FieldImage
+- Field (1) ---- (0..n) FieldAmenity
+- Field (1) ---- (0..n) FieldPricing
+- Field (1) ---- (0..n) Service
+- Field (1) ---- (0..n) Booking
+- Field (1) ---- (0..n) Review
+- User (1) ---- (0..n) Booking
+- User (1) ---- (0..n) Review
+- User (1) ---- (0..n) Notification
+- Booking (1) ---- (0..n) BookingService
+- Booking (1) ---- (0..n) Payment
+- Service (1) ---- (0..n) BookingService
+- Account (1) ---- (0..n) RefreshToken
+
+--------------------------------------------------------------------------------------------------------------
+
+API Endpoints
+
+1. Authentication & Authorization Endpoints
+    POST /api/auth/register - Đăng ký tài khoản
+    POST /api/auth/login - Đăng nhập
+    POST /api/auth/refresh-token - Làm mới token
+    POST /api/auth/forgot-password - Quên mật khẩu
+    POST /api/auth/reset-password - Đặt lại mật khẩu
+
+2. User Management Endpoints
+    GET /api/users/profile - Xem thông tin cá nhân
+    PUT /api/users/profile - Cập nhật thông tin cá nhân
+    GET /api/users/bookings - Lấy lịch sử đặt sân
+
+3. Field Management Endpoints
+    GET /api/fields - Lấy danh sách sân (có filter)
+    GET /api/fields/{id} - Lấy chi tiết sân
+    GET /api/fields/search - Tìm kiếm sân (location, sport type, time...)
+    GET /api/fields/{id}/available-slots - Kiểm tra khung giờ trống
+    POST /api/fields - Thêm sân mới (Owner)
+    PUT /api/fields/{id} - Cập nhật thông tin sân (Owner)
+    DELETE /api/fields/{id} - Xóa sân (Owner)
+    GET /api/fields/{id}/reviews - Lấy đánh giá của sân
+
+4. Booking Management Endpoints
+    POST /api/bookings - Tạo đơn đặt sân
+    GET /api/bookings - Lấy danh sách đặt sân (cho User/Owner)
+    GET /api/bookings/{id} - Xem chi tiết đơn đặt sân
+    PUT /api/bookings/{id} - Cập nhật đơn đặt sân
+    DELETE /api/bookings/{id} - Hủy đơn đặt sân
+    PUT /api/bookings/{id}/status - Cập nhật trạng thái đơn (Owner)
+
+5. Payment Processing Endpoints
+    POST /api/payments - Tạo giao dịch thanh toán
+    GET /api/payments/{id} - Xem chi tiết thanh toán
+    POST /api/payments/webhook - Webhook nhận thông báo từ cổng thanh toán
+
+6. Review System Endpoints
+    POST /api/reviews - Thêm đánh giá
+    GET /api/fields/{id}/reviews - Lấy đánh giá của sân
+    PUT /api/reviews/{id} - Cập nhật đánh giá
+    DELETE /api/reviews/{id} - Xóa đánh giá
+
+7. Notification System Endpoints
+    GET /api/notifications - Lấy danh sách thông báo
+    PUT /api/notifications/{id}/read - Đánh dấu đã đọc
+    DELETE /api/notifications/{id} - Xóa thông báo
+
+8. Sport Categories Endpoints
+    GET /api/sports - Lấy danh sách loại thể thao
+    GET /api/sports/{id} - Lấy chi tiết loại thể thao
+    POST /api/sports - Thêm loại thể thao mới (Admin)
+    PUT /api/sports/{id} - Cập nhật loại thể thao (Admin)
+    DELETE /api/sports/{id} - Xóa loại thể thao (Admin)
+
+9. Owner Dashboard Endpoints
+    GET /api/owners/dashboard - Thông tin tổng quan
+    GET /api/owners/fields - Danh sách sân của chủ sân
+    GET /api/owners/bookings - Danh sách đơn đặt sân 
+    GET /api/owners/revenues - Báo cáo doanh thu
+
+10. Promotion Management Endpoints
+    POST /api/promotions - Tạo mã khuyến mãi mới (Admin/Owner)
+    GET /api/promotions - Lấy danh sách mã khuyến mãi
+    GET /api/promotions/{id} - Lấy chi tiết mã khuyến mãi
+    PUT /api/promotions/{id} - Cập nhật mã khuyến mãi
+    DELETE /api/promotions/{id} - Xóa mã khuyến mãi
+    POST /api/promotions/verify - Kiểm tra tính hợp lệ của mã
+
+11. Admin Management Endpoints
+    GET /api/admin/users - Quản lý người dùng
+    GET /api/admin/owners - Quản lý chủ sân
+    PUT /api/admin/owners/{id}/approve - Phê duyệt đăng ký chủ sân
+    GET /api/admin/fields - Quản lý sân
+    GET /api/admin/bookings - Quản lý đặt sân
+    GET /api/admin/reports - Xem báo cáo thống kê
+
+12. Statistics & Analytics Endpoints
+    GET /api/statistics/fields - Thống kê về sân (Admin/Owner)
+    GET /api/statistics/bookings - Thống kê về lượt đặt sân (Admin/Owner)
+    GET /api/statistics/users - Thống kê về người dùng (Admin)

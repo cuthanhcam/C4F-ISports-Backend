@@ -1,48 +1,147 @@
 api/
-│── Controllers/                      // Chứa các controller xử lý request từ client
-│   ├── AccountController.cs          // Xử lý đăng ký, đăng nhập, quản lý tài khoản
-│   ├── RoleController.cs             // Xử lý quản lý roles (Admin, User, Owner)
-│
-├── Data/                             // Chứa lớp làm việc với cơ sở dữ liệu
-│   ├── ApplicationDbContext.cs       // DbContext của Entity Framework để quản lý database
-│
-├── Dtos/                             // Chứa các lớp DTO để truyền dữ liệu giữa client và server
-│   ├── Account/
-│   │   ├── LoginDto.cs               // DTO cho yêu cầu đăng nhập
-│   │   ├── RegisterDto.cs            // DTO cho yêu cầu đăng ký
-│   │   ├── UserDto.cs                // DTO trả về thông tin user
-│
-├── Extensions/                       // Chứa các phương thức mở rộng (extension methods)
-│   ├── ClaimsExtensions.cs           // Mở rộng Claims để lấy thông tin user từ token
-│
-├── Helpers/                          // Chứa các class hỗ trợ xử lý logic
-│   ├── JwtTokenHelper.cs             // Hỗ trợ tạo và xác minh JWT token
-│
-├── Interfaces/                       // Chứa các interface định nghĩa hợp đồng cho service/repository
-│   ├── IAuthService.cs               // Interface cho service xác thực
-│   ├── ITokenService.cs              // Interface cho service xử lý JWT token
-│
-├── Mappers/                          // Chứa các lớp ánh xạ dữ liệu giữa Model và DTO
-│   ├── UserMapper.cs                 // Chuyển đổi giữa User model và UserDto
-│
-├── Migrations/                       // Chứa các file migration của Entity Framework
-│   ├── ...                           // Các file migration được tự động tạo ra khi cập nhật database
-│
-├── Models/                           // Chứa các entity chính của ứng dụng
-│   ├── AppUser.cs                    // Mô tả người dùng (User) trong hệ thống
-│
-├── Properties/                       // Chứa file cấu hình môi trường chạy ứng dụng
-│   ├── launchSettings.json           // Cấu hình môi trường chạy ứng dụng khi debug
-│
-├── Repository/                       // Chứa các lớp repository thực thi truy vấn dữ liệu
-│   ├── AuthRepository.cs             // Repository xử lý đăng nhập, đăng ký
-│
-├── Service/                          // Chứa các service xử lý logic nghiệp vụ
-│   ├── AuthService.cs                // Service xử lý xác thực
-│   ├── TokenService.cs               // Service tạo và xác minh JWT token
-│
-├── .gitignore                        // Loại trừ các file không cần thiết khỏi git
-├── Program.cs                        // Điểm khởi động của ứng dụng
-├── api.csproj                        // File cấu hình dự án ASP.NET Core
-├── appsettings.Development.json      // Cấu hình ứng dụng trong môi trường phát triển
-└── appsettings.json                  // Cấu hình chung của ứng dụng (database, JWT, v.v.)
+│── Data/                                # Tầng Data Access (Quản lý database)
+│   ├── ApplicationDbContext.cs          # DbContext - Quản lý database
+│   ├── SeedData.cs                      # Chạy tất cả các Seeder khi ứng dụng khởi động
+│   ├── UnitOfWork.cs                    # Quản lý transaction cho database
+│   ├── Migrations/                      # Thư mục chứa các file Migration do EF Core tạo
+│   │   ├── 20250101_InitialCreate.cs    # Migration đầu tiên (ví dụ)
+│   │   ├── 20250101_InitialCreate.Designer.cs
+│   │   ├── ApplicationDbContextModelSnapshot.cs
+│   │   └── ...                          # Các Migration khác
+│   ├── Configurations/                  # Cấu hình Entity (Fluent API)
+│   │   ├── AccountConfiguration.cs      
+│   │   ├── UserConfiguration.cs         
+│   │   ├── OwnerConfiguration.cs        
+│   │   ├── SportConfiguration.cs        
+│   │   ├── FieldConfiguration.cs        
+│   │   ├── BookingConfiguration.cs      
+│   │   ├── PaymentConfiguration.cs      
+│   │   ├── ReviewConfiguration.cs       
+│   │   ├── NotificationConfiguration.cs 
+│   │   ├── PromotionConfiguration.cs    
+│   │   └── RefreshTokenConfiguration.cs 
+│   ├── Seeders/                         # Chứa các Seeder để thêm dữ liệu mẫu vào database
+│   │   ├── AccountSeeder.cs             
+│   │   ├── UserSeeder.cs                
+│   │   ├── OwnerSeeder.cs               
+│   │   ├── SportSeeder.cs               
+│   │   ├── FieldSeeder.cs               
+│   │   ├── BookingSeeder.cs             
+│   │   ├── PaymentSeeder.cs             
+│   │   ├── ReviewSeeder.cs              
+│   │   ├── NotificationSeeder.cs        
+│   │   ├── PromotionSeeder.cs           
+│   │   └── RefreshTokenSeeder.cs        
+
+│── Models/                              # Tầng Model (Lớp ánh xạ với Database)
+│   ├── Account.cs
+│   ├── User.cs
+│   ├── Owner.cs
+│   ├── Sport.cs
+│   ├── Field.cs
+│   ├── Booking.cs
+│   ├── Payment.cs
+│   ├── Review.cs
+│   ├── Notification.cs
+│   ├── Promotion.cs
+│   ├── RefreshToken.cs
+
+│── Interfaces/                          # Tầng Interface (Định nghĩa hợp đồng cho Service & Repository)
+│   ├── IGenericRepository.cs             # Interface Repository chung cho CRUD
+│   ├── IAuthService.cs
+│   ├── IBookingService.cs
+│   ├── IPaymentService.cs
+│   ├── IFieldService.cs
+│   ├── IReviewService.cs
+│   ├── INotificationService.cs
+│   ├── IPromotionService.cs
+│   ├── IAdminService.cs
+│   ├── IUnitOfWork.cs                    # Interface cho UnitOfWork
+
+│── Repositories/                        # Tầng Repository (Tương tác với Database)
+│   ├── GenericRepository.cs              # Repository CRUD chung
+│   ├── AuthRepository.cs
+│   ├── BookingRepository.cs
+│   ├── PaymentRepository.cs
+│   ├── FieldRepository.cs
+│   ├── ReviewRepository.cs
+│   ├── NotificationRepository.cs
+│   ├── PromotionRepository.cs
+│   ├── AdminRepository.cs
+
+│── Services/                            # Tầng Service (Xử lý Business Logic)
+│   ├── AuthService.cs
+│   ├── BookingService.cs
+│   ├── PaymentService.cs
+│   ├── FieldService.cs
+│   ├── ReviewService.cs
+│   ├── NotificationService.cs
+│   ├── PromotionService.cs
+│   ├── AdminService.cs
+
+│── Mappers/                             # Tầng Mapper (Chuyển đổi Model ↔ DTO)
+│   ├── UserMapper.cs
+│   ├── FieldMapper.cs
+│   ├── BookingMapper.cs
+│   ├── PaymentMapper.cs
+│   ├── ReviewMapper.cs
+│   ├── NotificationMapper.cs
+
+│── Dtos/                                # Tầng DTO (Truyền dữ liệu giữa Client & Server)
+│   ├── Auth/
+│   │   ├── LoginDto.cs
+│   │   ├── RegisterDto.cs
+│   ├── User/
+│   │   ├── UserProfileDto.cs
+│   ├── Field/
+│   │   ├── FieldDto.cs
+│   ├── Booking/
+│   │   ├── BookingDto.cs
+│   ├── Payment/
+│   │   ├── PaymentDto.cs
+│   ├── Review/
+│   │   ├── ReviewDto.cs
+
+│── Controllers/                         # Tầng API (Tiếp nhận Request từ Client)
+│   ├── AuthController.cs
+│   ├── UserController.cs
+│   ├── OwnerController.cs
+│   ├── FieldController.cs
+│   ├── BookingController.cs
+│   ├── PaymentController.cs
+│   ├── ReviewController.cs
+│   ├── NotificationController.cs
+│   ├── PromotionController.cs
+│   ├── AdminController.cs
+
+│── Middlewares/                         # Middleware (Xử lý Request & Security)
+│   ├── ExceptionHandlingMiddleware.cs
+│   ├── JwtMiddleware.cs
+
+│── Helpers/                             # Các class hỗ trợ (JWT, Email, Password Hashing)
+│   ├── JwtTokenHelper.cs
+│   ├── EmailHelper.cs
+│   ├── PasswordHasher.cs
+
+│── Configurations/                      # Cấu hình hệ thống
+│   ├── JwtSettings.cs
+│   ├── EmailSettings.cs
+│   ├── PaymentSettings.cs
+
+│── Utils/                               # Tiện ích chung
+│   ├── SlugGenerator.cs
+│   ├── CurrencyFormatter.cs
+
+│── BackgroundServices/                  # Xử lý công việc chạy nền
+│   ├── NotificationBackgroundService.cs
+│   ├── PaymentStatusChecker.cs
+
+│── Properties/
+│   ├── launchSettings.json
+
+│── .gitignore
+│── Program.cs
+│── Startup.cs
+│── api.csproj
+│── appsettings.json
+│── appsettings.Development.json

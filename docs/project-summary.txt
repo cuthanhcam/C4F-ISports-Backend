@@ -1,18 +1,167 @@
 C4F-ISports: Ứng dụng quản lý sân thể thao và đặt lịch trực tuyến
 
-1. Chức năng cho người dùng (Khách hàng)
-- Tìm kiếm sân thể thao: Người dùng có thể tìm kiếm sân gần nhất theo vị trí, loại sân (bóng đá, cầu lông, pickleball...), thời gian trống.
-- Đặt lịch trực tuyến: Cho phép chọn sân, thời gian và thanh toán trực tuyến (hoặc đặt cọc).
-- Quản lý lịch đặt: Xem, hủy hoặc thay đổi lịch đặt nếu còn trong thời gian cho phép.
-- Đánh giá & bình luận: Người dùng có thể đánh giá chất lượng sân và dịch vụ.
-- Hệ thống thông báo: Nhắc lịch, cập nhật trạng thái đặt sân qua email hoặc thông báo trên ứng dụng.
+Mô tả Chi tiết Dự án
+1. Tổng quan
+- Dự án "Ứng dụng quản lý sân thể thao và đặt lịch trực tuyến" là nền tảng kết nối giữa người dùng và các chủ sân thể thao.
+- Cho phép người dùng tìm kiếm, đặt và thanh toán sân thể thao dễ dàng và nhanh chóng. 
+- Hệ thống hỗ trợ nhiều loại thể thao khác nhau, quản lý thông tin sân, đánh giá, khuyến mãi và thanh toán.
 
-2. Chức năng cho chủ sân
-Quản lý sân: Thêm, chỉnh sửa thông tin sân (địa chỉ, giá, thời gian hoạt động...).
-Quản lý đặt sân: Xem lịch đặt theo ngày, tuần, tháng; xác nhận hoặc từ chối yêu cầu đặt sân.
-Thống kê & báo cáo doanh thu: Báo cáo doanh thu theo ngày/tháng/năm, số lượt đặt sân, phản hồi khách hàng.
+2. Vai trò và Chức năng
+2.1. Người dùng (User)
+Chức năng:
+    - Đăng ký, đăng nhập tài khoản
+    - Tìm kiếm sân theo nhiều tiêu chí (khu vực, loại thể thao, giá, thời gian...)
+    - Xem thông tin chi tiết sân (hình ảnh, giá, tiện ích, đánh giá...)
+    - Đặt sân theo khung giờ trống
+    - Đặt dịch vụ đi kèm
+    - Thanh toán trực tuyến
+    - Quản lý lịch sử đặt sân
+    - Đánh giá sân sau khi sử dụng
+    - Nhận thông báo (xác nhận đặt sân, nhắc nhở, khuyến mãi...)
+    - Cập nhật thông tin cá nhân
+Giao diện:
+    - Trang chủ: Hiển thị các sân nổi bật, tìm kiếm nhanh
+    - Trang tìm kiếm: Bộ lọc chi tiết, hiển thị kết quả dạng danh sách/bản đồ
+    - Trang chi tiết sân: Thông tin sân, lịch trống, đánh giá, đặt sân
+    - Trang đặt sân: Form đặt sân, chọn dịch vụ, thanh toán
+    - Trang cá nhân: Thông tin người dùng, lịch sử đặt sân
+    - Trang thông báo: Danh sách thông báo
 
-3. Chức năng chung
-Xác thực & phân quyền: Đăng ký, đăng nhập (Google, Facebook, tài khoản thường), phân quyền giữa người dùng và chủ sân.
-Tích hợp bản đồ: Hiển thị sân thể thao trên bản đồ, giúp người dùng dễ dàng tìm đường.
-Giao diện responsive: Thiết kế UI bằng React + Tailwind, hỗ trợ cả máy tính và điện thoại.
+2.2. Chủ sân (Owner)
+Chức năng:
+    - Đăng ký làm chủ sân (cần admin phê duyệt)
+    - Quản lý thông tin sân (thêm, sửa, xóa)
+    - Quản lý ảnh sân
+    - Cài đặt giá theo khung giờ, ngày trong tuần
+    - Quản lý dịch vụ đi kèm
+    - Quản lý đơn đặt sân (xác nhận, hủy)
+    - Xem thống kê doanh thu
+    - Tạo mã khuyến mãi
+    - Quản lý đánh giá từ khách hàng
+Giao diện:
+    - Dashboard: Tổng quan về số lượng đặt sân, doanh thu, đánh giá
+    - Quản lý sân: Danh sách sân, thêm/sửa sân
+    - Quản lý đơn đặt: Danh sách đơn, chi tiết đơn, cập nhật trạng thái
+    - Báo cáo doanh thu: Biểu đồ, thống kê theo thời gian
+    - Quản lý khuyến mãi: Tạo, cập nhật mã giảm giá
+
+2.3. Admin
+Chức năng:
+    - Quản lý người dùng (xem, khóa/mở tài khoản)
+    - Phê duyệt đăng ký chủ sân
+    - Quản lý loại thể thao
+    - Kiểm soát nội dung đánh giá
+    - Xem báo cáo thống kê toàn hệ thống
+Giao diện:
+    - Dashboard admin: Tổng quan hệ thống
+    - Quản lý người dùng: Danh sách, chi tiết, khóa/mở tài khoản
+    - Quản lý chủ sân: Danh sách, phê duyệt đăng ký
+    - Quản lý loại thể thao: Thêm, sửa, xóa
+    - Báo cáo thống kê: Biểu đồ, số liệu về người dùng, đặt sân, doanh thu
+
+3. Luồng hoạt động chính
+3.1. Đăng ký và đăng nhập
+    - Người dùng đăng ký tài khoản với email/số điện thoại
+    - Xác thực tài khoản qua email/SMS
+    - Đăng nhập với email/số điện thoại và mật khẩu
+    - Quên mật khẩu và khôi phục qua email/SMS
+
+3.2. Tìm kiếm và đặt sân
+    - Người dùng tìm kiếm sân theo vị trí, loại thể thao, thời gian
+    - Xem thông tin chi tiết sân
+    - Kiểm tra khung giờ trống
+    - Chọn ngày, giờ đặt sân
+    - Thêm dịch vụ đi kèm (nếu cần)
+    - Áp dụng mã khuyến mãi (nếu có)
+    - Xác nhận đặt sân và thanh toán
+    - Nhận email/SMS xác nhận đặt sân
+
+3.3. Quản lý đặt sân (Owner)
+    - Chủ sân nhận thông báo có đơn đặt mới
+    - Xác nhận hoặc từ chối đơn đặt
+    - Theo dõi lịch đặt sân
+    - Đánh dấu hoàn thành sau khi khách sử dụng
+
+3.4. Đánh giá và phản hồi
+    - Người dùng đánh giá sân sau khi sử dụng
+    - Chủ sân có thể xem và phản hồi đánh giá
+    - Admin kiểm soát nội dung đánh giá không phù hợp
+
+4. Tính năng nổi bật
+4.1. Tìm kiếm theo vị trí
+    - Sử dụng bản đồ để hiển thị các sân gần người dùng
+    - Lọc sân theo khoảng cách
+
+4.2. Đặt sân thông minh
+    - Hiển thị khung giờ trống và bận
+    - Gợi ý khung giờ phù hợp dựa trên lịch sử đặt sân
+
+4.3. Thanh toán đa dạng
+    - Thanh toán trực tuyến (thẻ, ví điện tử)
+    - Thanh toán một phần (đặt cọc)
+    - Hoàn tiền tự động khi hủy đặt sân
+
+4.4. Thống kê và báo cáo
+    - Chủ sân xem được thống kê doanh thu theo ngày/tuần/tháng
+    - Biểu đồ trực quan về lượng đặt sân
+    - Phân tích thời gian đặt nhiều nhất
+
+4.5. Hệ thống đánh giá
+    - Đánh giá sao (1-5)
+    - Bình luận chi tiết
+    - Hiển thị đánh giá trung bình và số lượng đánh giá
+
+5. Các trang chính của ứng dụng
+5.1. Trang chủ
+    - Banner quảng cáo
+    - Tìm kiếm nhanh (loại thể thao, khu vực, thời gian)
+    - Danh sách sân nổi bật
+    - Khuyến mãi đang diễn ra
+    - Loại thể thao phổ biến
+
+5.2. Trang tìm kiếm
+    - Bộ lọc nâng cao (vị trí, loại sân, giá, tiện ích...)
+    - Hiển thị kết quả dạng danh sách
+    - Hiển thị kết quả trên bản đồ
+    - Sắp xếp kết quả (giá, khoảng cách, đánh giá)
+
+5.3. Trang chi tiết sân
+    - Ảnh sân (gallery/slider)
+    - Thông tin cơ bản (tên, địa chỉ, liên hệ)
+    - Mô tả chi tiết
+    - Bản đồ vị trí
+    - Tiện ích sân
+    - Bảng giá theo khung giờ
+    - Lịch trống/bận
+    - Dịch vụ đi kèm
+    - Đánh giá từ người dùng
+    - Form đặt sân nhanh
+
+5.4. Trang đặt sân
+    - Xác nhận thông tin đặt (ngày, giờ, sân)
+    - Chọn dịch vụ đi kèm
+    - Nhập mã khuyến mãi
+    - Tổng hợp chi phí
+    - Chọn phương thức thanh toán
+    - Xác nhận đặt sân
+
+5.5. Trang cá nhân (User)
+    - Thông tin cá nhân
+    - Lịch sử đặt sân
+    - Đánh giá đã viết
+    - Mã khuyến mãi đã lưu
+    - Thông báo
+
+5.6. Dashboard (Owner)
+    - Tổng quan (số lượng đặt sân, doanh thu, đánh giá mới)
+    - Lịch đặt sân trong ngày/tuần
+    - Quản lý đơn đặt sân
+    - Quản lý thông tin sân
+    - Báo cáo doanh thu
+
+5.7. Dashboard (Admin)
+    - Tổng quan hệ thống
+    - Quản lý người dùng
+    - Quản lý chủ sân
+    - Quản lý loại thể thao
+    - Báo cáo thống kê
