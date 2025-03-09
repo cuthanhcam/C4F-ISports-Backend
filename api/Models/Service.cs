@@ -13,5 +13,6 @@ namespace api.Models
         public decimal Price { get; set; }
 
         public Field Field { get; set; }
+        public ICollection<BookingService> BookingServices { get; set; } // Thêm quan hệ 1-n
     }
 }

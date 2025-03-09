@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
 
 namespace api.Data.Configurations
 {
@@ -13,14 +9,20 @@ namespace api.Data.Configurations
         public void Configure(EntityTypeBuilder<BookingService> builder)
         {
             builder.HasKey(bs => bs.BookingServiceId);
+            builder.Property(bs => bs.BookingId).IsRequired();
+            builder.Property(bs => bs.ServiceId).IsRequired();
+            builder.Property(bs => bs.Quantity).IsRequired();
+            builder.Property(bs => bs.Price).HasPrecision(10, 2);
+
             builder.HasOne(bs => bs.Booking)
                    .WithMany()
-                   .HasForeignKey(bs => bs.BookingId);
+                   .HasForeignKey(bs => bs.BookingId)
+                   .OnDelete(DeleteBehavior.NoAction); // Thêm NoAction để tránh cascade
+
             builder.HasOne(bs => bs.Service)
-                   .WithMany()
-                   .HasForeignKey(bs => bs.ServiceId);
-            builder.Property(bs => bs.Quantity).IsRequired();
-            builder.Property(bs => bs.Price).HasColumnType("decimal(10,2)").IsRequired();
+                   .WithMany(s => s.BookingServices)
+                   .HasForeignKey(bs => bs.ServiceId)
+                   .OnDelete(DeleteBehavior.NoAction); // Thêm NoAction để tránh cascade
         }
     }
 }
