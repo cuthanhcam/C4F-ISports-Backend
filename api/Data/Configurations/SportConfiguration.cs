@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
 
 namespace api.Data.Configurations
 {
@@ -13,7 +9,7 @@ namespace api.Data.Configurations
         public void Configure(EntityTypeBuilder<Sport> builder)
         {
             builder.HasKey(s => s.SportId);
-            builder.Property(s => s.SportName).HasMaxLength(50).IsRequired();
+            builder.Property(s => s.SportName).IsRequired().HasMaxLength(50);
         }
     }
 }
