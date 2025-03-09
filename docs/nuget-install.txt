@@ -31,6 +31,8 @@ dotnet add package Microsoft.Extensions.Configuration.Json --version 8.0.3
 # Hỗ trợ các phương thức HTTP nâng cao
 dotnet add package Microsoft.AspNetCore.Mvc.NewtonsoftJson --version 8.0.3
 
+# Cài đặt thư viện Cloudinary trong ASP.NET Core
+dotnet add package CloudinaryDotNet --version 1.27.0
 
 dotnet add package Microsoft.EntityFrameworkCore --version 8.0.3
 dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.3
