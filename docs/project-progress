@@ -1,33 +1,3 @@
-Xây dựng từng API Endpoint theo thứ tự
-Bây giờ, bạn có thể bắt đầu phát triển từng API Endpoint theo nhóm chức năng:
-
-🔹 Nhóm 1: Authentication & Authorization
-Tạo AuthController.cs
-Viết API Đăng ký, Đăng nhập, Refresh Token, Quên mật khẩu
-🔹 Nhóm 2: User Management
-Tạo UserController.cs
-Viết API Xem & cập nhật thông tin cá nhân, lấy lịch sử đặt sân
-🔹 Nhóm 3: Field Management
-Tạo FieldController.cs
-Viết API Lấy danh sách sân, tìm kiếm, quản lý sân của chủ sân
-🔹 Nhóm 4: Booking Management
-Tạo BookingController.cs
-Viết API Đặt sân, cập nhật trạng thái, hủy đặt sân
-🔹 Nhóm 5: Payment Processing
-Tạo PaymentController.cs
-Viết API Xử lý thanh toán, webhook từ cổng thanh toán
-
-Cách làm:
-Tạo Controller trong Controllers/
-Viết Service để xử lý logic
-Viết Repository để truy vấn database
-Viết DTO để truyền dữ liệu
-
-
--------------------------------------------------------------------------------------------------------------
-
-
-
 Giai đoạn 1: Thiết lập nền tảng (Đã hoàn thành)
 Nhánh: develop
 Công việc:
