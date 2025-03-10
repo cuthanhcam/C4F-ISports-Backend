@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,11 +5,23 @@ namespace api.Data.Seeders
 {
     public static class FieldImageSeeder
     {
-        public static void Seed(ModelBuilder modelBuilder)
+        public static void Seed(ApplicationDbContext context)
         {
-            modelBuilder.Entity<FieldImage>().HasData(
-                new FieldImage { FieldImageId = 1, FieldId = 1, Thumbnail = "https://your-cloud-storage.com/field1-thumb.jpg", ImageUrl = "https://your-cloud-storage.com/field1.jpg" }
-            );
+            if (!context.FieldImages.Any())
+            {
+                var field = context.Fields.FirstOrDefault(f => f.FieldName == "Football Field A");
+                if (field != null)
+                {
+                    context.FieldImages.Add(
+                        new FieldImage
+                        {
+                            FieldId = field.FieldId,
+                            Thumbnail = "https://res.cloudinary.com/dboluzvfu/image/upload/v1234567890/thumb.jpg",
+                            ImageUrl = "https://res.cloudinary.com/dboluzvfu/image/upload/v1234567890/field.jpg"
+                        }
+                    );
+                }
+            }
         }
     }
 }
