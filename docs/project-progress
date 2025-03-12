@@ -6,8 +6,8 @@ Cấu hình CloudinaryService, JWT, DbContext.
 Trạng thái: Đã xong, đang ở nhánh develop.
 
 -------------------------------------------------------------------------------------------------------
-
-Giai đoạn 2: Xác thực và phân quyền (Authentication & Authorization)
+(Đã hoàn thành)
+Giai đoạn 2: Xác thực và phân quyền (Authentication & Authorization) 
 Nhánh: feature/Authentication
 Công việc:
 Triển khai AuthService (register, login, refresh token, forgot/reset password).
