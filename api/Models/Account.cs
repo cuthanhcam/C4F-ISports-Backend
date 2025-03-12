@@ -16,6 +16,8 @@ namespace api.Models
         public DateTime? LastLogin { get; set; } // Lần đăng nhập cuối
         public string? RefreshToken { get; set; } // Token làm mới
         public DateTime? RefreshTokenExpiry { get; set; } // Thời gian hết hạn của token
+        public string? ResetToken { get; set; } // Token đặt lại mật khẩu
+        public DateTime? ResetTokenExpiry { get; set; } // Thời gian hết hạn của token
 
         public User? User { get; set; } // Quan hệ 1-1 với User (nếu là khách hàng)
         public Owner? Owner { get; set; } // Quan hệ 1-1 với Owner (nếu là chủ sân)
