@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using api.Dtos.Auth;
+using api.Models;
 
 namespace api.Interfaces
 {
@@ -16,5 +18,7 @@ namespace api.Interfaces
         Task LogoutAsync(string refreshToken);
         Task<bool> VerifyTokenAsync(string token);
         Task<bool> VerifyEmailAsync(string email, string token);
+        Task<Account> GetCurrentUserAsync(ClaimsPrincipal user);
+        Task ChangePasswordAsync(ClaimsPrincipal user, ChangePasswordDto changePasswordDto);
     }
 }

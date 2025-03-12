@@ -16,6 +16,7 @@ using System.Text;
 using api.Data;
 using api.Services;
 using api.Interfaces;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,8 +45,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // 3. Cấu hình CloudinaryService
 builder.Services.AddScoped<CloudinaryService>();
 
-// 4. Đăng ký các service khác (sẽ thêm sau khi bạn triển khai)
-// builder.Services.AddScoped<IAuthService, AuthService>(); // Ví dụ, bạn sẽ cần triển khai AuthService
+// 4. Đăng ký các service khác
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddSingleton<IEmailSender, SendGridEmailSender>();
@@ -66,7 +66,33 @@ builder.Services.AddControllers();
 
 // 7. Thêm Swagger để kiểm thử API
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "C4F ISports API", Version = "v1" });
+    // Thêm cấu hình cho Bearer Token
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter JWT with Bearer into field (e.g., 'Bearer {token}')",
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });
+});
 
 var app = builder.Build();
 
@@ -89,7 +115,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 // 8. Áp dụng migrations và seed dữ liệu
-// Seed dữ liệu
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;

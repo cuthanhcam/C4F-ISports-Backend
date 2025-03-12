@@ -272,5 +272,39 @@ namespace api.Services
             await _unitOfWork.SaveChangesAsync();
             return refreshToken;
         }
+
+        public async Task<Account> GetCurrentUserAsync(ClaimsPrincipal user)
+        {
+            var accountIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(accountIdClaim) || !int.TryParse(accountIdClaim, out int accountId))
+            {
+                throw new Exception("Invalid user token.");
+            }
+
+            var account = await _unitOfWork.Accounts.GetAll()
+                .Include(a => a.User)
+                .Include(a => a.Owner)
+                .FirstOrDefaultAsync(a => a.AccountId == accountId);
+            if (account == null)
+            {
+                throw new Exception("User not found.");
+            }
+
+            return account;
+        }
+
+        public async Task ChangePasswordAsync(ClaimsPrincipal user, ChangePasswordDto changePasswordDto)
+        {
+            var account = await GetCurrentUserAsync(user);
+
+            if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.OldPassword, account.Password))
+            {
+                throw new Exception("Old password is incorrect.");
+            }
+
+            account.Password = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
+            _unitOfWork.Accounts.Update(account);
+            await _unitOfWork.SaveChangesAsync();
+        }
     }
 }
