@@ -12,41 +12,46 @@ namespace api.Data.Seeders
                 context.Accounts.AddRange(
                     new Account
                     {
-                        // Không chỉ định AccountId
                         Email = "user@example.com",
                         Password = BCrypt.Net.BCrypt.HashPassword("password123"),
                         Role = "User",
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow,
                         LastLogin = null,
-                        RefreshToken = null,
-                        RefreshTokenExpiry = null
+                        ResetToken = null,
+                        ResetTokenExpiry = null,
+                        VerificationToken = null,
+                        VerificationTokenExpiry = null
                     },
                     new Account
                     {
-                        // Không chỉ định AccountId
                         Email = "owner@example.com",
                         Password = BCrypt.Net.BCrypt.HashPassword("password123"),
                         Role = "Owner",
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow,
                         LastLogin = null,
-                        RefreshToken = null,
-                        RefreshTokenExpiry = null
+                        ResetToken = null,
+                        ResetTokenExpiry = null,
+                        VerificationToken = null,
+                        VerificationTokenExpiry = null
                     },
                     new Account
                     {
-                        // Không chỉ định AccountId
                         Email = "admin@example.com",
                         Password = BCrypt.Net.BCrypt.HashPassword("password123"),
                         Role = "Admin",
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow,
                         LastLogin = null,
-                        RefreshToken = null,
-                        RefreshTokenExpiry = null
+                        ResetToken = null,
+                        ResetTokenExpiry = null,
+                        VerificationToken = null,
+                        VerificationTokenExpiry = null
                     }
                 );
+
+                context.SaveChanges(); // Lưu thay đổi vào database
             }
         }
     }

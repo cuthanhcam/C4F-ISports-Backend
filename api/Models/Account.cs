@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace api.Models
 {
@@ -14,12 +12,13 @@ namespace api.Models
         public bool IsActive { get; set; } // Trạng thái tài khoản
         public DateTime CreatedAt { get; set; } // Ngày tạo tài khoản
         public DateTime? LastLogin { get; set; } // Lần đăng nhập cuối
-        public string? RefreshToken { get; set; } // Token làm mới
-        public DateTime? RefreshTokenExpiry { get; set; } // Thời gian hết hạn của token
         public string? ResetToken { get; set; } // Token đặt lại mật khẩu
-        public DateTime? ResetTokenExpiry { get; set; } // Thời gian hết hạn của token
+        public DateTime? ResetTokenExpiry { get; set; } // Thời gian hết hạn của reset token
+        public string? VerificationToken { get; set; } // Token xác thực email
+        public DateTime? VerificationTokenExpiry { get; set; } // Thời gian hết hạn của verification token
 
-        public User? User { get; set; } // Quan hệ 1-1 với User (nếu là khách hàng)
-        public Owner? Owner { get; set; } // Quan hệ 1-1 với Owner (nếu là chủ sân)
+        public User? User { get; set; } // Quan hệ 1-1 với User
+        public Owner? Owner { get; set; } // Quan hệ 1-1 với Owner
+        public ICollection<RefreshToken> RefreshTokens { get; set; } // Quan hệ 1-nhiều với RefreshToken
     }
 }

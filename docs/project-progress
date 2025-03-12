@@ -7,21 +7,13 @@ Trạng thái: Đã xong, đang ở nhánh develop.
 
 -------------------------------------------------------------------------------------------------------
 (Đã hoàn thành)
-Giai đoạn 2: Xác thực và phân quyền (Authentication & Authorization) 
+Giai đoạn 2: Xác thực và phân quyền (Authentication & Authorization)
 Nhánh: feature/Authentication
 Công việc:
 Triển khai AuthService (register, login, refresh token, forgot/reset password).
 Tạo AuthController với các endpoint tương ứng.
 Thêm middleware kiểm tra role (User, Owner, Admin).
 Merge: Từ feature/Authentication vào develop.
-
-POST /api/auth/register
-POST /api/auth/login
-POST /api/auth/refresh-token
-POST /api/auth/forgot-password
-POST /api/auth/reset-password
-POST /api/auth/logout
-GET /api/auth/verify-token
 
 -------------------------------------------------------------------------------------------------------
 

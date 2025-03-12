@@ -15,5 +15,6 @@ namespace api.Interfaces
         Task ResetPasswordAsync(ResetPasswordDto resetPasswordDto);
         Task LogoutAsync(string refreshToken);
         Task<bool> VerifyTokenAsync(string token);
+        Task<bool> VerifyEmailAsync(string email, string token);
     }
 }
