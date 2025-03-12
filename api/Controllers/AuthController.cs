@@ -1,5 +1,6 @@
 using api.Dtos.Auth;
 using api.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
@@ -120,6 +121,42 @@ namespace api.Controllers
             {
                 var result = await _authService.VerifyEmailAsync(email, token);
                 return Ok(new { Success = true, Message = "Email verified" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            try
+            {
+                var user = await _authService.GetCurrentUserAsync(User);
+                return Ok(new
+                {
+                    Email = user.Email,
+                    Role = user.Role,
+                    FullName = user.User?.FullName ?? user.Owner?.FullName,
+                    Phone = user.User?.Phone ?? user.Owner?.Phone
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
+
+        [HttpPost("change-password")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
+        {
+            try
+            {
+                await _authService.ChangePasswordAsync(User, changePasswordDto);
+                return Ok("Password changed successfully.");
             }
             catch (Exception ex)
             {
