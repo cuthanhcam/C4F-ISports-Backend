@@ -14,11 +14,11 @@ namespace api.Models
         public string Phone { get; set; } // Số điện thoại
         public string? Gender { get; set; } // Giới tính
         public DateTime DateOfBirth { get; set; } // Ngày sinh
-        public string? AvatarUrl { get; set; } // Ảnh đại diện // ? cho phép null
+        public string? AvatarUrl { get; set; } // Ảnh đại diện
 
         public Account Account { get; set; } // Quan hệ với bảng Account
-        public ICollection<Booking> Bookings { get; set; }
-        public ICollection<Review> Reviews { get; set; }
-        public ICollection<Notification> Notifications { get; set; }
+        public ICollection<Booking> Bookings { get; set; } // Quan hệ với bảng Booking
+        public ICollection<Review> Reviews { get; set; } // Quan hệ với bảng Review
+        public ICollection<Notification> Notifications { get; set; } // Quan hệ với bảng Notification
     }
 }
