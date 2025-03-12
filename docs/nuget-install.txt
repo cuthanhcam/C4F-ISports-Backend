@@ -54,6 +54,8 @@ dotnet add package Microsoft.AspNetCore.Mvc.NewtonsoftJson --version 8.0.3
 
 dotnet add package BCrypt.Net-Next --version 4.0.3
 
+# verify-email by SendGrid:
+dotnet add package SendGrid
 
 --------------------------------------------------------------------------------------------------------------
 
