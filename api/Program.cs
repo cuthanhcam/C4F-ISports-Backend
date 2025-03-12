@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using api.Data;
 using api.Services;
+using api.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +46,8 @@ builder.Services.AddScoped<CloudinaryService>();
 
 // 4. Đăng ký các service khác (sẽ thêm sau khi bạn triển khai)
 // builder.Services.AddScoped<IAuthService, AuthService>(); // Ví dụ, bạn sẽ cần triển khai AuthService
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // 5. Cấu hình CORS
 builder.Services.AddCors(options =>
@@ -73,7 +76,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Redirect HTTP sang HTTPS (không cần trong môi trường phát triển)
 
 // Áp dụng CORS
 app.UseCors("AllowAll");
@@ -85,24 +88,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 // 8. Áp dụng migrations và seed dữ liệu
-// using (var scope = app.Services.CreateScope())
-// {
-//     var services = scope.ServiceProvider;
-//     try
-//     {
-//         var context = services.GetRequiredService<ApplicationDbContext>();
-//         // Áp dụng migrations
-//         context.Database.Migrate();
-//         // Seed dữ liệu
-//         SeedData.Initialize(services);
-//     }
-//     catch (Exception ex)
-//     {
-//         var logger = services.GetRequiredService<ILogger<Program>>();
-//         logger.LogError(ex, "An error occurred while migrating or seeding the database.");
-//     }
-// }
-
 // Seed dữ liệu
 using (var scope = app.Services.CreateScope())
 {
@@ -114,7 +99,7 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<ApplicationDbContext>();
         context.Database.Migrate();
         logger.LogInformation("Migrations applied successfully.");
-        SeedData.Initialize(services); // Gọi static method trực tiếp
+        SeedData.Initialize(services);
         logger.LogInformation("Database seeding completed successfully.");
     }
     catch (Exception ex)

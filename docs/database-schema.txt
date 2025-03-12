@@ -12,6 +12,8 @@ Cần bổ sung:
     LastLogin datetime - Lần đăng nhập cuối
     RefreshToken nvarchar - Token làm mới
     RefreshTokenExpiry datetime - Thời gian hết hạn của token
+    ResetToken nvarchar - Token đặt lại mật khẩu
+    ResetTokenExpiry nvarchar - Thời gian hết hạn của token
 
 2. User (Người dùng là khách hàng) - Phụ thuộc vào Accounts
     UserId int (PK) - Mã user

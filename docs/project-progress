@@ -5,6 +5,8 @@ Xây dựng Models, Configurations, Seeders.
 Cấu hình CloudinaryService, JWT, DbContext.
 Trạng thái: Đã xong, đang ở nhánh develop.
 
+-------------------------------------------------------------------------------------------------------
+
 Giai đoạn 2: Xác thực và phân quyền (Authentication & Authorization)
 Nhánh: feature/Authentication
 Công việc:
@@ -13,11 +15,23 @@ Tạo AuthController với các endpoint tương ứng.
 Thêm middleware kiểm tra role (User, Owner, Admin).
 Merge: Từ feature/Authentication vào develop.
 
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/refresh-token
+POST /api/auth/forgot-password
+POST /api/auth/reset-password
+POST /api/auth/logout
+GET /api/auth/verify-token
+
+-------------------------------------------------------------------------------------------------------
+
 Giai đoạn 3: Quản lý người dùng (User Management)
 Nhánh: feature/UserManagement
 Công việc:
 Tạo UserService và UserController cho profile, cập nhật profile, lịch sử đặt sân.
 Merge: Từ feature/UserManagement vào develop.
+
+-------------------------------------------------------------------------------------------------------
 
 Giai đoạn 4: Quản lý sân (Field Management)
 Nhánh: feature/FieldManagement
@@ -26,11 +40,15 @@ Tạo FieldService và FieldController cho CRUD sân, tìm kiếm, khung giờ t
 Tích hợp Cloudinary để upload ảnh sân.
 Merge: Từ feature/FieldManagement vào develop.
 
+-------------------------------------------------------------------------------------------------------
+
 Giai đoạn 5: Quản lý đặt sân (Booking Management)
 Nhánh: feature/BookingManagement
 Công việc:
 Tạo BookingService và BookingController cho CRUD đặt sân, cập nhật trạng thái.
 Merge: Từ feature/BookingManagement vào develop.
+
+-------------------------------------------------------------------------------------------------------
 
 Giai đoạn 6: Thanh toán (Payment Processing)
 Nhánh: feature/PaymentProcessing
@@ -39,11 +57,15 @@ Tạo PaymentService và PaymentController cho thanh toán, webhook.
 Tích hợp với cổng thanh toán (nếu có).
 Merge: Từ feature/PaymentProcessing vào develop.
 
+-------------------------------------------------------------------------------------------------------
+
 Giai đoạn 7: Đánh giá và thông báo (Review & Notification)
 Nhánh: feature/ReviewAndNotification
 Công việc:
 Tạo ReviewService, NotificationService, và các controller tương ứng.
 Merge: Từ feature/ReviewAndNotification vào develop.
+
+-------------------------------------------------------------------------------------------------------
 
 Giai đoạn 8: Quản lý loại thể thao và khuyến mãi (Sport & Promotion)
 Nhánh: feature/SportAndPromotion
@@ -51,17 +73,23 @@ Công việc:
 Tạo SportService, PromotionService, và các controller tương ứng.
 Merge: Từ feature/SportAndPromotion vào develop.
 
+-------------------------------------------------------------------------------------------------------
+
 Giai đoạn 9: Dashboard và quản trị (Owner Dashboard & Admin Management)
 Nhánh: feature/DashboardAndAdmin
 Công việc:
 Tạo OwnerService, AdminService, và các controller cho dashboard, quản lý users/owners/fields.
 Merge: Từ feature/DashboardAndAdmin vào develop.
 
+-------------------------------------------------------------------------------------------------------
+
 Giai đoạn 10: Thống kê (Statistics & Analytics)
 Nhánh: feature/Statistics
 Công việc:
 Tạo StatisticsService và StatisticsController cho các endpoint thống kê.
 Merge: Từ feature/Statistics vào develop.
+
+-------------------------------------------------------------------------------------------------------
 
 Giai đoạn 11: Kiểm thử và hoàn thiện
 Nhánh: develop
