@@ -15,6 +15,9 @@ namespace api.Interfaces
         IGenericRepository<Owner> Owners { get; }
         IGenericRepository<RefreshToken> RefreshTokens { get; }
         IGenericRepository<FavoriteField> FavoriteFields { get; }
+        IGenericRepository<Booking> Bookings { get; }
+        IGenericRepository<Field> Fields { get; }
+        IGenericRepository<Sport> Sports { get; }
         Task<int> SaveChangesAsync();
     }
 }
