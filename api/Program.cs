@@ -49,6 +49,7 @@ builder.Services.AddScoped<CloudinaryService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddSingleton<IEmailSender, SendGridEmailSender>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // 5. Cấu hình CORS
 builder.Services.AddCors(options =>
