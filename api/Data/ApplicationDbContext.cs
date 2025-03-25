@@ -27,6 +27,7 @@ namespace api.Data
         public DbSet<Service> Services { get; set; }
         public DbSet<Sport> Sports { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<FavoriteField> FavoriteFields { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

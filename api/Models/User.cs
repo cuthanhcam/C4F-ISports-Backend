@@ -20,5 +20,6 @@ namespace api.Models
         public ICollection<Booking> Bookings { get; set; } // Quan hệ với bảng Booking
         public ICollection<Review> Reviews { get; set; } // Quan hệ với bảng Review
         public ICollection<Notification> Notifications { get; set; } // Quan hệ với bảng Notification
+        public ICollection<FavoriteField> FavoriteFields { get; set; } // Quan hệ với bảng FavoriteField
     }
 }
