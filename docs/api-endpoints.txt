@@ -20,30 +20,10 @@ API Endpoints
     GET /api/users/bookings - Lấy lịch sử đặt sân
         Query Parameters: ?status=Pending&date=2025-03-10&sort=BookingDate:desc&page=1&pageSize=10
     DELETE /api/users/profile - Xóa tài khoản người dùng
-
-Gợi ý thêm các API endpoints khác:
-GET /api/users/favorite-fields
-    Mô tả: Lấy danh sách sân yêu thích của người dùng.
-    Query Parameters: ?sort=AddedDate:desc&page=1&pageSize=10
-    Response: [{ fieldId, fieldName, sportType, location, thumbnail }]
-    Lý do: Người dùng có thể lưu sân yêu thích để đặt lại sau, hỗ trợ tính năng cá nhân hóa.
-POST /api/users/favorite-fields/{fieldId}
-    Mô tả: Thêm sân vào danh sách yêu thích.
-    Response: { success: true, message: "Field added to favorites" }
-    Lý do: Bổ sung tính năng yêu thích sân trên trang chi tiết sân.
-DELETE /api/users/favorite-fields/{fieldId}
-    Mô tả: Xóa sân khỏi danh sách yêu thích.
-    Response: { success: true, message: "Field removed from favorites" }
-    Lý do: Đồng bộ với tính năng thêm yêu thích.
-GET /api/users/notifications-settings
-    Mô tả: Lấy cài đặt thông báo của người dùng (email, SMS, push).
-    Response: { emailNotifications: true, smsNotifications: false, pushNotifications: true }
-    Lý do: Cho phép người dùng tùy chỉnh cách nhận thông báo.
-PUT /api/users/notifications-settings
-    Mô tả: Cập nhật cài đặt thông báo.
-    Request Body: { emailNotifications: true, smsNotifications: false, pushNotifications: true }
-    Response: { success: true, message: "Settings updated" }
-    Lý do: Hỗ trợ quản lý thông báo trên trang cá nhân.
+    GET /api/users/favorite-fields - Lấy danh sách sân yêu thích
+        Query Parameters: ?sort=AddedDate:desc&page=1&pageSize=10
+    POST /api/users/favorite-fields/{fieldId} - Thêm sân vào danh sách yêu thích
+    DELETE /api/users/favorite-fields/{fieldId} - Xóa sân khỏi danh sách yêu thích.
 -------------------------------------------------------------------------------------------------------
 
 3. Field Management Endpoints

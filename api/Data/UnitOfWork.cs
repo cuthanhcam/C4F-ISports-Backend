@@ -19,7 +19,7 @@ namespace api.Data
         public IGenericRepository<Owner> Owners { get; private set; }
 
         public IGenericRepository<RefreshToken> RefreshTokens { get; private set; }
-
+        public IGenericRepository<FavoriteField> FavoriteFields { get; private set; }
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
@@ -27,6 +27,7 @@ namespace api.Data
             Users = new GenericRepository<User>(_context);
             Owners = new GenericRepository<Owner>(_context);
             RefreshTokens = new GenericRepository<RefreshToken>(_context);
+            FavoriteFields = new GenericRepository<FavoriteField>(_context);
         }
 
         public async Task<int> SaveChangesAsync()
