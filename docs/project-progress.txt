@@ -16,7 +16,7 @@ Thêm middleware kiểm tra role (User, Owner, Admin).
 Merge: Từ feature/Authentication vào develop.
 
 -------------------------------------------------------------------------------------------------------
-
+(Đã hoàn thành)
 Giai đoạn 3: Quản lý người dùng (User Management)
 Nhánh: feature/UserManagement
 Công việc:
