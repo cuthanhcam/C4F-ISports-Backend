@@ -61,7 +61,7 @@ namespace api.Services
                     FullName = registerDto.FullName,
                     Email = registerDto.Email,
                     Phone = registerDto.Phone,
-                    DateOfBirth = DateTime.UtcNow,
+                    DateOfBirth = null,
                     Gender = "Unknown"
                 };
                 await _unitOfWork.Users.AddAsync(user);
