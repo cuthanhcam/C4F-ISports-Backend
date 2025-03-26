@@ -46,6 +46,7 @@ api/
 │   │   ├── PromotionSeeder.cs           
 │   │   ├── RefreshTokenSeeder.cs        
 │   │   └── ...                          # Các Seeder khác
+|
 │── Models/                              # Tầng Model (Lớp ánh xạ với Database)
 │   ├── Account.cs
 │   ├── User.cs
@@ -64,7 +65,7 @@ api/
 │   ├── Notification.cs
 │   ├── Promotion.cs
 │   ├── RefreshToken.cs
-
+|
 │── Interfaces/                          # Tầng Interface (Định nghĩa hợp đồng cho Service & Repository)
 │   ├── IGenericRepository.cs             # Interface Repository chung cho CRUD
 │   ├── IAuthService.cs
@@ -76,7 +77,7 @@ api/
 │   ├── IPromotionService.cs
 │   ├── IAdminService.cs
 │   ├── IUnitOfWork.cs                    # Interface cho UnitOfWork
-
+|
 │── Repositories/                        # Tầng Repository (Tương tác với Database)
 │   ├── GenericRepository.cs              # Repository CRUD chung
 │   ├── AuthRepository.cs
@@ -87,7 +88,7 @@ api/
 │   ├── NotificationRepository.cs
 │   ├── PromotionRepository.cs
 │   ├── AdminRepository.cs
-
+|
 │── Services/                            # Tầng Service (Xử lý Business Logic)
 │   ├── AuthService.cs
 │   ├── BookingService.cs
@@ -97,7 +98,7 @@ api/
 │   ├── NotificationService.cs
 │   ├── PromotionService.cs
 │   ├── AdminService.cs
-
+|
 │── Mappers/                             # Tầng Mapper (Chuyển đổi Model ↔ DTO)
 │   ├── UserMapper.cs
 │   ├── FieldMapper.cs
@@ -105,22 +106,29 @@ api/
 │   ├── PaymentMapper.cs
 │   ├── ReviewMapper.cs
 │   ├── NotificationMapper.cs
-
+|
 │── Dtos/                                # Tầng DTO (Truyền dữ liệu giữa Client & Server)
 │   ├── Auth/
+│   │   ├── ChangePasswordDto.cs
 │   │   ├── LoginDto.cs
+│   │   ├── RefreshTokenDto.cs
 │   │   ├── RegisterDto.cs
-│   ├── User/
-│   │   ├── UserProfileDto.cs
-│   ├── Field/
-│   │   ├── FieldDto.cs
+│   │   ├── ResetPasswordDto.cs
 │   ├── Booking/
 │   │   ├── BookingDto.cs
+│   ├── Field/
+│   │   ├── FieldDto.cs
 │   ├── Payment/
 │   │   ├── PaymentDto.cs
 │   ├── Review/
 │   │   ├── ReviewDto.cs
-
+│   ├── User/
+│   │   ├── BookingResponseDto.cs
+│   │   ├── FavoriteFieldResponseDto.cs
+│   │   ├── UserProfileDto.cs
+│   │   ├── UserProfileResponseDto.cs
+│   ├── PaginatedResponse.cs
+|
 │── Controllers/                         # Tầng API (Tiếp nhận Request từ Client)
 │   ├── AuthController.cs
 │   ├── UserController.cs
@@ -132,32 +140,32 @@ api/
 │   ├── NotificationController.cs
 │   ├── PromotionController.cs
 │   ├── AdminController.cs
-
+|
 │── Middlewares/                         # Middleware (Xử lý Request & Security)
 │   ├── ExceptionHandlingMiddleware.cs
 │   ├── JwtMiddleware.cs
-
+|
 │── Helpers/                             # Các class hỗ trợ (JWT, Email, Password Hashing)
 │   ├── JwtTokenHelper.cs
 │   ├── EmailHelper.cs
 │   ├── PasswordHasher.cs
-
+|
 │── Configurations/                      # Cấu hình hệ thống
 │   ├── JwtSettings.cs
 │   ├── EmailSettings.cs
 │   ├── PaymentSettings.cs
-
+|
 │── Utils/                               # Tiện ích chung
 │   ├── SlugGenerator.cs
 │   ├── CurrencyFormatter.cs
-
+|
 │── BackgroundServices/                  # Xử lý công việc chạy nền
 │   ├── NotificationBackgroundService.cs
 │   ├── PaymentStatusChecker.cs
-
+|
 │── Properties/
 │   ├── launchSettings.json
-
+|
 │── .gitignore
 │── Program.cs
 │── Startup.cs

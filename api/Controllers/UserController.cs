@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using api.Dtos;
 
 namespace api.Controllers
 {

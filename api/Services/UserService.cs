@@ -3,8 +3,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using api.Data;
+using api.Dtos;
 using api.Dtos.User;
-using api.Helpers;
 using api.Interfaces;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
@@ -59,7 +59,7 @@ namespace api.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<PagedResult<Booking>> GetUserBookingsAsync(ClaimsPrincipal user, string status, DateTime? date, string sort, int page, int pageSize)
+        public async Task<PaginatedResponse<Booking>> GetUserBookingsAsync(ClaimsPrincipal user, string status, DateTime? date, string sort, int page, int pageSize)
         {
             var dbUser = await GetCurrentUserAsync(user);
             var query = _unitOfWork.Bookings.GetAll()
@@ -99,7 +99,7 @@ namespace api.Services
             var totalItems = await query.CountAsync();
             var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
-            return new PagedResult<Booking>
+            return new PaginatedResponse<Booking>
             {
                 TotalItems = totalItems,
                 Page = page,
@@ -117,7 +117,7 @@ namespace api.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<PagedResult<FavoriteField>> GetFavoriteFieldsAsync(ClaimsPrincipal user, string sort, int page, int pageSize)
+        public async Task<PaginatedResponse<FavoriteField>> GetFavoriteFieldsAsync(ClaimsPrincipal user, string sort, int page, int pageSize)
         {
             var dbUser = await GetCurrentUserAsync(user);
             var query = _unitOfWork.FavoriteFields.GetAll()
@@ -148,7 +148,7 @@ namespace api.Services
             var totalItems = await query.CountAsync();
             var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
-            return new PagedResult<FavoriteField>
+            return new PaginatedResponse<FavoriteField>
             {
                 TotalItems = totalItems,
                 Page = page,
