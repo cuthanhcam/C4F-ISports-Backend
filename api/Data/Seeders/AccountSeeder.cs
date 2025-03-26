@@ -12,46 +12,46 @@ namespace api.Data.Seeders
                 context.Accounts.AddRange(
                     new Account
                     {
-                        Email = "user@example.com",
-                        Password = BCrypt.Net.BCrypt.HashPassword("password123"),
-                        Role = "User",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        LastLogin = null,
-                        ResetToken = null,
-                        ResetTokenExpiry = null,
-                        VerificationToken = null,
-                        VerificationTokenExpiry = null
-                    },
-                    new Account
-                    {
-                        Email = "owner@example.com",
-                        Password = BCrypt.Net.BCrypt.HashPassword("password123"),
-                        Role = "Owner",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        LastLogin = null,
-                        ResetToken = null,
-                        ResetTokenExpiry = null,
-                        VerificationToken = null,
-                        VerificationTokenExpiry = null
-                    },
-                    new Account
-                    {
                         Email = "admin@example.com",
-                        Password = BCrypt.Net.BCrypt.HashPassword("password123"),
+                        Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
                         Role = "Admin",
                         IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        LastLogin = null,
-                        ResetToken = null,
-                        ResetTokenExpiry = null,
-                        VerificationToken = null,
-                        VerificationTokenExpiry = null
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Account
+                    {
+                        Email = "owner1@example.com",
+                        Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
+                        Role = "Owner",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Account
+                    {
+                        Email = "user1@example.com",
+                        Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
+                        Role = "User",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Account
+                    {
+                        Email = "owner2@example.com",
+                        Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
+                        Role = "Owner",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    },
+                    new Account
+                    {
+                        Email = "user2@example.com",
+                        Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
+                        Role = "User",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
                     }
                 );
-
-                context.SaveChanges(); // Lưu thay đổi vào database
+                context.SaveChanges();
             }
         }
     }

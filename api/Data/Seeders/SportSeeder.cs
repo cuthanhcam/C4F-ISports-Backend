@@ -10,15 +10,10 @@ namespace api.Data.Seeders
             if (!context.Sports.Any())
             {
                 context.Sports.AddRange(
-                    new Sport
-                    {
-                        SportName = "Football"
-                    },
-                    new Sport
-                    {
-                        SportName = "Badminton"
-                    }
+                    new Sport { SportName = "Football" },
+                    new Sport { SportName = "Badminton" }
                 );
+                context.SaveChanges();
             }
         }
     }

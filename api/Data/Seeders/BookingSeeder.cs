@@ -9,26 +9,39 @@ namespace api.Data.Seeders
         {
             if (!context.Bookings.Any())
             {
-                var user = context.Users.FirstOrDefault(u => u.Email == "user@example.com");
-                var field = context.Fields.FirstOrDefault(f => f.FieldName == "Football Field A");
-                if (user != null && field != null)
-                {
-                    context.Bookings.Add(
-                        new Booking
-                        {
-                            UserId = user.UserId,
-                            FieldId = field.FieldId,
-                            BookingDate = DateTime.UtcNow.Date,
-                            StartTime = TimeSpan.FromHours(14),
-                            EndTime = TimeSpan.FromHours(15),
-                            TotalPrice = 100000m,
-                            Status = "Pending",
-                            PaymentStatus = "Unpaid",
-                            CreatedAt = DateTime.UtcNow,
-                            UpdatedAt = DateTime.UtcNow
-                        }
-                    );
-                }
+                var user1 = context.Users.First(u => u.Email == "user1@example.com");
+                var field1 = context.Fields.First(f => f.FieldName == "Football Field A");
+                var field3 = context.Fields.First(f => f.FieldName == "Badminton Court X");
+
+                context.Bookings.AddRange(
+                    new Booking
+                    {
+                        UserId = user1.UserId,
+                        FieldId = field1.FieldId,
+                        BookingDate = DateTime.UtcNow.AddDays(1),
+                        StartTime = TimeSpan.FromHours(18),
+                        EndTime = TimeSpan.FromHours(20),
+                        TotalPrice = 700000,
+                        Status = "Confirmed",
+                        PaymentStatus = "Paid",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    },
+                    new Booking
+                    {
+                        UserId = user1.UserId,
+                        FieldId = field3.FieldId,
+                        BookingDate = DateTime.UtcNow.AddDays(2),
+                        StartTime = TimeSpan.FromHours(6),
+                        EndTime = TimeSpan.FromHours(8),
+                        TotalPrice = 200000,
+                        Status = "Pending",
+                        PaymentStatus = "Unpaid",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    }
+                );
+                context.SaveChanges();
             }
         }
     }
