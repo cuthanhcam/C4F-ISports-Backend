@@ -15,7 +15,7 @@ namespace api.Data.Configurations
             builder.HasIndex(u => u.Email).IsUnique();
             builder.Property(u => u.Phone).HasMaxLength(20);
             builder.Property(u => u.Gender).HasMaxLength(10);
-            builder.Property(u => u.DateOfBirth).IsRequired();
+            builder.Property(u => u.DateOfBirth);
             builder.Property(u => u.AvatarUrl).HasMaxLength(255);
         }
     }
