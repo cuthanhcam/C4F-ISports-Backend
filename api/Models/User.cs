@@ -13,7 +13,7 @@ namespace api.Models
         public string Email { get; set; } // Email (duy nhất)
         public string Phone { get; set; } // Số điện thoại
         public string? Gender { get; set; } // Giới tính
-        public DateTime DateOfBirth { get; set; } // Ngày sinh
+        public DateTime? DateOfBirth { get; set; } // Ngày sinh
         public string? AvatarUrl { get; set; } // Ảnh đại diện
 
         public Account Account { get; set; } // Quan hệ với bảng Account

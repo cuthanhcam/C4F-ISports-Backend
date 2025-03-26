@@ -34,7 +34,7 @@ namespace api.Controllers
                     FullName = user.FullName,
                     Phone = user.Phone,
                     Gender = user.Gender,
-                    DateOfBirth = user.DateOfBirth.ToString("yyyy-MM-dd"),
+                    DateOfBirth = user.DateOfBirth?.ToString("yyyy-MM-dd"),
                     AvatarUrl = user.AvatarUrl
                 });
             }
