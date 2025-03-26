@@ -17,6 +17,7 @@ using api.Data;
 using api.Services;
 using api.Interfaces;
 using Microsoft.OpenApi.Models;
+using CloudinaryDotNet;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +44,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 // 3. Cấu hình CloudinaryService
+var cloudinarySettings = builder.Configuration.GetSection("CloudinarySettings");
+builder.Services.AddSingleton(new Cloudinary(new Account(
+    cloudinarySettings["CloudName"],
+    cloudinarySettings["ApiKey"],
+    cloudinarySettings["ApiSecret"]
+)));
 builder.Services.AddScoped<CloudinaryService>();
 
 // 4. Đăng ký các service khác

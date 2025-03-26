@@ -25,7 +25,7 @@ namespace api.Services
             var accountIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(accountIdClaim) || !int.TryParse(accountIdClaim, out int accountId))
             {
-                throw new Exception("Invalid user token.");
+                throw new Exception("Token người dùng không hợp lệ.");
             }
 
             var dbUser = await _unitOfWork.Users.GetAll()
@@ -33,7 +33,7 @@ namespace api.Services
                 .FirstOrDefaultAsync(u => u.AccountId == accountId);
             if (dbUser == null)
             {
-                throw new Exception("User not found.");
+                throw new Exception("Không tìm thấy người dùng.");
             }
 
             return dbUser;
@@ -48,11 +48,12 @@ namespace api.Services
         {
             var dbUser = await GetCurrentUserAsync(user);
 
-            dbUser.FullName = updateProfileDto.FullName ?? dbUser.FullName;
-            dbUser.Phone = updateProfileDto.Phone ?? dbUser.Phone;
-            dbUser.Gender = updateProfileDto.Gender ?? dbUser.Gender;
-            dbUser.DateOfBirth = updateProfileDto.DateOfBirth ?? dbUser.DateOfBirth;
-            dbUser.AvatarUrl = updateProfileDto.AvatarUrl ?? dbUser.AvatarUrl;
+            // Cập nhật thông tin mới
+            dbUser.FullName = updateProfileDto.FullName;
+            dbUser.Phone = updateProfileDto.Phone;
+            dbUser.Gender = updateProfileDto.Gender;
+            dbUser.DateOfBirth = updateProfileDto.DateOfBirth;
+            dbUser.AvatarUrl = updateProfileDto.AvatarUrl;
 
             _unitOfWork.Users.Update(dbUser);
             await _unitOfWork.SaveChangesAsync();

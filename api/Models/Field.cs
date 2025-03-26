@@ -24,5 +24,11 @@ namespace api.Models
         public Owner Owner { get; set; }
         public ICollection<Booking> Bookings { get; set; }
         public ICollection<Review> Reviews { get; set; }
+        public ICollection<FieldImage> FieldImages { get; set; }
+        public ICollection<FieldPricing> FieldPricings { get; set; }
+        public ICollection<FieldAmenity> FieldAmenities { get; set; }
+        public ICollection<FieldDescription> FieldDescriptions { get; set; }
+        public ICollection<Service> Services { get; set; }
+        public ICollection<FavoriteField> FavoriteFields { get; set; }
     }
 }
