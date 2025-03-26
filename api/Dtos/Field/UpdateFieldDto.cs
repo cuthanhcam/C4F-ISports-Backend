@@ -11,7 +11,7 @@ namespace api.Dtos.Field
         public string FieldName { get; set; }
 
         [Required(ErrorMessage = "Địa chỉ không được để trống")]
-        [StringLength(200, ErrorMessage = "Địa chỉ không được vượt quá 200 ký tự")]
+        [StringLength(255, ErrorMessage = "Địa chỉ không được vượt quá 255 ký tự")]
         public string Address { get; set; }
 
         [Required(ErrorMessage = "Số điện thoại không được để trống")]

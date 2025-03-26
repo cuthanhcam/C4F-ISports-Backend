@@ -55,6 +55,7 @@ builder.Services.AddScoped<CloudinaryService>();
 // 4. Đăng ký các service khác
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IFieldService, FieldService>();
 builder.Services.AddSingleton<IEmailSender, SendGridEmailSender>();
 builder.Services.AddScoped<IUserService, UserService>();
 

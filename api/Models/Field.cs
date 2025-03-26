@@ -22,13 +22,14 @@ namespace api.Models
 
         public Sport Sport { get; set; }
         public Owner Owner { get; set; }
-        public ICollection<Booking> Bookings { get; set; }
-        public ICollection<Review> Reviews { get; set; }
-        public ICollection<FieldImage> FieldImages { get; set; }
-        public ICollection<FieldPricing> FieldPricings { get; set; }
-        public ICollection<FieldAmenity> FieldAmenities { get; set; }
-        public ICollection<FieldDescription> FieldDescriptions { get; set; }
-        public ICollection<Service> Services { get; set; }
-        public ICollection<FavoriteField> FavoriteFields { get; set; }
+
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public ICollection<FieldImage> FieldImages { get; set; } = new List<FieldImage>();
+        public ICollection<FieldPricing> FieldPricings { get; set; } = new List<FieldPricing>();
+        public ICollection<FieldAmenity> FieldAmenities { get; set; } = new List<FieldAmenity>();
+        public ICollection<FieldDescription> FieldDescriptions { get; set; } = new List<FieldDescription>();
+        public ICollection<Service> Services { get; set; } = new List<Service>();
+        public ICollection<FavoriteField> FavoriteFields { get; set; } = new List<FavoriteField>();
     }
 }

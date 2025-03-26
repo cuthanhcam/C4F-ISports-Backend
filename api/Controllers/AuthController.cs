@@ -76,7 +76,8 @@ namespace api.Controllers
         }
 
         [HttpPost("forgot-password")]
-        public async Task<IActionResult> ForgotPassword([FromQuery] string email)
+        // public async Task<IActionResult> ForgotPassword([FromQuery] string email)
+        public async Task<IActionResult> ForgotPassword([FromBody] string email)
         {
             try
             {

@@ -11,7 +11,7 @@ namespace api.Dtos.Field
         public string FieldName { get; set; }
 
         [Required(ErrorMessage = "Địa chỉ không được để trống")]
-        [StringLength(200, ErrorMessage = "Địa chỉ không được vượt quá 200 ký tự")]
+        [StringLength(255, ErrorMessage = "Địa chỉ không được vượt quá 255 ký tự")]
         public string Address { get; set; }
 
         [Required(ErrorMessage = "Số điện thoại không được để trống")]
@@ -36,6 +36,10 @@ namespace api.Dtos.Field
         [Required(ErrorMessage = "Kinh độ không được để trống")]
         [Range(-180, 180, ErrorMessage = "Kinh độ không hợp lệ")]
         public decimal Longitude { get; set; }
+
+        [Required(ErrorMessage = "Trạng thái không được để trống")]
+        [RegularExpression("^(Active|Inactive|Maintenance)$", ErrorMessage = "Trạng thái không hợp lệ")]
+        public string Status { get; set; }
 
         public List<int> AmenityIds { get; set; }
         public List<CreateFieldServiceDto> Services { get; set; }

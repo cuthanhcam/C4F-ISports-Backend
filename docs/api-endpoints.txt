@@ -29,14 +29,14 @@ API Endpoints
 3. Field Management Endpoints
     GET /api/fields - Lấy danh sách sân (có filter)
         Query Parameters: ?sportId=1&location=HoChiMinh&status=Active&sort=FieldName:asc&page=1&pageSize=10
+    POST /api/fields - Thêm sân mới (Owner)    
     GET /api/fields/{id} - Lấy chi tiết sân
+    PUT /api/fields/{id} - Cập nhật thông tin sân (Owner)
+    DELETE /api/fields/{id} - Xóa sân (Owner)
     GET /api/fields/search - Tìm kiếm sân (location, sport type, time...)
         Query Parameters: ?location=HoChiMinh&sportType=Football&time=2025-03-10T14:00&sort=Distance:asc&page=1&pageSize=10
     GET /api/fields/{id}/available-slots - Kiểm tra khung giờ trống
         Query Parameters: ?date=2025-03-10
-    POST /api/fields - Thêm sân mới (Owner)
-    PUT /api/fields/{id} - Cập nhật thông tin sân (Owner)
-    DELETE /api/fields/{id} - Xóa sân (Owner)
     GET /api/fields/{id}/reviews - Lấy đánh giá của sân
         Query Parameters: ?rating=5&sort=CreatedAt:desc&page=1&pageSize=10
     GET /api/fields/nearby - Tìm sân gần vị trí người dùng

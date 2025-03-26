@@ -13,7 +13,6 @@ Database
     VerificationToken nvarchar - Token xác thực email
     VerificationTokenExpiry datetime - Thời gian hết hạn của verification token 
 
-
 2. User (Người dùng là khách hàng) - Phụ thuộc vào Accounts
     UserId int (PK) - Mã user
     AccountId (FK) - Mã tài khoản

@@ -22,6 +22,8 @@ namespace api.Data
         public IGenericRepository<Booking> Bookings { get; private set; }
         public IGenericRepository<Field> Fields { get; private set; }
         public IGenericRepository<Sport> Sports { get; private set; }
+        public IGenericRepository<Review> Reviews { get; private set;}
+        public IGenericRepository<FieldAmenity> FieldAmenities { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -39,6 +41,8 @@ namespace api.Data
             Bookings = new GenericRepository<Booking>(_context);
             Fields = new GenericRepository<Field>(_context);
             Sports = new GenericRepository<Sport>(_context);
+            Reviews = new GenericRepository<Review>(_context);
+            FieldAmenities = new GenericRepository<FieldAmenity>(_context);
         }
 
         public async Task<int> SaveChangesAsync()

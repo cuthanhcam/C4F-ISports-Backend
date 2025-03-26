@@ -11,10 +11,7 @@ namespace api.Dtos.Field
         public int AmenityId { get; set; }
 
         [Required(ErrorMessage = "Tên tiện ích không được để trống")]
-        [StringLength(50, ErrorMessage = "Tên tiện ích không được vượt quá 50 ký tự")]
+        [StringLength(100, ErrorMessage = "Tên tiện ích không được vượt quá 100 ký tự")]
         public string AmenityName { get; set; }
-
-        [StringLength(50, ErrorMessage = "Icon không được vượt quá 50 ký tự")]
-        public string Icon { get; set; }
     }
 }

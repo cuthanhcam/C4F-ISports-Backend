@@ -18,6 +18,8 @@ namespace api.Interfaces
         IGenericRepository<Booking> Bookings { get; }
         IGenericRepository<Field> Fields { get; }
         IGenericRepository<Sport> Sports { get; }
+        IGenericRepository<Review> Reviews { get; }
+        IGenericRepository<FieldAmenity> FieldAmenities { get; }
         Task<int> SaveChangesAsync();
     }
 }
