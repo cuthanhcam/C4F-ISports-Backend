@@ -2,11 +2,13 @@ using api.Dtos.Auth;
 using api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace api.Controllers
 {
     [Route("api/auth")]
     [ApiController]
+    [EnableRateLimiting("auth")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -21,6 +23,11 @@ namespace api.Controllers
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
                 var (token, refreshToken) = await _authService.RegisterAsync(registerDto);
                 return Ok(new { Token = token, RefreshToken = refreshToken });
             }
@@ -35,6 +42,11 @@ namespace api.Controllers
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
                 var (token, refreshToken) = await _authService.LoginAsync(loginDto);
                 return Ok(new { Token = token, RefreshToken = refreshToken });
             }
@@ -45,11 +57,16 @@ namespace api.Controllers
         }
 
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto refreshTokenDto)
         {
             try
             {
-                var (token, newRefreshToken) = await _authService.RefreshTokenAsync(refreshToken);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var (token, newRefreshToken) = await _authService.RefreshTokenAsync(refreshTokenDto.RefreshToken);
                 return Ok(new { Token = token, RefreshToken = newRefreshToken });
             }
             catch (Exception ex)
@@ -63,8 +80,13 @@ namespace api.Controllers
         {
             try
             {
+                if (string.IsNullOrEmpty(email) || !email.Contains("@"))
+                {
+                    return BadRequest(new { Error = "Email không hợp lệ" });
+                }
+
                 await _authService.ForgotPasswordAsync(email);
-                return Ok("Password reset link has been sent to your email.");
+                return Ok("Link đặt lại mật khẩu đã được gửi đến email của bạn.");
             }
             catch (Exception ex)
             {
@@ -77,8 +99,13 @@ namespace api.Controllers
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
                 await _authService.ResetPasswordAsync(resetPasswordDto);
-                return Ok("Password has been reset successfully.");
+                return Ok("Mật khẩu đã được đặt lại thành công.");
             }
             catch (Exception ex)
             {
@@ -87,12 +114,17 @@ namespace api.Controllers
         }
 
         [HttpPost("logout")]
-        public async Task<IActionResult> Logout([FromBody] string refreshToken)
+        public async Task<IActionResult> Logout([FromBody] RefreshTokenDto refreshTokenDto)
         {
             try
             {
-                await _authService.LogoutAsync(refreshToken);
-                return Ok("Logged out successfully.");
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                await _authService.LogoutAsync(refreshTokenDto.RefreshToken);
+                return Ok("Đăng xuất thành công.");
             }
             catch (Exception ex)
             {
@@ -105,6 +137,11 @@ namespace api.Controllers
         {
             try
             {
+                if (string.IsNullOrEmpty(token))
+                {
+                    return BadRequest(new { Error = "Token không hợp lệ" });
+                }
+
                 var isValid = await _authService.VerifyTokenAsync(token);
                 return Ok(new { IsValid = isValid });
             }
@@ -114,13 +151,18 @@ namespace api.Controllers
             }
         }
 
-        [HttpPost("verify-email")]
+        [HttpGet("verify-email")]
         public async Task<IActionResult> VerifyEmail([FromQuery] string email, [FromQuery] string token)
         {
             try
             {
+                if (string.IsNullOrEmpty(email) || !email.Contains("@") || string.IsNullOrEmpty(token))
+                {
+                    return BadRequest(new { Error = "Email hoặc token không hợp lệ" });
+                }
+
                 var result = await _authService.VerifyEmailAsync(email, token);
-                return Ok(new { Success = true, Message = "Email verified" });
+                return Ok(new { Success = true, Message = "Email đã được xác thực" });
             }
             catch (Exception ex)
             {
@@ -155,8 +197,13 @@ namespace api.Controllers
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
                 await _authService.ChangePasswordAsync(User, changePasswordDto);
-                return Ok("Password changed successfully.");
+                return Ok("Mật khẩu đã được thay đổi thành công.");
             }
             catch (Exception ex)
             {

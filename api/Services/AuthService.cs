@@ -29,9 +29,14 @@ namespace api.Services
 
         public async Task<(string Token, string RefreshToken)> RegisterAsync(RegisterDto registerDto)
         {
+            if (registerDto.Role == "Admin")
+            {
+                throw new Exception("Không thể đăng ký tài khoản với vai trò Admin.");
+            }
+
             if (_unitOfWork.Accounts.GetAll().Any(a => a.Email == registerDto.Email))
             {
-                throw new Exception("Email already exists.");
+                throw new Exception("Email đã tồn tại.");
             }
 
             var account = new Account
@@ -39,10 +44,10 @@ namespace api.Services
                 Email = registerDto.Email,
                 Password = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
                 Role = registerDto.Role,
-                IsActive = false, // Chưa xác thực email
+                IsActive = false,
                 CreatedAt = DateTime.UtcNow,
                 VerificationToken = Guid.NewGuid().ToString(),
-                VerificationTokenExpiry = DateTime.UtcNow.AddHours(24) // Token hết hạn sau 24 giờ
+                VerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
             };
 
             await _unitOfWork.Accounts.AddAsync(account);
@@ -68,7 +73,9 @@ namespace api.Services
                     AccountId = account.AccountId,
                     FullName = registerDto.FullName,
                     Email = registerDto.Email,
-                    Phone = registerDto.Phone
+                    Phone = registerDto.Phone,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
                 await _unitOfWork.Owners.AddAsync(owner);
             }
@@ -76,7 +83,7 @@ namespace api.Services
             await _unitOfWork.SaveChangesAsync();
 
             // Gửi email xác thực
-            var verificationLink = $"https://localhost:5231/api/auth/verify-email?email={account.Email}&token={account.VerificationToken}";
+            var verificationLink = $"{_configuration["AppUrl"]}/api/auth/verify-email?email={account.Email}&token={account.VerificationToken}";
             var emailSubject = "Xác thực tài khoản C4F ISports";
             var emailBody = $"<h3>Xin chào {registerDto.FullName},</h3>" +
                             $"<p>Vui lòng nhấp vào liên kết sau để xác thực email của bạn:</p>" +
@@ -92,21 +99,22 @@ namespace api.Services
 
         public async Task<(string Token, string RefreshToken)> LoginAsync(LoginDto loginDto)
         {
-            var account = _unitOfWork.Accounts.GetAll()
-                .FirstOrDefault(a => a.Email == loginDto.Email);
+            var account = await _unitOfWork.Accounts.GetAll()
+                .Include(a => a.User)
+                .Include(a => a.Owner)
+                .FirstOrDefaultAsync(a => a.Email == loginDto.Email);
 
             if (account == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, account.Password))
             {
-                throw new Exception("Invalid email or password.");
+                throw new Exception("Email hoặc mật khẩu không chính xác.");
             }
 
             if (!account.IsActive)
             {
-                throw new Exception("Account not verified. Please check your email.");
+                throw new Exception("Tài khoản chưa được xác thực. Vui lòng kiểm tra email của bạn.");
             }
 
             account.LastLogin = DateTime.UtcNow;
-            _unitOfWork.Accounts.Update(account);
             await _unitOfWork.SaveChangesAsync();
 
             var token = GenerateJwtToken(account);
@@ -156,7 +164,7 @@ namespace api.Services
             await _unitOfWork.SaveChangesAsync();
 
             // Gửi email reset password
-            var resetLink = $"https://localhost:5231/api/auth/reset-password?email={account.Email}&token={resetToken}";
+            var resetLink = $"{_configuration["AppUrl"]}/api/auth/reset-password?email={account.Email}&token={resetToken}";
             var emailSubject = "Đặt lại mật khẩu C4F ISports";
             var emailBody = $"<h3>Xin chào {account.Email},</h3>" +
                             $"<p>Bạn đã yêu cầu đặt lại mật khẩu. Nhấp vào liên kết sau để tiếp tục:</p>" +
