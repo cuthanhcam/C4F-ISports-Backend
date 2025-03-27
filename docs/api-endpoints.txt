@@ -9,12 +9,12 @@ API Endpoints
     POST /api/auth/logout - Đăng xuất (xóa refresh token)
     GET /api/auth/verify-token - Kiểm tra token hợp lệ
     POST /api/auth/verify-email
-    GET /api/auth/me
-    POST /api/auth/change-password
+    GET /api/auth/me [Authorize]
+    POST /api/auth/change-password [Authorize]
 
 -------------------------------------------------------------------------------------------------------
 
-2. User Management Endpoints
+2. User Management Endpoints [Authorize]
     GET /api/users/profile - Xem thông tin cá nhân
     PUT /api/users/profile - Cập nhật thông tin cá nhân
     GET /api/users/bookings - Lấy lịch sử đặt sân
@@ -26,7 +26,7 @@ API Endpoints
     DELETE /api/users/favorite-fields/{fieldId} - Xóa sân khỏi danh sách yêu thích.
 -------------------------------------------------------------------------------------------------------
 
-3. Field Management Endpoints
+3. Field Management Endpoints [Authorize]
     GET /api/fields - Lấy danh sách sân (có filter)
         Query Parameters: ?sportId=1&location=HoChiMinh&status=Active&sort=FieldName:asc&page=1&pageSize=10
     POST /api/fields - Thêm sân mới (Owner)    
