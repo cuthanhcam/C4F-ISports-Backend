@@ -9,8 +9,8 @@ namespace api.Data.Seeders
         {
             if (!context.Fields.Any())
             {
-                var owner1 = context.Owners.First(o => o.Email == "owner1@example.com");
-                var owner2 = context.Owners.First(o => o.Email == "owner2@example.com");
+                var owner1 = context.Owners.First(o => o.Email == "owner1@gmail.com");
+                var owner2 = context.Owners.First(o => o.Email == "owner2@gmail.com");
                 var football = context.Sports.First(s => s.SportName == "Football");
                 var badminton = context.Sports.First(s => s.SportName == "Badminton");
 

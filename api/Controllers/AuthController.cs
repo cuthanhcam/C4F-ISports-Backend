@@ -1,5 +1,6 @@
 using api.Dtos.Auth;
 using api.Interfaces;
+using Hangfire.Annotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
@@ -15,8 +16,9 @@ namespace api.Controllers
         private readonly IConfiguration _configuration;
         private readonly IAuthService _authService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IConfiguration configuration)
         {
+            _configuration = configuration;
             _authService = authService;
         }
 
@@ -153,6 +155,25 @@ namespace api.Controllers
             }
         }
 
+        // [HttpGet("verify-email")]
+        // public async Task<IActionResult> VerifyEmail([FromQuery] string email, [FromQuery] string token)
+        // {
+        //     try
+        //     {
+        //         if (string.IsNullOrEmpty(email) || !email.Contains("@") || string.IsNullOrEmpty(token))
+        //         {
+        //             return BadRequest(new { Error = "Email hoặc token không hợp lệ" });
+        //         }
+
+        //         var result = await _authService.VerifyEmailAsync(email, token);
+        //         return Ok(new { Success = true, Message = "Email đã được xác thực" });
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return BadRequest(new { Error = ex.Message });
+        //     }
+        // }
+
         [HttpGet("verify-email")]
         public async Task<IActionResult> VerifyEmail([FromQuery] string email, [FromQuery] string token)
         {
@@ -183,8 +204,6 @@ namespace api.Controllers
         }
 
         [HttpPost("resend-verification")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
         public async Task<IActionResult> ResendVerificationEmail([FromBody] string email)
         {
             try

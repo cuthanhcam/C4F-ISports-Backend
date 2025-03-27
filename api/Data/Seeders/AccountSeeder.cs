@@ -12,7 +12,7 @@ namespace api.Data.Seeders
                 context.Accounts.AddRange(
                     new Account
                     {
-                        Email = "admin@example.com",
+                        Email = "admin@gmail.com",
                         Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
                         Role = "Admin",
                         IsActive = true,
@@ -20,7 +20,7 @@ namespace api.Data.Seeders
                     },
                     new Account
                     {
-                        Email = "owner1@example.com",
+                        Email = "owner1@gmail.com",
                         Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
                         Role = "Owner",
                         IsActive = true,
@@ -28,7 +28,7 @@ namespace api.Data.Seeders
                     },
                     new Account
                     {
-                        Email = "user1@example.com",
+                        Email = "user1@gmail.com",
                         Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
                         Role = "User",
                         IsActive = true,
@@ -36,7 +36,7 @@ namespace api.Data.Seeders
                     },
                     new Account
                     {
-                        Email = "owner2@example.com",
+                        Email = "owner2@gmail.com",
                         Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
                         Role = "Owner",
                         IsActive = true,
@@ -44,7 +44,7 @@ namespace api.Data.Seeders
                     },
                     new Account
                     {
-                        Email = "user2@example.com",
+                        Email = "user2@gmail.com",
                         Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
                         Role = "User",
                         IsActive = true,

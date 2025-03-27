@@ -9,8 +9,8 @@ namespace api.Data.Seeders
         {
             if (!context.Reviews.Any())
             {
-                var user1 = context.Users.First(u => u.Email == "user1@example.com");
-                var user2 = context.Users.First(u => u.Email == "user2@example.com");
+                var user1 = context.Users.First(u => u.Email == "user1@gmail.com");
+                var user2 = context.Users.First(u => u.Email == "user2@gmail.com");
                 var field1 = context.Fields.First(f => f.FieldName == "Football Field A");
                 var field3 = context.Fields.First(f => f.FieldName == "Badminton Court X");
 
