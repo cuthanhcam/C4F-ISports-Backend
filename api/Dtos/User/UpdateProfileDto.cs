@@ -23,5 +23,7 @@ namespace api.Dtos.User
 
         [Url(ErrorMessage = "URL avatar không hợp lệ")]
         public string AvatarUrl { get; set; }
+
+        public IFormFile AvatarFile { get; set; }
     }
 }

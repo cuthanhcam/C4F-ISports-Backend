@@ -1,3 +1,4 @@
+using api.Interfaces;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.Extensions.Configuration;
@@ -5,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace api.Services
 {
-    public class CloudinaryService
+    public class CloudinaryService : ICloudinaryService
     {
         private readonly Cloudinary _cloudinary;
 

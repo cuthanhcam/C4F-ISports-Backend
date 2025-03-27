@@ -9,30 +9,27 @@ using System.Security.Claims;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using api.Dtos;
+using CloudinaryDotNet;
+using api.Services;
 
 namespace api.Controllers
 {
-    /// <summary>
-    /// Controller quản lý thông tin người dùng
-    /// </summary>
     [Route("api/users")]
     [ApiController]
     [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly CloudinaryService _cloudinaryService;
         private readonly ILogger<UserController> _logger;
 
-        public UserController(IUserService userService, ILogger<UserController> logger)
+        public UserController(IUserService userService, CloudinaryService cloudinaryService ,ILogger<UserController> logger)
         {
             _userService = userService;
+            _cloudinaryService = cloudinaryService;
             _logger = logger;
         }
 
-        /// <summary>
-        /// Lấy thông tin cá nhân của người dùng
-        /// </summary>
-        /// <returns>Thông tin cá nhân của người dùng</returns>
         [HttpGet("profile")]
         [ProducesResponseType(typeof(UserProfileResponseDto), 200)]
         [ProducesResponseType(400)]
@@ -51,11 +48,6 @@ namespace api.Controllers
             }
         }
 
-        /// <summary>
-        /// Cập nhật thông tin cá nhân của người dùng
-        /// </summary>
-        /// <param name="updateProfileDto">Thông tin cập nhật</param>
-        /// <returns>Kết quả cập nhật</returns>
         [HttpPut("profile")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
@@ -69,6 +61,20 @@ namespace api.Controllers
                 }
 
                 _logger.LogInformation("Updating user profile for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+                if (updateProfileDto.AvatarFile != null && updateProfileDto.AvatarFile.Length > 0)
+                {
+                    try
+                    {
+                        updateProfileDto.AvatarUrl = await _cloudinaryService.UploadImageAsync(updateProfileDto.AvatarFile);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error uploading avatar to Cloudinary for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
+                        return BadRequest(new { Error = "Không thể tải ảnh lên Cloudinary: " + ex.Message });
+                    }
+                }
+                
                 await _userService.UpdateUserProfileAsync(User, updateProfileDto);
                 return Ok(new { Success = true, Message = "Cập nhật thông tin thành công" });
             }
@@ -79,15 +85,6 @@ namespace api.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy lịch sử đặt sân của người dùng
-        /// </summary>
-        /// <param name="status">Trạng thái đặt sân</param>
-        /// <param name="date">Ngày đặt sân</param>
-        /// <param name="sort">Tiêu chí sắp xếp</param>
-        /// <param name="page">Số trang</param>
-        /// <param name="pageSize">Số lượng mục trên mỗi trang</param>
-        /// <returns>Danh sách lịch sử đặt sân</returns>
         [HttpGet("bookings")]
         [ProducesResponseType(typeof(PaginatedResponse<BookingResponseDto>), 200)]
         [ProducesResponseType(400)]
@@ -135,10 +132,6 @@ namespace api.Controllers
             }
         }
 
-        /// <summary>
-        /// Xóa tài khoản người dùng
-        /// </summary>
-        /// <returns>Kết quả xóa tài khoản</returns>
         [HttpDelete("profile")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
@@ -157,13 +150,6 @@ namespace api.Controllers
             }
         }
 
-        /// <summary>
-        /// Lấy danh sách sân yêu thích của người dùng
-        /// </summary>
-        /// <param name="sort">Tiêu chí sắp xếp</param>
-        /// <param name="page">Số trang</param>
-        /// <param name="pageSize">Số lượng mục trên mỗi trang</param>
-        /// <returns>Danh sách sân yêu thích</returns>
         [HttpGet("favorite-fields")]
         [ProducesResponseType(typeof(PaginatedResponse<FavoriteFieldResponseDto>), 200)]
         [ProducesResponseType(400)]
@@ -206,11 +192,6 @@ namespace api.Controllers
             }
         }
 
-        /// <summary>
-        /// Thêm sân vào danh sách yêu thích
-        /// </summary>
-        /// <param name="fieldId">ID của sân</param>
-        /// <returns>Kết quả thêm sân yêu thích</returns>
         [HttpPost("favorite-fields/{fieldId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
@@ -234,11 +215,6 @@ namespace api.Controllers
             }
         }
 
-        /// <summary>
-        /// Xóa sân khỏi danh sách yêu thích
-        /// </summary>
-        /// <param name="fieldId">ID của sân</param>
-        /// <returns>Kết quả xóa sân yêu thích</returns>
         [HttpDelete("favorite-fields/{fieldId}")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]

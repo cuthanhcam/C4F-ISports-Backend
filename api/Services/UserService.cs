@@ -135,7 +135,10 @@ namespace api.Services
                 dbUser.Phone = updateProfileDto.Phone;
                 dbUser.Gender = updateProfileDto.Gender;
                 dbUser.DateOfBirth = updateProfileDto.DateOfBirth;
-                dbUser.AvatarUrl = updateProfileDto.AvatarUrl;
+                if (!string.IsNullOrEmpty(updateProfileDto.AvatarUrl)) // Chỉ cập nhật nếu có AvatarUrl mới
+                {
+                    dbUser.AvatarUrl = updateProfileDto.AvatarUrl;
+                }
 
                 _unitOfWork.Users.Update(dbUser);
             }
@@ -260,7 +263,7 @@ namespace api.Services
         public async Task AddFavoriteFieldAsync(ClaimsPrincipal user, int fieldId)
         {
             var dbUser = await GetCurrentUserAsync(user); // Chỉ áp dụng cho User
-            
+
             var field = await _unitOfWork.Fields.GetAll().FirstOrDefaultAsync(f => f.FieldId == fieldId);
             if (field == null)
             {
