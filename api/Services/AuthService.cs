@@ -165,7 +165,7 @@ namespace api.Services
             await _unitOfWork.SaveChangesAsync();
 
             // Gửi email reset password
-            var resetLink = $"{_configuration["AppUrl"]}/api/auth/reset-password?email={account.Email}&token={resetToken}";
+            var resetLink = $"{_configuration["FEUrl"]}/auth/reset-password?email={account.Email}&token={resetToken}";
             var emailSubject = "Đặt lại mật khẩu C4F ISports";
             var emailBody = $"<h3>Xin chào {account.Email},</h3>" +
                             $"<p>Bạn đã yêu cầu đặt lại mật khẩu. Nhấp vào liên kết sau để tiếp tục:</p>" +

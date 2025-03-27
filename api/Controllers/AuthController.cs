@@ -89,7 +89,7 @@ namespace api.Controllers
                 }
 
                 await _authService.ForgotPasswordAsync(model.Email);
-                return Ok(new {Mesasge = "Link đặt lại mật khẩu đã được gửi đến email của bạn." });
+                return Ok(new { Message = "Link đặt lại mật khẩu đã được gửi đến email của bạn." });
             }
             catch (Exception ex)
             {
@@ -98,21 +98,29 @@ namespace api.Controllers
         }
 
         [HttpPost("reset-password")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
         {
             try
             {
-                if (!ModelState.IsValid)
+                if (!ModelState.IsValid || resetPasswordDto == null || 
+                    string.IsNullOrEmpty(resetPasswordDto.Email) || !resetPasswordDto.Email.Contains("@") || 
+                    string.IsNullOrEmpty(resetPasswordDto.Token) || string.IsNullOrEmpty(resetPasswordDto.NewPassword))
                 {
-                    return BadRequest(ModelState);
+                    string errorMessage = Uri.EscapeDataString("Dữ liệu không hợp lệ");
+                    return Redirect($"{_configuration["FEUrl"]}/auth/reset-password?status=error&message={errorMessage}");
                 }
 
                 await _authService.ResetPasswordAsync(resetPasswordDto);
-                return Ok("Mật khẩu đã được đặt lại thành công.");
+
+                string successMessage = Uri.EscapeDataString("Mật khẩu đã được đặt lại thành công");
+                return Redirect($"{_configuration["FEUrl"]}/auth/reset-password?status=success&message={successMessage}");
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Error = ex.Message });
+                string exceptionMessage = Uri.EscapeDataString($"Lỗi: {ex.Message}");
+                return Redirect($"{_configuration["FEUrl"]}/auth/reset-password?status=error&message={exceptionMessage}");
             }
         }
 
