@@ -1,6 +1,7 @@
 using api.Dtos.Auth;
 using api.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -11,6 +12,7 @@ namespace api.Controllers
     [EnableRateLimiting("auth")]
     public class AuthController : ControllerBase
     {
+        private readonly IConfiguration _configuration;
         private readonly IAuthService _authService;
 
         public AuthController(IAuthService authService)
@@ -77,17 +79,17 @@ namespace api.Controllers
 
         [HttpPost("forgot-password")]
         // public async Task<IActionResult> ForgotPassword([FromQuery] string email)
-        public async Task<IActionResult> ForgotPassword([FromBody] string email)
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest model)
         {
             try
             {
-                if (string.IsNullOrEmpty(email) || !email.Contains("@"))
+                if (string.IsNullOrEmpty(model.Email) || !model.Email.Contains("@"))
                 {
                     return BadRequest(new { Error = "Email không hợp lệ" });
                 }
 
-                await _authService.ForgotPasswordAsync(email);
-                return Ok("Link đặt lại mật khẩu đã được gửi đến email của bạn.");
+                await _authService.ForgotPasswordAsync(model.Email);
+                return Ok(new { Message = "Link đặt lại mật khẩu đã được gửi đến email của bạn." });
             }
             catch (Exception ex)
             {
@@ -106,7 +108,7 @@ namespace api.Controllers
                 }
 
                 await _authService.ResetPasswordAsync(resetPasswordDto);
-                return Ok("Mật khẩu đã được đặt lại thành công.");
+                return Ok(new { message = "Mật khẩu đã được đặt lại thành công." });
             }
             catch (Exception ex)
             {
@@ -159,15 +161,25 @@ namespace api.Controllers
             {
                 if (string.IsNullOrEmpty(email) || !email.Contains("@") || string.IsNullOrEmpty(token))
                 {
-                    return BadRequest(new { Error = "Email hoặc token không hợp lệ" });
+                    string errorMessage = Uri.EscapeDataString("Email hoặc token không hợp lệ");
+                    return Redirect($"{_configuration["AppUrl"]}/verify-email?status=error&message={errorMessage}");
                 }
 
                 var result = await _authService.VerifyEmailAsync(email, token);
-                return Ok(new { Success = true, Message = "Email đã được xác thực" });
+
+                if (!result)
+                {
+                    string failMessage = Uri.EscapeDataString("Xác thực email thất bại");
+                    return Redirect($"{_configuration["AppUrl"]}/verify-email?status=error&message={failMessage}");
+                }
+
+                string successMessage = Uri.EscapeDataString("Email đã được xác thực thành công");
+                return Redirect($"{_configuration["AppUrl"]}/verify-email?status=success&message={successMessage}");
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Error = ex.Message });
+                string exceptionMessage = Uri.EscapeDataString($"Lỗi: {ex.Message}");
+                return Redirect($"{_configuration["AppUrl"]}/verify-email?status=error&message={exceptionMessage}");
             }
         }
 
