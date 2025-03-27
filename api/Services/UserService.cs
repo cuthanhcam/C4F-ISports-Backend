@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using api.Data;
 using api.Dtos;
@@ -39,29 +40,131 @@ namespace api.Services
             return dbUser;
         }
 
-        public async Task<User> GetUserProfileAsync(ClaimsPrincipal user)
+        private async Task<Account> GetCurrentAccountAsync(ClaimsPrincipal user)
         {
-            return await GetCurrentUserAsync(user);
+            var accountIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(accountIdClaim) || !int.TryParse(accountIdClaim, out int accountId))
+            {
+                throw new Exception("Token người dùng không hợp lệ.");
+            }
+
+            var account = await _unitOfWork.Accounts.GetAll()
+                .FirstOrDefaultAsync(a => a.AccountId == accountId);
+            if (account == null)
+            {
+                throw new Exception("Không tìm thấy tài khoản.");
+            }
+
+            return account;
+        }
+
+        public async Task<UserProfileResponseDto> GetUserProfileAsync(ClaimsPrincipal user)
+        {
+            var account = await GetCurrentAccountAsync(user);
+            var role = account.Role;
+
+            if (role == "User")
+            {
+                var dbUser = await _unitOfWork.Users.GetAll()
+                    .Include(u => u.Account)
+                    .FirstOrDefaultAsync(u => u.AccountId == account.AccountId);
+                if (dbUser == null)
+                {
+                    throw new Exception("Không tìm thấy thông tin người dùng.");
+                }
+
+                return new UserProfileResponseDto
+                {
+                    Email = dbUser.Email,
+                    Role = account.Role,
+                    FullName = dbUser.FullName,
+                    Phone = dbUser.Phone,
+                    Gender = dbUser.Gender,
+                    DateOfBirth = dbUser.DateOfBirth?.ToString("yyyy-MM-dd"),
+                    AvatarUrl = dbUser.AvatarUrl
+                };
+            }
+            else if (role == "Owner")
+            {
+                var dbOwner = await _unitOfWork.Owners.GetAll()
+                    .Include(o => o.Account)
+                    .FirstOrDefaultAsync(o => o.AccountId == account.AccountId);
+                if (dbOwner == null)
+                {
+                    throw new Exception("Không tìm thấy thông tin chủ sân.");
+                }
+
+                return new UserProfileResponseDto
+                {
+                    Email = dbOwner.Email,
+                    Role = account.Role,
+                    FullName = dbOwner.FullName,
+                    Phone = dbOwner.Phone,
+                    Gender = null, // Owner không có trường Gender
+                    DateOfBirth = null, // Owner không có trường DateOfBirth
+                    AvatarUrl = null // Owner không có trường AvatarUrl
+                };
+            }
+            else
+            {
+                throw new Exception("Vai trò không được hỗ trợ.");
+            }
         }
 
         public async Task UpdateUserProfileAsync(ClaimsPrincipal user, UpdateProfileDto updateProfileDto)
         {
-            var dbUser = await GetCurrentUserAsync(user);
+            var account = await GetCurrentAccountAsync(user);
+            var role = account.Role;
 
-            // Cập nhật thông tin mới
-            dbUser.FullName = updateProfileDto.FullName;
-            dbUser.Phone = updateProfileDto.Phone;
-            dbUser.Gender = updateProfileDto.Gender;
-            dbUser.DateOfBirth = updateProfileDto.DateOfBirth;
-            dbUser.AvatarUrl = updateProfileDto.AvatarUrl;
+            // Kiểm tra định dạng số điện thoại
+            if (!string.IsNullOrEmpty(updateProfileDto.Phone) && !Regex.IsMatch(updateProfileDto.Phone, @"^[0-9]{10}$"))
+            {
+                throw new Exception("Số điện thoại không hợp lệ, phải là 10 chữ số.");
+            }
 
-            _unitOfWork.Users.Update(dbUser);
+            if (role == "User")
+            {
+                var dbUser = await _unitOfWork.Users.GetAll()
+                    .FirstOrDefaultAsync(u => u.AccountId == account.AccountId);
+                if (dbUser == null)
+                {
+                    throw new Exception("Không tìm thấy người dùng.");
+                }
+
+                dbUser.FullName = updateProfileDto.FullName;
+                dbUser.Phone = updateProfileDto.Phone;
+                dbUser.Gender = updateProfileDto.Gender;
+                dbUser.DateOfBirth = updateProfileDto.DateOfBirth;
+                dbUser.AvatarUrl = updateProfileDto.AvatarUrl;
+
+                _unitOfWork.Users.Update(dbUser);
+            }
+            else if (role == "Owner")
+            {
+                var dbOwner = await _unitOfWork.Owners.GetAll()
+                    .FirstOrDefaultAsync(o => o.AccountId == account.AccountId);
+                if (dbOwner == null)
+                {
+                    throw new Exception("Không tìm thấy chủ sân.");
+                }
+
+                dbOwner.FullName = updateProfileDto.FullName;
+                dbOwner.Phone = updateProfileDto.Phone;
+                dbOwner.UpdatedAt = DateTime.UtcNow; // Cập nhật thời gian chỉnh sửa
+
+                _unitOfWork.Owners.Update(dbOwner);
+            }
+            else
+            {
+                throw new Exception("Vai trò không được hỗ trợ.");
+            }
+
             await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<PaginatedResponse<Booking>> GetUserBookingsAsync(ClaimsPrincipal user, string status, DateTime? date, string sort, int page, int pageSize)
         {
-            var dbUser = await GetCurrentUserAsync(user);
+            var dbUser = await GetCurrentUserAsync(user); // Chỉ áp dụng cho User
             var query = _unitOfWork.Bookings.GetAll()
                 .Include(b => b.Field)
                 .Where(b => b.UserId == dbUser.UserId)
@@ -77,7 +180,6 @@ namespace api.Services
                 query = query.Where(b => b.BookingDate.Date == date.Value.Date);
             }
 
-            // Sắp xếp
             if (!string.IsNullOrEmpty(sort))
             {
                 var sortParts = sort.Split(':');
@@ -87,7 +189,7 @@ namespace api.Services
                 query = sortField switch
                 {
                     "BookingDate" => sortDirection == "desc" ? query.OrderByDescending(b => b.BookingDate) : query.OrderBy(b => b.BookingDate),
-                    "CreatedAt" => sortDirection == "desc" ? query.OrderByDescending(b => b.CreatedAt) : query.OrderBy(b => b.CreatedAt),
+                    "CreatedAt" => sortDirection == "desc" ? query.OrderByDescending(b => b.CreatedAt) : query.OrderBy(b => b.CreatedAt), // Sửa lỗi typo
                     _ => query.OrderBy(b => b.BookingDate)
                 };
             }
@@ -110,8 +212,7 @@ namespace api.Services
 
         public async Task DeactivateUserAsync(ClaimsPrincipal user)
         {
-            var dbUser = await GetCurrentUserAsync(user);
-            var account = dbUser.Account;
+            var account = await GetCurrentAccountAsync(user);
             account.IsActive = false;
             _unitOfWork.Accounts.Update(account);
             await _unitOfWork.SaveChangesAsync();
@@ -119,14 +220,13 @@ namespace api.Services
 
         public async Task<PaginatedResponse<FavoriteField>> GetFavoriteFieldsAsync(ClaimsPrincipal user, string sort, int page, int pageSize)
         {
-            var dbUser = await GetCurrentUserAsync(user);
+            var dbUser = await GetCurrentUserAsync(user); // Chỉ áp dụng cho User
             var query = _unitOfWork.FavoriteFields.GetAll()
                 .Include(ff => ff.Field)
                     .ThenInclude(f => f.Sport)
                 .Where(ff => ff.UserId == dbUser.UserId)
                 .AsQueryable();
 
-            // Sắp xếp
             if (!string.IsNullOrEmpty(sort))
             {
                 var sortParts = sort.Split(':');
@@ -159,16 +259,14 @@ namespace api.Services
 
         public async Task AddFavoriteFieldAsync(ClaimsPrincipal user, int fieldId)
         {
-            var dbUser = await GetCurrentUserAsync(user);
+            var dbUser = await GetCurrentUserAsync(user); // Chỉ áp dụng cho User
             
-            // Check if field exists
             var field = await _unitOfWork.Fields.GetAll().FirstOrDefaultAsync(f => f.FieldId == fieldId);
             if (field == null)
             {
                 throw new Exception("Field does not exist.");
             }
 
-            // Check if already in favorites
             var existingFavorite = await _unitOfWork.FavoriteFields.GetAll()
                 .FirstOrDefaultAsync(f => f.FieldId == fieldId && f.UserId == dbUser.UserId);
             if (existingFavorite != null)
@@ -189,7 +287,7 @@ namespace api.Services
 
         public async Task RemoveFavoriteFieldAsync(ClaimsPrincipal user, int fieldId)
         {
-            var dbUser = await GetCurrentUserAsync(user);
+            var dbUser = await GetCurrentUserAsync(user); // Chỉ áp dụng cho User
             var favorite = await _unitOfWork.FavoriteFields.GetAll()
                 .FirstOrDefaultAsync(ff => ff.UserId == dbUser.UserId && ff.FieldId == fieldId);
 

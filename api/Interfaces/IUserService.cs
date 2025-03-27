@@ -11,7 +11,7 @@ namespace api.Interfaces
 {
     public interface IUserService
     {
-        Task<User> GetUserProfileAsync(ClaimsPrincipal user);
+        Task<UserProfileResponseDto> GetUserProfileAsync(ClaimsPrincipal user);
         Task UpdateUserProfileAsync(ClaimsPrincipal user, UpdateProfileDto updateProfileDto);
         Task<PaginatedResponse<Booking>> GetUserBookingsAsync(ClaimsPrincipal user, string status, DateTime? date, string sort, int page, int pageSize);
         Task DeactivateUserAsync(ClaimsPrincipal user);

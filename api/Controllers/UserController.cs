@@ -41,23 +41,13 @@ namespace api.Controllers
             try
             {
                 _logger.LogInformation("Getting user profile for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
-                var user = await _userService.GetUserProfileAsync(User);
-                var response = new UserProfileResponseDto
-                {
-                    Email = user.Email,
-                    Role = user.Account.Role,
-                    FullName = user.FullName,
-                    Phone = user.Phone,
-                    Gender = user.Gender,
-                    DateOfBirth = user.DateOfBirth?.ToString("yyyy-MM-dd"),
-                    AvatarUrl = user.AvatarUrl
-                };
-                return Ok(response);
+                var profile = await _userService.GetUserProfileAsync(User);
+                return Ok(profile); // Trả về UserProfileResponseDto trực tiếp
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting user profile for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
-                return BadRequest(new { Error = "Không thể lấy thông tin cá nhân" });
+                return BadRequest(new { Error = ex.Message }); // Trả về thông báo lỗi chi tiết hơn
             }
         }
 
@@ -73,6 +63,11 @@ namespace api.Controllers
         {
             try
             {
+                if (updateProfileDto == null)
+                {
+                    return BadRequest(new { Error = "Dữ liệu cập nhật không hợp lệ" });
+                }
+
                 _logger.LogInformation("Updating user profile for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
                 await _userService.UpdateUserProfileAsync(User, updateProfileDto);
                 return Ok(new { Success = true, Message = "Cập nhật thông tin thành công" });
@@ -80,7 +75,7 @@ namespace api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating user profile for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
-                return BadRequest(new { Error = "Không thể cập nhật thông tin cá nhân" });
+                return BadRequest(new { Error = ex.Message }); // Trả về thông báo lỗi chi tiết hơn
             }
         }
 
@@ -105,6 +100,11 @@ namespace api.Controllers
         {
             try
             {
+                if (page < 1 || pageSize < 1)
+                {
+                    return BadRequest(new { Error = "Số trang và kích thước trang phải lớn hơn 0" });
+                }
+
                 _logger.LogInformation("Getting bookings for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
                 var result = await _userService.GetUserBookingsAsync(User, status, date, sort, page, pageSize);
                 var response = new PaginatedResponse<BookingResponseDto>
@@ -124,14 +124,14 @@ namespace api.Controllers
                         Status = b.Status,
                         PaymentStatus = b.PaymentStatus,
                         CreatedAt = b.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")
-                    })
+                    }).ToList()
                 };
                 return Ok(response);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting bookings for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
-                return BadRequest(new { Error = "Không thể lấy lịch sử đặt sân" });
+                return BadRequest(new { Error = ex.Message });
             }
         }
 
@@ -153,7 +153,7 @@ namespace api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deactivating profile for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
-                return BadRequest(new { Error = "Không thể xóa tài khoản" });
+                return BadRequest(new { Error = ex.Message });
             }
         }
 
@@ -174,6 +174,11 @@ namespace api.Controllers
         {
             try
             {
+                if (page < 1 || pageSize < 1)
+                {
+                    return BadRequest(new { Error = "Số trang và kích thước trang phải lớn hơn 0" });
+                }
+
                 _logger.LogInformation("Getting favorite fields for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
                 var result = await _userService.GetFavoriteFieldsAsync(User, sort, page, pageSize);
                 var response = new PaginatedResponse<FavoriteFieldResponseDto>
@@ -190,14 +195,14 @@ namespace api.Controllers
                         Phone = ff.Field.Phone,
                         OpenHours = ff.Field.OpenHours,
                         AddedDate = ff.AddedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
-                    })
+                    }).ToList()
                 };
                 return Ok(response);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting favorite fields for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
-                return BadRequest(new { Error = "Không thể lấy danh sách sân yêu thích" });
+                return BadRequest(new { Error = ex.Message });
             }
         }
 
@@ -213,6 +218,11 @@ namespace api.Controllers
         {
             try
             {
+                if (fieldId <= 0)
+                {
+                    return BadRequest(new { Error = "ID sân không hợp lệ" });
+                }
+
                 _logger.LogInformation("Adding field {FieldId} to favorites for user: {UserId}", fieldId, User.FindFirstValue(ClaimTypes.NameIdentifier));
                 await _userService.AddFavoriteFieldAsync(User, fieldId);
                 return Ok(new { Success = true, Message = "Đã thêm sân vào danh sách yêu thích" });
@@ -220,7 +230,7 @@ namespace api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error adding field {FieldId} to favorites for user: {UserId}", fieldId, User.FindFirstValue(ClaimTypes.NameIdentifier));
-                return BadRequest(new { Error = "Không thể thêm sân vào danh sách yêu thích" });
+                return BadRequest(new { Error = ex.Message });
             }
         }
 
@@ -236,6 +246,11 @@ namespace api.Controllers
         {
             try
             {
+                if (fieldId <= 0)
+                {
+                    return BadRequest(new { Error = "ID sân không hợp lệ" });
+                }
+
                 _logger.LogInformation("Removing field {FieldId} from favorites for user: {UserId}", fieldId, User.FindFirstValue(ClaimTypes.NameIdentifier));
                 await _userService.RemoveFavoriteFieldAsync(User, fieldId);
                 return Ok(new { Success = true, Message = "Đã xóa sân khỏi danh sách yêu thích" });
@@ -243,7 +258,7 @@ namespace api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error removing field {FieldId} from favorites for user: {UserId}", fieldId, User.FindFirstValue(ClaimTypes.NameIdentifier));
-                return BadRequest(new { Error = "Không thể xóa sân khỏi danh sách yêu thích" });
+                return BadRequest(new { Error = ex.Message });
             }
         }
     }
