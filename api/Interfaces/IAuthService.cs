@@ -18,6 +18,7 @@ namespace api.Interfaces
         Task LogoutAsync(string refreshToken);
         Task<bool> VerifyTokenAsync(string token);
         Task<bool> VerifyEmailAsync(string email, string token);
+        Task ResendVerificationEmailAsync(string email);
         Task<Account> GetCurrentUserAsync(ClaimsPrincipal user);
         Task ChangePasswordAsync(ClaimsPrincipal user, ChangePasswordDto changePasswordDto);
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -83,7 +84,7 @@ namespace api.Services
             await _unitOfWork.SaveChangesAsync();
 
             // Gửi email xác thực
-            var verificationLink = $"{_configuration["AppUrl"]}/auth/verify-email?email={account.Email}&token={account.VerificationToken}";
+            var verificationLink = $"{_configuration["AppUrl"]}/api/auth/verify-email?email={account.Email}&token={account.VerificationToken}";
             var emailSubject = "Xác thực tài khoản C4F ISports";
             var emailBody = $"<h3>Xin chào {registerDto.FullName},</h3>" +
                             $"<p>Vui lòng nhấp vào liên kết sau để xác thực email của bạn:</p>" +
@@ -164,7 +165,7 @@ namespace api.Services
             await _unitOfWork.SaveChangesAsync();
 
             // Gửi email reset password
-            var resetLink = $"{_configuration["AppUrl"]}/auth/reset-password?email={account.Email}&token={resetToken}";
+            var resetLink = $"{_configuration["AppUrl"]}/api/auth/reset-password?email={account.Email}&token={resetToken}";
             var emailSubject = "Đặt lại mật khẩu C4F ISports";
             var emailBody = $"<h3>Xin chào {account.Email},</h3>" +
                             $"<p>Bạn đã yêu cầu đặt lại mật khẩu. Nhấp vào liên kết sau để tiếp tục:</p>" +
@@ -246,6 +247,38 @@ namespace api.Services
             await _unitOfWork.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task ResendVerificationEmailAsync(string email)
+        {
+            var account = await _unitOfWork.Accounts.GetAll()
+                .FirstOrDefaultAsync(a => a.Email == email);
+
+            if (account == null)
+            {
+                throw new Exception("Email không tồn tại trong hệ thống.");
+            }
+
+            if (account.IsActive)
+            {
+                throw new Exception("Tài khoản đã được kích hoạt, không cần gửi lại email xác thực.");
+            }
+
+            // Tạo mới VerificationToken
+            account.VerificationToken = Guid.NewGuid().ToString();
+            account.VerificationTokenExpiry = DateTime.UtcNow.AddHours(24); // Token có hiệu lực 24 giờ
+            _unitOfWork.Accounts.Update(account);
+            await _unitOfWork.SaveChangesAsync();
+
+            // Gửi email xác thực
+            var verificationLink = $"{_configuration["AppUrl"]}/api/auth/verify-email?email={account.Email}&token={account.VerificationToken}";
+            var emailSubject = "Xác thực lại tài khoản C4F ISports";
+            var emailBody = $"<h3>Xin chào {account.Email},</h3>" +
+                            $"<p>Bạn đã yêu cầu gửi lại email xác thực. Vui lòng nhấp vào liên kết sau để xác thực tài khoản:</p>" +
+                            $"<a href='{verificationLink}'>Xác thực ngay</a>" +
+                            $"<p>Liên kết này có hiệu lực trong 24 giờ.</p>" +
+                            $"<p>Trân trọng,<br/>Đội ngũ C4F ISports</p>";
+            await _emailSender.SendEmailAsync(account.Email, emailSubject, emailBody);
         }
 
         private string GenerateJwtToken(Account account)

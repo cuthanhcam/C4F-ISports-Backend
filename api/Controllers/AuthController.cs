@@ -15,8 +15,9 @@ namespace api.Controllers
         private readonly IConfiguration _configuration;
         private readonly IAuthService _authService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IConfiguration configuration, IAuthService authService)
         {
+            _configuration = configuration;
             _authService = authService;
         }
 
@@ -78,7 +79,6 @@ namespace api.Controllers
         }
 
         [HttpPost("forgot-password")]
-        // public async Task<IActionResult> ForgotPassword([FromQuery] string email)
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest model)
         {
             try
@@ -89,7 +89,7 @@ namespace api.Controllers
                 }
 
                 await _authService.ForgotPasswordAsync(model.Email);
-                return Ok(new { Message = "Link đặt lại mật khẩu đã được gửi đến email của bạn." });
+                return Ok(new {Mesasge = "Link đặt lại mật khẩu đã được gửi đến email của bạn." });
             }
             catch (Exception ex)
             {
@@ -108,7 +108,7 @@ namespace api.Controllers
                 }
 
                 await _authService.ResetPasswordAsync(resetPasswordDto);
-                return Ok(new { message = "Mật khẩu đã được đặt lại thành công." });
+                return Ok("Mật khẩu đã được đặt lại thành công.");
             }
             catch (Exception ex)
             {
@@ -136,7 +136,7 @@ namespace api.Controllers
         }
 
         [HttpGet("verify-token")]
-        public async Task<IActionResult> VerifyToken([FromQuery] string token)
+        public async Task<IActionResult> VerifyToken([FromQuery] string email, [FromQuery] string token)
         {
             try
             {
@@ -157,29 +157,52 @@ namespace api.Controllers
         [HttpGet("verify-email")]
         public async Task<IActionResult> VerifyEmail([FromQuery] string email, [FromQuery] string token)
         {
-            try
+             try
             {
                 if (string.IsNullOrEmpty(email) || !email.Contains("@") || string.IsNullOrEmpty(token))
                 {
                     string errorMessage = Uri.EscapeDataString("Email hoặc token không hợp lệ");
-                    return Redirect($"{_configuration["AppUrl"]}/verify-email?status=error&message={errorMessage}");
+                    return Redirect($"{_configuration["FEUrl"]}/auth/verify-email?status=error&message={errorMessage}");
                 }
+
 
                 var result = await _authService.VerifyEmailAsync(email, token);
 
                 if (!result)
                 {
                     string failMessage = Uri.EscapeDataString("Xác thực email thất bại");
-                    return Redirect($"{_configuration["AppUrl"]}/verify-email?status=error&message={failMessage}");
+                    return Redirect($"{_configuration["FEUrl"]}/auth/verify-email?status=error&message={failMessage}");
                 }
 
                 string successMessage = Uri.EscapeDataString("Email đã được xác thực thành công");
-                return Redirect($"{_configuration["AppUrl"]}/verify-email?status=success&message={successMessage}");
+                return Redirect($"{_configuration["FEUrl"]}/auth/verify-email?status=success&message={successMessage}");
             }
             catch (Exception ex)
             {
                 string exceptionMessage = Uri.EscapeDataString($"Lỗi: {ex.Message}");
-                return Redirect($"{_configuration["AppUrl"]}/verify-email?status=error&message={exceptionMessage}");
+                return Redirect($"{_configuration["FEUrl"]}/auth/verify-email?status=error&message={exceptionMessage}");
+            }
+
+        }
+
+        [HttpPost("resend-verification")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> ResendVerificationEmail([FromBody] string email)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email) || !email.Contains("@"))
+                {
+                    return BadRequest(new { Error = "Email không hợp lệ" });
+                }
+
+                await _authService.ResendVerificationEmailAsync(email);
+                return Ok(new { Message = "Email xác thực đã được gửi lại. Vui lòng kiểm tra hộp thư của bạn." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = ex.Message });
             }
         }
 
