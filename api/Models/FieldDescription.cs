@@ -9,7 +9,7 @@ namespace api.Models
     {
         public int FieldDescriptionId { get; set; }
         public int FieldId { get; set; }
-        public string Description { get; set; }
+        public string Description { get; set; } // Mô tả sân (vd: Sân cỏ nhân tạo, Sân bóng đá mini,...)
 
         public Field Field { get; set; }
     }

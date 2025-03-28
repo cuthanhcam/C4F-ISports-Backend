@@ -46,9 +46,9 @@ namespace api.Dtos.Field
         [Range(-180, 180, ErrorMessage = "Kinh độ không hợp lệ")]
         public decimal Longitude { get; set; }
 
-        public List<string> Images { get; set; }
-        public List<FieldAmenityDto> Amenities { get; set; }
-        public List<FieldServiceDto> Services { get; set; }
-        public List<FieldPricingDto> Pricing { get; set; }
+        public List<string> Images { get; set; } // Danh sách URL ảnh
+        public List<FieldAmenityDto> Amenities { get; set; } // Danh sách tiện ích
+        public List<FieldServiceDto> Services { get; set; } // Danh sách dịch vụ
+        public List<FieldPricingDto> Pricing { get; set; } // Danh sách bảng giá
     }
 }

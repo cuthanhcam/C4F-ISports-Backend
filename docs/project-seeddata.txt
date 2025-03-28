@@ -1,0 +1,299 @@
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Data.Seeders
+{
+    public static class BookingSeeder
+    {
+        public static void Seed(ApplicationDbContext context)
+        {
+            if (!context.Bookings.Any())
+            {
+                var user1 = context.Users.First(u => u.Email == "user1@gmail.com");
+                var field1 = context.Fields.First(f => f.FieldName == "Football Field A");
+                var field3 = context.Fields.First(f => f.FieldName == "Badminton Court X");
+
+                context.Bookings.AddRange(
+                    new Booking
+                    {
+                        UserId = user1.UserId,
+                        FieldId = field1.FieldId,
+                        BookingDate = DateTime.UtcNow.AddDays(1),
+                        StartTime = TimeSpan.FromHours(18),
+                        EndTime = TimeSpan.FromHours(20),
+                        TotalPrice = 700000,
+                        Status = "Confirmed",
+                        PaymentStatus = "Paid",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    },
+                    new Booking
+                    {
+                        UserId = user1.UserId,
+                        FieldId = field3.FieldId,
+                        BookingDate = DateTime.UtcNow.AddDays(2),
+                        StartTime = TimeSpan.FromHours(6),
+                        EndTime = TimeSpan.FromHours(8),
+                        TotalPrice = 200000,
+                        Status = "Pending",
+                        PaymentStatus = "Unpaid",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    }
+                );
+                context.SaveChanges();
+            }
+        }
+    }
+}
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Data.Seeders
+{
+    public static class FieldAmenitySeeder
+    {
+        public static void Seed(ApplicationDbContext context)
+        {
+            if (!context.FieldAmenities.Any())
+            {
+                var field1 = context.Fields.First(f => f.FieldName == "Football Field A");
+                var field3 = context.Fields.First(f => f.FieldName == "Badminton Court X");
+
+                context.FieldAmenities.AddRange(
+                    new FieldAmenity { FieldId = field1.FieldId, AmenityName = "Wi-Fi" },
+                    new FieldAmenity { FieldId = field1.FieldId, AmenityName = "Phòng thay đồ" },
+                    new FieldAmenity { FieldId = field3.FieldId, AmenityName = "Máy lạnh" }
+                );
+                context.SaveChanges();
+            }
+        }
+    }
+}
+
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Data.Seeders
+{
+    public static class FieldDescriptionSeeder
+    {
+        public static void Seed(ApplicationDbContext context)
+        {
+            if (!context.FieldDescriptions.Any())
+            {
+                var field1 = context.Fields.First(f => f.FieldName == "Football Field A");
+                var field2 = context.Fields.First(f => f.FieldName == "Football Field B");
+                var field3 = context.Fields.First(f => f.FieldName == "Badminton Court X");
+                var field4 = context.Fields.First(f => f.FieldName == "Badminton Court Y");
+
+                context.FieldDescriptions.AddRange(
+                    new FieldDescription { FieldId = field1.FieldId, Description = "Sân bóng đẹp, rộng rãi, có khán đài." },
+                    new FieldDescription { FieldId = field2.FieldId, Description = "Sân bóng chất lượng cao, gần trung tâm." },
+                    new FieldDescription { FieldId = field3.FieldId, Description = "Sân cầu lông thoáng mát, sàn gỗ tốt." },
+                    new FieldDescription { FieldId = field4.FieldId, Description = "Sân cầu lông hiện đại, đang bảo trì." }
+                );
+                context.SaveChanges();
+            }
+        }
+    }
+}
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Data.Seeders
+{
+    public static class FieldImageSeeder
+    {
+        public static void Seed(ApplicationDbContext context)
+        {
+            if (!context.FieldImages.Any())
+            {
+                var field1 = context.Fields.First(f => f.FieldName == "Football Field A");
+                var field2 = context.Fields.First(f => f.FieldName == "Football Field B");
+                var field3 = context.Fields.First(f => f.FieldName == "Badminton Court X");
+
+                context.FieldImages.AddRange(
+                    new FieldImage { FieldId = field1.FieldId, ImageUrl = "https://drive.google.com/file/d/1FYAj_423LzrnzD70PUykfqRFUIbd-LVC/view?usp=drive_link" },
+                    new FieldImage { FieldId = field2.FieldId, ImageUrl = "https://drive.google.com/file/d/11GsdxasHRWmAjYf9H4GTS3C2ArkXhjan/view?usp=drive_link" },
+                    new FieldImage { FieldId = field3.FieldId, ImageUrl = "https://drive.google.com/file/d/16jmCurClrNNbXVJcl6_mR7gng4fjDTsy/view?usp=drive_link" }
+                );
+                context.SaveChanges();
+            }
+        }
+    }
+}
+
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Data.Seeders
+{
+    public static class FieldPricingSeeder
+    {
+        public static void Seed(ApplicationDbContext context)
+        {
+            if (!context.FieldPricings.Any())
+            {
+                var field1 = context.Fields.First(f => f.FieldName == "Football Field A");
+                var field2 = context.Fields.First(f => f.FieldName == "Football Field B");
+                var field3 = context.Fields.First(f => f.FieldName == "Badminton Court X");
+
+                context.FieldPricings.AddRange(
+                    new FieldPricing { FieldId = field1.FieldId, StartTime = TimeSpan.FromHours(8), EndTime = TimeSpan.FromHours(12), DayOfWeek = 1, Price = 500000 },
+                    new FieldPricing { FieldId = field1.FieldId, StartTime = TimeSpan.FromHours(18), EndTime = TimeSpan.FromHours(22), DayOfWeek = 1, Price = 700000 },
+                    new FieldPricing { FieldId = field2.FieldId, StartTime = TimeSpan.FromHours(7), EndTime = TimeSpan.FromHours(11), DayOfWeek = 2, Price = 450000 },
+                    new FieldPricing { FieldId = field3.FieldId, StartTime = TimeSpan.FromHours(6), EndTime = TimeSpan.FromHours(10), DayOfWeek = 3, Price = 200000 }
+                );
+                context.SaveChanges();
+            }
+        }
+    }
+}
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Data.Seeders
+{
+    public static class FieldSeeder
+    {
+        public static void Seed(ApplicationDbContext context)
+        {
+            if (!context.Fields.Any())
+            {
+                var owner1 = context.Owners.First(o => o.Email == "owner1@gmail.com");
+                var owner2 = context.Owners.First(o => o.Email == "owner2@gmail.com");
+                var football = context.Sports.First(s => s.SportName == "Football");
+                var badminton = context.Sports.First(s => s.SportName == "Badminton");
+
+                context.Fields.AddRange(
+                    new Field
+                    {
+                        SportId = football.SportId,
+                        FieldName = "Football Field A",
+                        Phone = "0123456789",
+                        Address = "123 Main St, Thủ Đức, TP.HCM",
+                        OpenHours = "08:00-22:00",
+                        OwnerId = owner1.OwnerId,
+                        Status = "Active",
+                        Latitude = 10.776900m,
+                        Longitude = 106.700900m,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    },
+                    new Field
+                    {
+                        SportId = football.SportId,
+                        FieldName = "Football Field B",
+                        Phone = "0123456790",
+                        Address = "456 Tran Hung Dao, Quận 1, TP.HCM",
+                        OpenHours = "07:00-23:00",
+                        OwnerId = owner2.OwnerId,
+                        Status = "Active",
+                        Latitude = 10.771000m,
+                        Longitude = 106.698000m,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    },
+                    new Field
+                    {
+                        SportId = badminton.SportId,
+                        FieldName = "Badminton Court X",
+                        Phone = "0365716824",
+                        Address = "32/1 Tran Hung Dao, Đông Hoà, Dĩ An, Bình Dương",
+                        OpenHours = "05:00-22:00",
+                        OwnerId = owner1.OwnerId,
+                        Status = "Active",
+                        Latitude = 10.894621m,
+                        Longitude = 106.779709m,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    },
+                    new Field
+                    {
+                        SportId = badminton.SportId,
+                        FieldName = "Badminton Court Y",
+                        Phone = "0365716835",
+                        Address = "789 Nguyen Trai, Thủ Đức, TP.HCM",
+                        OpenHours = "06:00-21:00",
+                        OwnerId = owner2.OwnerId,
+                        Status = "Maintenance",
+                        Latitude = 10.780000m,
+                        Longitude = 106.710000m,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    }
+                );
+                context.SaveChanges();
+            }
+        }
+    }
+}
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Data.Seeders
+{
+    public static class ReviewSeeder
+    {
+        public static void Seed(ApplicationDbContext context)
+        {
+            if (!context.Reviews.Any())
+            {
+                var user1 = context.Users.First(u => u.Email == "user1@gmail.com");
+                var user2 = context.Users.First(u => u.Email == "user2@gmail.com");
+                var field1 = context.Fields.First(f => f.FieldName == "Football Field A");
+                var field3 = context.Fields.First(f => f.FieldName == "Badminton Court X");
+
+                context.Reviews.AddRange(
+                    new Review { UserId = user1.UserId, FieldId = field1.FieldId, Rating = 4, Comment = "Sân đẹp, dịch vụ tốt.", CreatedAt = DateTime.UtcNow },
+                    new Review { UserId = user2.UserId, FieldId = field3.FieldId, Rating = 5, Comment = "Rất hài lòng!", CreatedAt = DateTime.UtcNow }
+                );
+                context.SaveChanges();
+            }
+        }
+    }
+}
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Data.Seeders
+{
+    public static class ServiceSeeder
+    {
+        public static void Seed(ApplicationDbContext context)
+        {
+            if (!context.Services.Any())
+            {
+                var field1 = context.Fields.First(f => f.FieldName == "Football Field A");
+                var field3 = context.Fields.First(f => f.FieldName == "Badminton Court X");
+
+                context.Services.AddRange(
+                    new Service { FieldId = field1.FieldId, ServiceName = "Nước uống", Price = 20000 },
+                    new Service { FieldId = field3.FieldId, ServiceName = "Thuê vợt", Price = 50000 }
+                );
+                context.SaveChanges();
+            }
+        }
+    }
+}
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace api.Data.Seeders
+{
+    public static class SportSeeder
+    {
+        public static void Seed(ApplicationDbContext context)
+        {
+            if (!context.Sports.Any())
+            {
+                context.Sports.AddRange(
+                    new Sport { SportName = "Football" },
+                    new Sport { SportName = "Badminton" }
+                );
+                context.SaveChanges();
+            }
+        }
+    }
+}

@@ -41,9 +41,9 @@ namespace api.Dtos.Field
         [RegularExpression("^(Active|Inactive|Maintenance)$", ErrorMessage = "Trạng thái không hợp lệ")]
         public string Status { get; set; }
 
-        public List<int> AmenityIds { get; set; }
-        public List<CreateFieldServiceDto> Services { get; set; }
-        public List<CreateFieldPricingDto> Pricing { get; set; }
+        public List<int> AmenityIds { get; set; } // Danh sách ID tiện ích đi kèm
+        public List<CreateFieldServiceDto> Services { get; set; } // Dịch vụ
+        public List<CreateFieldPricingDto> Pricing { get; set; } // Bảng giá
     }
 
     public class CreateFieldServiceDto
