@@ -7,19 +7,19 @@ namespace api.Models
 {
     public class Booking
     {
-        public int BookingId { get; set; } // Mã đặt sân (PK)
-        public int UserId { get; set; } // Người đặt (FK)
-        public int FieldId { get; set; } // Sân được đặt (FK)
-        public DateTime BookingDate { get; set; } // Ngày đặt sân
-        public TimeSpan StartTime { get; set; } // Giờ bắt đầu
-        public TimeSpan EndTime { get; set; } // Giờ kết thúc
-        public decimal TotalPrice { get; set; } // Tổng tiền
-        public string Status { get; set; } // Trạng thái (Pending, Confirmed, Canceled, Completed)
-        public string PaymentStatus { get; set; } // Trạng thái thanh toán (Unpaid, Partially Paid, Paid)
-        public DateTime CreatedAt { get; set; } // Ngày tạo đơn
-        public DateTime UpdatedAt { get; set; } // Ngày cập nhật đơn
+        public int BookingId { get; set; }
+        public int UserId { get; set; }
+        public int SubFieldId { get; set; }
+        public DateTime BookingDate { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+        public decimal TotalPrice { get; set; }
+        public string Status { get; set; }
+        public string PaymentStatus { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
-        public User User { get; set; } // Quan hệ với bảng User
-        public Field Field { get; set; } // Quan hệ với bảng Field
+        public User User { get; set; }
+        public SubField SubField { get; set; }
     }
 }

@@ -21,13 +21,16 @@ namespace api.Data.Configurations
             builder.Property(f => f.CreatedAt).IsRequired();
             builder.Property(f => f.UpdatedAt).IsRequired();
 
-            builder.HasIndex(f => f.FieldId); // Index cho tìm kiếm nhanh
+            builder.HasIndex(f => f.FieldId);
             builder.HasOne(f => f.Sport)
-                   .WithMany(s => s.Fields)
-                   .HasForeignKey(f => f.SportId);
+                .WithMany(s => s.Fields)
+                .HasForeignKey(f => f.SportId);
             builder.HasOne(f => f.Owner)
-                   .WithMany(o => o.Fields)
-                   .HasForeignKey(f => f.OwnerId);
+                .WithMany(o => o.Fields)
+                .HasForeignKey(f => f.OwnerId);
+            builder.HasMany(f => f.SubFields)
+                .WithOne(sf => sf.Field)
+                .HasForeignKey(sf => sf.FieldId);
         }
     }
 }

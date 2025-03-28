@@ -1,5 +1,5 @@
 // Account
-    public class Account
+public class Account
     {
         public int AccountId { get; set; } // Mã tài khoản (PK)
         public string Email { get; set; } // Email đăng nhập (UNIQUE)
@@ -34,7 +34,7 @@
         public DateTime UpdatedAt { get; set; } // Ngày cập nhật đơn
 
         public User User { get; set; } // Quan hệ với bảng User
-        public Field Field { get; set; } // Quan hệ với bảng Field
+        public SubField SubField { get; set; } // Quan hệ với bảng SubField
     }
 
 // BookingService
@@ -70,21 +70,21 @@
         public string FieldName { get; set; } // Tên sân
         public string Phone { get; set; } // Số điện thoại đặt lịch
         public string Address { get; set; } // Địa chỉ sân
-        public string OpenHours { get; set; } // Khung giờ mở cửa
+        public string OpenHours { get; set; } // Khung giờ mở cửa (VD: 8:00 - 22:00)
         public int OwnerId { get; set; } // Liên kết với bảng Owners (FK)
         public string Status { get; set; } // Trạng thái sân (Active, Inactive, Maintenance)
-        public decimal Latitude { get; set; } // Vĩ độ
-        public decimal Longitude { get; set; } // Kinh độ
+        public decimal Latitude { get; set; } // Vĩ độ GPS
+        public decimal Longitude { get; set; } // Kinh độ GPS
         public DateTime CreatedAt { get; set; } // Ngày tạo sân
         public DateTime UpdatedAt { get; set; } // Ngày cập nhật sân
 
+        // Các thuộc tính điều hướng (Navigation Properties)
         public Sport Sport { get; set; }
         public Owner Owner { get; set; }
-
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
         public ICollection<FieldImage> FieldImages { get; set; } = new List<FieldImage>();
-        public ICollection<FieldPricing> FieldPricings { get; set; } = new List<FieldPricing>();
+        public ICollection<SubField> SubFields { get; set; } = new List<SubField>();
         public ICollection<FieldAmenity> FieldAmenities { get; set; } = new List<FieldAmenity>();
         public ICollection<FieldDescription> FieldDescriptions { get; set; } = new List<FieldDescription>();
         public ICollection<Service> Services { get; set; } = new List<Service>();
@@ -122,19 +122,6 @@
         public Field Field { get; set; }
     }
 	
-// FieldPricing
-	public class FieldPricing
-    {
-        public int FieldPricingId { get; set; }
-        public int FieldId { get; set; }
-        public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTime { get; set; }
-        public int DayOfWeek { get; set; }
-        public decimal Price { get; set; }
-
-        public Field Field { get; set; }
-    }
-
 // Notification
 	public class Notification
     {
@@ -181,8 +168,7 @@
         public virtual ICollection<Field> Fields { get; set; }
     }
 	
-	
-	
+
 // Payment
 	public class Payment
     {
@@ -245,8 +231,8 @@
     {
         public int ServiceId { get; set; }
         public int FieldId { get; set; }
-        public string ServiceName { get; set; }
-        public decimal Price { get; set; }
+        public string ServiceName { get; set; } // Tên dịch vụ (vd: Nước uống, Đồ ăn nhẹ,...)
+        public decimal Price { get; set; } // Giá dịch vụ (vd: 20000 cho nước uống, 50000 cho đồ ăn nhẹ,...)
 
         public Field Field { get; set; }
         public ICollection<BookingService> BookingServices { get; set; } // Thêm quan hệ 1-n
@@ -260,7 +246,33 @@
         
         public ICollection<Field> Fields { get; set; }
     }
-	
+
+// SubField
+    public class SubField
+    {
+        public int SubFieldId { get; set; } // Mã sân nhỏ (PK)
+        public int FieldId { get; set; } // Liên kết với sân lớn (FK)
+        public string SubFieldName { get; set; } // Tên sân nhỏ (ví dụ: "Sân 5-1", "Sân 7-2")
+        public int Size { get; set; } // Kích thước (5 người, 7 người, 11 người, v.v.)
+
+        public Field Field { get; set; } // Quan hệ với bảng Field
+        public ICollection<SubFieldPricing> SubFieldPricings { get; set; } = new List<SubFieldPricing>(); // Giá riêng
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>(); // Đặt sân riêng
+    }
+
+// SubFieldPricing
+    public class SubFieldPricing
+    {
+        public int SubFieldPricingId { get; set; }
+        public int SubFieldId { get; set; } // Liên kết với sân nhỏ (FK)
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+        public int DayOfWeek { get; set; }
+        public decimal Price { get; set; }
+
+        public SubField SubField { get; set; }
+    }    
+
 // User
 	public class User
     {

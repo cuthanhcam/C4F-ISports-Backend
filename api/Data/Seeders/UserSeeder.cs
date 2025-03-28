@@ -5,7 +5,7 @@ namespace api.Data.Seeders
 {
     public static class UserSeeder
     {
-        public static void Seed(ApplicationDbContext context)
+        public static async Task SeedAsync(ApplicationDbContext context)
         {
             if (!context.Users.Any())
             {
@@ -20,8 +20,7 @@ namespace api.Data.Seeders
                         Email = "user1@gmail.com",
                         Phone = "0923456789",
                         Gender = "Male",
-                        DateOfBirth = new DateTime(1990, 1, 1),
-                        AvatarUrl = "https://drive.google.com/file/d/1LwIlExLLkZrKXiytIWvamIOXDzLfB_kq/view?usp=drive_link"
+                        DateOfBirth = new DateTime(1990, 1, 1)
                     },
                     new User
                     {
@@ -30,11 +29,10 @@ namespace api.Data.Seeders
                         Email = "user2@gmail.com",
                         Phone = "0934567890",
                         Gender = "Female",
-                        DateOfBirth = new DateTime(1995, 5, 5),
-                        AvatarUrl = "https://drive.google.com/file/d/1LwIlExLLkZrKXiytIWvamIOXDzLfB_kq/view?usp=drive_link"
+                        DateOfBirth = new DateTime(1995, 5, 5)
                     }
                 );
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
         }
     }

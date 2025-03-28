@@ -8,12 +8,12 @@ namespace api.Models
     public class BookingService
     {
         public int BookingServiceId { get; set; }
-        public int BookingId { get; set; }  // Liên kết với Booking
-        public int ServiceId { get; set; }  // Liên kết với Service
-        public int Quantity { get; set; }   // Số lượng dịch vụ đặt
-        public decimal Price { get; set; }  // Giá tại thời điểm đặt
+        public int BookingId { get; set; }
+        public int FieldServiceId { get; set; }
+        public int Quantity { get; set; }
+        public decimal Price { get; set; }
 
         public Booking Booking { get; set; }
-        public Service Service { get; set; }
+        public FieldService FieldService { get; set; }
     }
 }

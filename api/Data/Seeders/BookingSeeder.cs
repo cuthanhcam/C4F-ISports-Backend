@@ -5,43 +5,29 @@ namespace api.Data.Seeders
 {
     public static class BookingSeeder
     {
-        public static void Seed(ApplicationDbContext context)
+        public static async Task SeedAsync(ApplicationDbContext context)
         {
             if (!context.Bookings.Any())
             {
                 var user1 = context.Users.First(u => u.Email == "user1@gmail.com");
-                var field1 = context.Fields.First(f => f.FieldName == "Football Field A");
-                var field3 = context.Fields.First(f => f.FieldName == "Badminton Court X");
+                var subField1 = context.SubFields.First(sf => sf.SubFieldName == "Sân 1");
 
                 context.Bookings.AddRange(
                     new Booking
                     {
                         UserId = user1.UserId,
-                        FieldId = field1.FieldId,
-                        BookingDate = DateTime.UtcNow.AddDays(1),
-                        StartTime = TimeSpan.FromHours(18),
-                        EndTime = TimeSpan.FromHours(20),
-                        TotalPrice = 700000,
+                        SubFieldId = subField1.SubFieldId,
+                        BookingDate = DateTime.Parse("2024-03-01"), // Sửa chuỗi ngày hợp lệ
+                        StartTime = TimeSpan.Parse("07:00"),
+                        EndTime = TimeSpan.Parse("08:00"),
+                        TotalPrice = 50000,
                         Status = "Confirmed",
                         PaymentStatus = "Paid",
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
-                    },
-                    new Booking
-                    {
-                        UserId = user1.UserId,
-                        FieldId = field3.FieldId,
-                        BookingDate = DateTime.UtcNow.AddDays(2),
-                        StartTime = TimeSpan.FromHours(6),
-                        EndTime = TimeSpan.FromHours(8),
-                        TotalPrice = 200000,
-                        Status = "Pending",
-                        PaymentStatus = "Unpaid",
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
                     }
                 );
-                context.SaveChanges();
+                await context.SaveChangesAsync(); // Đổi thành async
             }
         }
     }

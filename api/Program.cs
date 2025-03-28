@@ -5,9 +5,10 @@
 // 3. CloudinaryService: Đăng ký như một scoped service để sử dụng trong các controller.
 // 4. CORS: Cho phép tất cả origin trong môi trường phát triển (có thể hạn chế trong production).
 // 5. Controllers: Thêm hỗ trợ cho các API controller.
-// 6. Swagger: Thêm Swagger để kiểm thử API trong môi trường phát triển.
-// 7. Middleware: Sắp xếp đúng thứ tự: CORS -> Authentication -> Authorization -> Controllers.
-// 8. Seeding: Gọi SeedData.Initialize trong scope để thêm dữ liệu mẫu khi ứng dụng khởi động.
+// 6. Cấu hình Rate Limiting
+// 7. Swagger: Thêm Swagger để kiểm thử API trong môi trường phát triển.
+// 8. Middleware: Sắp xếp đúng thứ tự: CORS -> Authentication -> Authorization -> Controllers.
+// 9s. Seeding: Gọi SeedData.Initialize trong scope để thêm dữ liệu mẫu khi ứng dụng khởi động.
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -18,6 +19,8 @@ using api.Services;
 using api.Interfaces;
 using Microsoft.OpenApi.Models;
 using CloudinaryDotNet;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,15 +74,29 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 6. Thêm Controllers
+// 6. Cấu hình Rate Limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("auth", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.User.Identity?.Name ?? "anonymous",
+            partition => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 5,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+            }));
+});
+
+// 7. Thêm Controllers
 builder.Services.AddControllers();
 
-// 7. Thêm Swagger để kiểm thử API
+// 8. Thêm Swagger để kiểm thử API
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "C4F ISports API", Version = "v1" });
-    // Thêm cấu hình cho Bearer Token
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
@@ -120,11 +137,12 @@ app.UseCors("AllowAll");
 
 // Middleware Authentication và Authorization
 app.UseAuthentication();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers();
 
-// 8. Áp dụng migrations và seed dữ liệu
+// 9. Áp dụng migrations và seed dữ liệu
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -133,9 +151,9 @@ using (var scope = app.Services.CreateScope())
     {
         logger.LogInformation("Starting database migration and seeding...");
         var context = services.GetRequiredService<ApplicationDbContext>();
-        context.Database.Migrate();
+        await context.Database.MigrateAsync(); // Đổi thành async
         logger.LogInformation("Migrations applied successfully.");
-        SeedData.Initialize(services);
+        await SeedData.InitializeAsync(services); // Thêm await
         logger.LogInformation("Database seeding completed successfully.");
     }
     catch (Exception ex)

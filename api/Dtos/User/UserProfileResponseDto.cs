@@ -10,6 +10,6 @@ namespace api.Dtos.User
         public string Phone { get; set; }
         public string Gender { get; set; }
         public string DateOfBirth { get; set; }
-        public string AvatarUrl { get; set; }
+        public string? AvatarUrl { get; set; }
     }
 } 

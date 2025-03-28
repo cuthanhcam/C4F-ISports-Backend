@@ -5,27 +5,37 @@ namespace api.Data.Seeders
 {
     public static class FieldSeeder
     {
-        public static void Seed(ApplicationDbContext context)
+        public static async Task SeedAsync(ApplicationDbContext context)
         {
             if (!context.Fields.Any())
             {
                 var owner1 = context.Owners.First(o => o.Email == "owner1@gmail.com");
-                var owner2 = context.Owners.First(o => o.Email == "owner2@gmail.com");
-                var football = context.Sports.First(s => s.SportName == "Football");
-                var badminton = context.Sports.First(s => s.SportName == "Badminton");
+                var football = context.Sports.FirstOrDefault(s => s.SportName == "Football") ?? new Sport { SportName = "Football" };
+                var badminton = context.Sports.FirstOrDefault(s => s.SportName == "Badminton") ?? new Sport { SportName = "Badminton" };
 
-                context.Fields.AddRange(
+                if (!context.Sports.Any(s => s.SportName == "Football"))
+                {
+                    context.Sports.Add(football);
+                }
+                if (!context.Sports.Any(s => s.SportName == "Badminton"))
+                {
+                    context.Sports.Add(badminton);
+                }
+                await context.SaveChangesAsync();
+
+                var fields = new List<Field>
+                {
                     new Field
                     {
                         SportId = football.SportId,
                         FieldName = "Football Field A",
-                        Phone = "0123456789",
-                        Address = "123 Main St, Thủ Đức, TP.HCM",
-                        OpenHours = "08:00-22:00",
+                        Phone = "0901234567",
+                        Address = "123 Đường XYZ, Quận 1",
+                        OpenHours = "06:00-21:00",
                         OwnerId = owner1.OwnerId,
                         Status = "Active",
-                        Latitude = 10.776900m,
-                        Longitude = 106.700900m,
+                        Latitude = 10.123456m,
+                        Longitude = 106.123456m,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     },
@@ -33,13 +43,13 @@ namespace api.Data.Seeders
                     {
                         SportId = football.SportId,
                         FieldName = "Football Field B",
-                        Phone = "0123456790",
-                        Address = "456 Tran Hung Dao, Quận 1, TP.HCM",
-                        OpenHours = "07:00-23:00",
-                        OwnerId = owner2.OwnerId,
+                        Phone = "0901234568",
+                        Address = "456 Đường ABC, Quận 2",
+                        OpenHours = "06:00-21:00",
+                        OwnerId = owner1.OwnerId,
                         Status = "Active",
-                        Latitude = 10.771000m,
-                        Longitude = 106.698000m,
+                        Latitude = 10.124456m,
+                        Longitude = 106.124456m,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     },
@@ -47,13 +57,13 @@ namespace api.Data.Seeders
                     {
                         SportId = badminton.SportId,
                         FieldName = "Badminton Court X",
-                        Phone = "0365716824",
-                        Address = "32/1 Tran Hung Dao, Đông Hoà, Dĩ An, Bình Dương",
-                        OpenHours = "05:00-22:00",
+                        Phone = "0901234569",
+                        Address = "789 Đường DEF, Quận 3",
+                        OpenHours = "06:00-21:00",
                         OwnerId = owner1.OwnerId,
                         Status = "Active",
-                        Latitude = 10.894621m,
-                        Longitude = 106.779709m,
+                        Latitude = 10.125456m,
+                        Longitude = 106.125456m,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     },
@@ -61,18 +71,41 @@ namespace api.Data.Seeders
                     {
                         SportId = badminton.SportId,
                         FieldName = "Badminton Court Y",
-                        Phone = "0365716835",
-                        Address = "789 Nguyen Trai, Thủ Đức, TP.HCM",
+                        Phone = "0901234570",
+                        Address = "101 Đường GHI, Quận 4",
                         OpenHours = "06:00-21:00",
-                        OwnerId = owner2.OwnerId,
-                        Status = "Maintenance",
-                        Latitude = 10.780000m,
-                        Longitude = 106.710000m,
+                        OwnerId = owner1.OwnerId,
+                        Status = "Active",
+                        Latitude = 10.126456m,
+                        Longitude = 106.126456m,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     }
-                );
-                context.SaveChanges();
+                };
+
+                context.Fields.AddRange(fields);
+                await context.SaveChangesAsync();
+
+                // Thêm các thực thể liên quan
+                foreach (var field in fields)
+                {
+                    context.FieldImages.AddRange(
+                        new FieldImage { FieldId = field.FieldId, ImageUrl = "url1" },
+                        new FieldImage { FieldId = field.FieldId, ImageUrl = "url2" }
+                    );
+
+                    context.FieldAmenities.AddRange(
+                        new FieldAmenity { FieldId = field.FieldId, AmenityName = "Wifi", Description = "Miễn phí tốc độ cao" },
+                        new FieldAmenity { FieldId = field.FieldId, AmenityName = "Quầy bar", Description = "Đồ uống đa dạng" }
+                    );
+
+                    context.SubFields.AddRange(
+                        new SubField { FieldId = field.FieldId, SubFieldName = "Sân 1", Size = field.Sport.SportName, PricePerHour = 50000, Status = "Active" },
+                        new SubField { FieldId = field.FieldId, SubFieldName = "Sân 2", Size = field.Sport.SportName, PricePerHour = 50000, Status = "Active" }
+                    );
+                }
+
+                await context.SaveChangesAsync();
             }
         }
     }

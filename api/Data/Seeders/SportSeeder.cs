@@ -5,7 +5,7 @@ namespace api.Data.Seeders
 {
     public static class SportSeeder
     {
-        public static void Seed(ApplicationDbContext context)
+        public static async Task SeedAsync(ApplicationDbContext context)
         {
             if (!context.Sports.Any())
             {
@@ -13,7 +13,7 @@ namespace api.Data.Seeders
                     new Sport { SportName = "Football" },
                     new Sport { SportName = "Badminton" }
                 );
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
         }
     }

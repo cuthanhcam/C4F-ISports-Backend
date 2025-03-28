@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace api.Dtos.Field
@@ -6,16 +5,15 @@ namespace api.Dtos.Field
     public class TimeSlotDto
     {
         [Required(ErrorMessage = "Thời gian bắt đầu không được để trống")]
-        public DateTime StartTime { get; set; }
+        [RegularExpression(@"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$", ErrorMessage = "Thời gian bắt đầu phải có định dạng hh:mm")]
+        public string StartTime { get; set; }
 
         [Required(ErrorMessage = "Thời gian kết thúc không được để trống")]
-        public DateTime EndTime { get; set; }
+        [RegularExpression(@"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$", ErrorMessage = "Thời gian kết thúc phải có định dạng hh:mm")]
+        public string EndTime { get; set; }
 
-        [Required(ErrorMessage = "Giá không được để trống")]
-        [Range(0, 9999999.99, ErrorMessage = "Giá phải từ 0 đến 9,999,999.99")]
-        public decimal Price { get; set; }
-
-        [Required(ErrorMessage = "Trạng thái khả dụng không được để trống")]
-        public bool IsAvailable { get; set; }
+        [Required(ErrorMessage = "Trạng thái không được để trống")]
+        [RegularExpression("^(Available|Booked)$", ErrorMessage = "Trạng thái phải là 'Available' hoặc 'Booked'")]
+        public string Status { get; set; }
     }
 }

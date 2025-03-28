@@ -11,10 +11,12 @@ namespace api.Data.Configurations
             builder.HasKey(fa => fa.FieldAmenityId);
             builder.Property(fa => fa.FieldId).IsRequired();
             builder.Property(fa => fa.AmenityName).IsRequired().HasMaxLength(100);
+            builder.Property(fa => fa.Description).HasMaxLength(200);
 
             builder.HasOne(fa => fa.Field)
-                   .WithMany()
-                   .HasForeignKey(fa => fa.FieldId);
+                   .WithMany(f => f.FieldAmenities)
+                   .HasForeignKey(fa => fa.FieldId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

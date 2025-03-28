@@ -11,11 +11,13 @@ using System.Linq;
 using api.Dtos;
 using CloudinaryDotNet;
 using api.Services;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace api.Controllers
 {
     [Route("api/users")]
     [ApiController]
+    [EnableRateLimiting("auth")]
     [Authorize]
     public class UserController : ControllerBase
     {
@@ -23,7 +25,7 @@ namespace api.Controllers
         private readonly CloudinaryService _cloudinaryService;
         private readonly ILogger<UserController> _logger;
 
-        public UserController(IUserService userService, CloudinaryService cloudinaryService ,ILogger<UserController> logger)
+        public UserController(IUserService userService, CloudinaryService cloudinaryService, ILogger<UserController> logger)
         {
             _userService = userService;
             _cloudinaryService = cloudinaryService;
@@ -61,27 +63,13 @@ namespace api.Controllers
                 }
 
                 _logger.LogInformation("Updating user profile for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
-
-                if (updateProfileDto.AvatarFile != null && updateProfileDto.AvatarFile.Length > 0)
-                {
-                    try
-                    {
-                        updateProfileDto.AvatarUrl = await _cloudinaryService.UploadImageAsync(updateProfileDto.AvatarFile);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error uploading avatar to Cloudinary for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
-                        return BadRequest(new { Error = "Không thể tải ảnh lên Cloudinary: " + ex.Message });
-                    }
-                }
-                
                 await _userService.UpdateUserProfileAsync(User, updateProfileDto);
                 return Ok(new { Success = true, Message = "Cập nhật thông tin thành công" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating user profile for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
-                return BadRequest(new { Error = ex.Message }); // Trả về thông báo lỗi chi tiết hơn
+                return BadRequest(new { Error = ex.Message });
             }
         }
 
@@ -112,12 +100,13 @@ namespace api.Controllers
                     Items = result.Items.Select(b => new BookingResponseDto
                     {
                         BookingId = b.BookingId,
-                        FieldId = b.FieldId,
-                        FieldName = b.Field.FieldName,
-                        BookingDate = b.BookingDate.ToString("yyyy-MM-dd"),
-                        StartTime = b.StartTime.ToString(@"hh\:mm"),
-                        EndTime = b.EndTime.ToString(@"hh\:mm"),
-                        TotalPrice = b.TotalPrice,
+                        FieldId = b.SubField.Field.FieldId, // Lấy FieldId từ SubField
+                        FieldName = b.SubField.Field.FieldName, // Lấy FieldName từ SubField
+                        SubFieldId = b.SubFieldId, // Thêm SubFieldId vào DTO
+                        SubFieldName = b.SubField.SubFieldName, // Thêm SubFieldName vào DTO
+                        BookingDate = b.BookingDate,
+                        StartTime = b.StartTime,
+                        EndTime = b.EndTime,
                         Status = b.Status,
                         PaymentStatus = b.PaymentStatus,
                         CreatedAt = b.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ssZ")

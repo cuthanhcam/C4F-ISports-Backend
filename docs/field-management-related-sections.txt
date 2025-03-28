@@ -6,7 +6,6 @@ using api.Models;
 using System.Security.Claims;
 using System.Linq;
 using api.Data;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace api.Services
 {
@@ -36,7 +35,7 @@ namespace api.Services
                 .Include(f => f.FieldImages)
                 .Include(f => f.SubFields)
                 .Include(f => f.FieldAmenities)
-                .Include(f => f.FieldServices) // Đổi từ Services
+                .Include(f => f.Services)
                 .Include(f => f.FieldDescriptions)
                 .AsQueryable();
 
@@ -67,7 +66,7 @@ namespace api.Services
                         "fieldname" => sortOrder == "asc" ? query.OrderBy(f => f.FieldName) : query.OrderByDescending(f => f.FieldName),
                         "location" => sortOrder == "asc" ? query.OrderBy(f => f.Address) : query.OrderByDescending(f => f.Address),
                         "rating" => sortOrder == "asc" ? query.OrderBy(f => f.Reviews.Average(r => r.Rating)) : query.OrderByDescending(f => f.Reviews.Average(r => r.Rating)),
-                        "price" => sortOrder == "asc" ? query.OrderBy(f => f.SubFields.Min(sf => sf.PricePerHour)) : query.OrderByDescending(f => f.SubFields.Min(sf => sf.PricePerHour)),
+                        "price" => sortOrder == "asc" ? query.OrderBy(f => f.SubFields.Min(sf => sf.PricePerHour)) : query.OrderByDescending(f => f.SubFields.Max(sf => sf.PricePerHour)),
                         _ => query.OrderBy(f => f.FieldName)
                     };
                 }
@@ -99,7 +98,7 @@ namespace api.Services
                 .Include(f => f.FieldImages)
                 .Include(f => f.SubFields)
                 .Include(f => f.FieldAmenities)
-                .Include(f => f.FieldServices)
+                .Include(f => f.Services)
                 .Include(f => f.FieldDescriptions)
                 .FirstOrDefaultAsync(f => f.FieldId == id);
 
@@ -146,27 +145,25 @@ namespace api.Services
 
             if (createFieldDto.Amenities != null && createFieldDto.Amenities.Any())
             {
-                foreach (var amenity in createFieldDto.Amenities)
+                foreach (var amenityName in createFieldDto.Amenities)
                 {
                     field.FieldAmenities.Add(new FieldAmenity
                     {
                         FieldId = field.FieldId,
-                        AmenityName = amenity.Name,
-                        Description = amenity.Description
+                        AmenityName = amenityName
                     });
                 }
             }
 
-            if (createFieldDto.Services != null && createFieldDto.Services.Any())
+            if (createFieldDto.Services != null)
             {
                 foreach (var service in createFieldDto.Services)
                 {
-                    field.FieldServices.Add(new Models.FieldService
+                    field.Services.Add(new Service
                     {
                         FieldId = field.FieldId,
                         ServiceName = service.ServiceName,
-                        Price = service.Price,
-                        Description = service.Description
+                        Price = service.Price
                     });
                 }
             }
@@ -180,8 +177,7 @@ namespace api.Services
                         FieldId = field.FieldId,
                         SubFieldName = subFieldDto.SubFieldName,
                         Size = subFieldDto.Size,
-                        PricePerHour = subFieldDto.PricePerHour,
-                        Status = "Active"
+                        PricePerHour = subFieldDto.PricePerHour
                     };
                     field.SubFields.Add(subField);
                 }
@@ -199,8 +195,9 @@ namespace api.Services
 
             var field = await _unitOfWork.Fields.GetAll()
                 .Include(f => f.FieldAmenities)
-                .Include(f => f.FieldServices)
+                .Include(f => f.Services)
                 .Include(f => f.SubFields)
+                    .ThenInclude(sf => sf.SubFieldPricings)
                 .Include(f => f.FieldDescriptions)
                 .FirstOrDefaultAsync(f => f.FieldId == id);
 
@@ -232,30 +229,29 @@ namespace api.Services
             }
 
             field.FieldAmenities.Clear();
-            if (updateFieldDto.Amenities != null && updateFieldDto.Amenities.Any())
+            if (updateFieldDto.AmenityIds != null && updateFieldDto.AmenityIds.Any())
             {
-                foreach (var amenity in updateFieldDto.Amenities)
+                foreach (var amenityId in updateFieldDto.AmenityIds)
                 {
                     field.FieldAmenities.Add(new FieldAmenity
                     {
                         FieldId = field.FieldId,
-                        AmenityName = amenity.Name,
-                        Description = amenity.Description
+                        AmenityName = $"Amenity_{amenityId}" // Có thể cần bảng Amenities riêng
                     });
                 }
             }
 
-            field.FieldServices.Clear(); // Chỉ cần một lần
-            if (updateFieldDto.Services != null && updateFieldDto.Services.Any())
+            field.Services.Clear();
+            if (updateFieldDto.Services != null)
             {
                 foreach (var service in updateFieldDto.Services)
                 {
-                    field.FieldServices.Add(new Models.FieldService
+                    field.Services.Add(new Service
                     {
                         FieldId = field.FieldId,
+                        ServiceId = service.ServiceId ?? 0,
                         ServiceName = service.ServiceName,
-                        Price = service.Price,
-                        Description = service.Description
+                        Price = service.Price
                     });
                 }
             }
@@ -270,8 +266,7 @@ namespace api.Services
                         FieldId = field.FieldId,
                         SubFieldName = subFieldDto.SubFieldName,
                         Size = subFieldDto.Size,
-                        PricePerHour = subFieldDto.PricePerHour,
-                        Status = subFieldDto.Status ?? "Active"
+                        PricePerHour = subFieldDto.PricePerHour
                     };
                     field.SubFields.Add(subField);
                 }
@@ -361,8 +356,9 @@ namespace api.Services
                 .Include(f => f.Sport)
                 .Include(f => f.FieldImages)
                 .Include(f => f.SubFields)
+                    .ThenInclude(sf => sf.SubFieldPricings)
                 .Include(f => f.FieldAmenities)
-                .Include(f => f.FieldServices)
+                .Include(f => f.Services)
                 .Include(f => f.FieldDescriptions)
                 .Where(f => f.OwnerId == owner.OwnerId)
                 .AsQueryable();
@@ -393,10 +389,9 @@ namespace api.Services
             };
         }
 
-        public async Task<FieldAvailabilityDto> GetFieldAvailabilityAsync(int fieldId, DateTime date)
+        public async Task<List<SubFieldAvailabilityDto>> GetSubFieldAvailabilityAsync(int fieldId, DateTime date)
         {
             var field = await _unitOfWork.Fields.GetAll()
-                .Include(f => f.FieldServices)
                 .Include(f => f.SubFields)
                     .ThenInclude(sf => sf.Bookings)
                 .FirstOrDefaultAsync(f => f.FieldId == fieldId);
@@ -404,11 +399,11 @@ namespace api.Services
             if (field == null)
                 return null;
 
+            var result = new List<SubFieldAvailabilityDto>();
             var openHours = field.OpenHours.Split('-');
             var startTime = TimeSpan.Parse(openHours[0]);
             var endTime = TimeSpan.Parse(openHours[1]);
 
-            var subFields = new List<SubFieldAvailabilityDto>();
             foreach (var subField in field.SubFields)
             {
                 var slots = new List<TimeSlotDto>();
@@ -417,22 +412,22 @@ namespace api.Services
                 while (currentTime < endTime)
                 {
                     var slotEndTime = currentTime.Add(TimeSpan.FromHours(1));
-                    var isBooked = subField.Bookings.Any(b =>
+                    var isBooked = subField.Bookings.Any(b => 
                         b.BookingDate.Date == date.Date &&
-                        b.StartTime <= currentTime &&
-                        b.EndTime > currentTime);
+                        TimeSpan.Parse(b.StartTime) <= currentTime &&
+                        TimeSpan.Parse(b.EndTime) > currentTime);
 
                     slots.Add(new TimeSlotDto
                     {
-                        StartTime = currentTime.ToString(@"hh\:mm"), // Chỉ lấy giờ
-                        EndTime = slotEndTime.ToString(@"hh\:mm"),   // Chỉ lấy giờ
+                        StartTime = currentTime.ToString(@"hh\:mm"),
+                        EndTime = slotEndTime.ToString(@"hh\:mm"),
                         Status = isBooked ? "Booked" : "Available"
                     });
 
                     currentTime = slotEndTime;
                 }
 
-                subFields.Add(new SubFieldAvailabilityDto
+                result.Add(new SubFieldAvailabilityDto
                 {
                     SubFieldId = subField.SubFieldId,
                     Name = subField.SubFieldName,
@@ -441,19 +436,7 @@ namespace api.Services
                 });
             }
 
-            return new FieldAvailabilityDto
-            {
-                FieldId = field.FieldId,
-                FieldName = field.FieldName,
-                Date = date.ToString("yyyy-MM-dd"),
-                OpenHours = field.OpenHours,
-                Services = field.FieldServices.Select(s => new FieldServiceAvailabilityDto
-                {
-                    Name = s.ServiceName,
-                    Price = s.Price
-                }).ToList(),
-                SubFields = subFields
-            };
+            return result;
         }
 
         private static FieldDto MapToFieldDto(Field field)
@@ -473,10 +456,10 @@ namespace api.Services
                 Images = field.FieldImages.Select(i => i.ImageUrl).ToList(),
                 Amenities = field.FieldAmenities.Select(a => new FieldAmenityDto
                 {
-                    AmenityName = a.AmenityName,
+                    Name = a.AmenityName,
                     Description = a.Description
                 }).ToList(),
-                Services = field.FieldServices.Select(s => new FieldServiceDto
+                Services = field.Services.Select(s => new FieldServiceDto
                 {
                     Name = s.ServiceName,
                     Price = s.Price,
@@ -493,6 +476,9 @@ namespace api.Services
             };
         }
 
+
+        #region TODO: Uncomment and implement the following methods as needed
+        /*
         public async Task<PaginatedResponse<FieldReviewDto>> GetFieldReviewsAsync(
             int fieldId, int? rating, string sort, int page, int pageSize)
         {
@@ -553,8 +539,9 @@ namespace api.Services
                 .Include(f => f.Sport)
                 .Include(f => f.FieldImages)
                 .Include(f => f.SubFields)
+                    .ThenInclude(sf => sf.SubFieldPricings)
                 .Include(f => f.FieldAmenities)
-                .Include(f => f.FieldServices)
+                .Include(f => f.Services)
                 .Include(f => f.FieldDescriptions)
                 .Where(f => CalculateDistance(f.Latitude, f.Longitude, latitude, longitude) <= radius)
                 .AsQueryable();
@@ -563,7 +550,7 @@ namespace api.Services
             {
                 "distance" => query.OrderBy(f => CalculateDistance(f.Latitude, f.Longitude, latitude, longitude)),
                 "rating" => query.OrderByDescending(f => f.Reviews.Average(r => r.Rating)),
-                "price" => query.OrderBy(f => f.SubFields.Min(sf => sf.PricePerHour)),
+                "price" => query.OrderBy(f => f.SubFields.Min(sf => sf.SubFieldPricings.Min(p => p.Price))),
                 _ => query.OrderBy(f => CalculateDistance(f.Latitude, f.Longitude, latitude, longitude))
             };
 
@@ -588,8 +575,10 @@ namespace api.Services
                 .Include(f => f.Sport)
                 .Include(f => f.FieldImages)
                 .Include(f => f.SubFields)
+                    .ThenInclude(sf => sf.SubFieldPricings)
+                .Include(f => f.Bookings)
                 .Include(f => f.FieldAmenities)
-                .Include(f => f.FieldServices)
+                .Include(f => f.Services)
                 .Include(f => f.FieldDescriptions)
                 .AsQueryable();
 
@@ -606,10 +595,10 @@ namespace api.Services
                 query = query.Where(f => f.SportId == search.SportId.Value);
 
             if (search.MinPrice.HasValue)
-                query = query.Where(f => f.SubFields.Any(sf => sf.PricePerHour >= search.MinPrice.Value));
+                query = query.Where(f => f.SubFields.Any(sf => sf.SubFieldPricings.Any(p => p.Price >= search.MinPrice.Value)));
 
             if (search.MaxPrice.HasValue)
-                query = query.Where(f => f.SubFields.Any(sf => sf.PricePerHour <= search.MaxPrice.Value));
+                query = query.Where(f => f.SubFields.Any(sf => sf.SubFieldPricings.Any(p => p.Price <= search.MaxPrice.Value)));
 
             if (search.Latitude.HasValue && search.Longitude.HasValue && search.Radius.HasValue)
             {
@@ -626,9 +615,11 @@ namespace api.Services
             {
                 var date = search.Time.Value.Date;
                 var time = search.Time.Value.TimeOfDay;
-                query = query.Where(f => f.SubFields.Any(sf =>
+                query = query.Where(f => f.SubFields.Any(sf => sf.SubFieldPricings.Any(p =>
+                    p.DayOfWeek == (int)date.DayOfWeek &&
+                    p.StartTime <= time && p.EndTime >= time &&
                     !sf.Bookings.Any(b => b.BookingDate.Date == date &&
-                                         b.StartTime <= time && b.EndTime >= time)));
+                                         b.StartTime <= p.EndTime && b.EndTime >= p.StartTime))));
             }
 
             if (!string.IsNullOrEmpty(search.Sort))
@@ -642,10 +633,10 @@ namespace api.Services
                         query = query.OrderByDescending(f => f.Reviews.Any() ? f.Reviews.Average(r => r.Rating) : 0);
                         break;
                     case "price:asc":
-                        query = query.OrderBy(f => f.SubFields.Any() ? f.SubFields.Min(sf => sf.PricePerHour) : 0);
+                        query = query.OrderBy(f => f.SubFields.Any() ? f.SubFields.Min(sf => sf.SubFieldPricings.Min(p => p.Price)) : 0);
                         break;
                     case "price:desc":
-                        query = query.OrderByDescending(f => f.SubFields.Any() ? f.SubFields.Max(sf => sf.PricePerHour) : decimal.MaxValue);
+                        query = query.OrderByDescending(f => f.SubFields.Any() ? f.SubFields.Max(sf => sf.SubFieldPricings.Max(p => p.Price)) : decimal.MaxValue);
                         break;
                     case "distance:asc":
                         if (search.Latitude.HasValue && search.Longitude.HasValue)
@@ -694,8 +685,9 @@ namespace api.Services
                 .Include(f => f.Sport)
                 .Include(f => f.FieldImages)
                 .Include(f => f.SubFields)
+                    .ThenInclude(sf => sf.SubFieldPricings)
                 .Include(f => f.FieldAmenities)
-                .Include(f => f.FieldServices)
+                .Include(f => f.Services)
                 .Include(f => f.FieldDescriptions)
                 .Where(f => f.Status == "Active")
                 .AsQueryable();
@@ -740,5 +732,247 @@ namespace api.Services
         {
             return value * (decimal)Math.PI / 180;
         }
+        */
+        #endregion
     }
 }
+
+// api/Controllers/FieldController.cs
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using api.Interfaces;
+using api.Dtos.Field;
+using api.Dtos;
+using System.Security.Claims;
+
+namespace api.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class FieldController : ControllerBase
+    {
+        private readonly IFieldService _fieldService;
+
+        public FieldController(IFieldService fieldService)
+        {
+            _fieldService = fieldService;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<PaginatedResponse<FieldDto>>> GetFields([FromQuery] FieldFilterDto filter)
+        {
+            var fields = await _fieldService.GetFieldsAsync(filter);
+            return Ok(fields);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<FieldDto>> GetFieldById(int id)
+        {
+            var field = await _fieldService.GetFieldByIdAsync(id);
+            if (field == null)
+                return NotFound("Không tìm thấy sân");
+            return Ok(field);
+        }
+
+        [HttpGet("{id}/availability")]
+        public async Task<ActionResult<List<SubFieldAvailabilityDto>>> GetSubFieldAvailability(int id, [FromQuery] DateTime date)
+        {
+            var slots = await _fieldService.GetSubFieldAvailabilityAsync(id, date);
+            if (slots == null)
+                return NotFound("Không tìm thấy sân");
+            return Ok(slots);
+        }
+
+        [Authorize(Roles = "Owner")]
+        [HttpPost]
+        public async Task<ActionResult<FieldDto>> CreateField([FromBody] CreateFieldDto createFieldDto)
+        {
+            var field = await _fieldService.CreateFieldAsync(User, createFieldDto);
+            return CreatedAtAction(nameof(GetFieldById), new { id = field.FieldId }, field);
+        }
+
+        [Authorize(Roles = "Owner")]
+        [HttpPut("{id}")]
+        public async Task<ActionResult<FieldDto>> UpdateField(int id, [FromBody] UpdateFieldDto updateFieldDto)
+        {
+            var field = await _fieldService.UpdateFieldAsync(User, id, updateFieldDto);
+            if (field == null)
+                return NotFound("Không tìm thấy sân");
+            return Ok(field);
+        }
+
+        [Authorize(Roles = "Owner")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteField(int id)
+        {
+            await _fieldService.DeleteFieldAsync(User, id);
+            return NoContent();
+        }
+
+        [Authorize(Roles = "Owner")]
+        [HttpPost("{id}/images")]
+        public async Task<ActionResult<string>> UploadFieldImage(int id, [FromBody] string imageBase64)
+        {
+            var imageUrl = await _fieldService.UploadFieldImageAsync(User, id, imageBase64);
+            return Ok(new { imageUrl });
+        }
+
+        [Authorize(Roles = "Owner")]
+        [HttpGet("owner")]
+        public async Task<ActionResult<PaginatedResponse<FieldDto>>> GetOwnerFields(
+            [FromQuery] string status,
+            [FromQuery] string sort,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var fields = await _fieldService.GetOwnerFieldsAsync(User, status, sort, page, pageSize);
+            return Ok(fields);
+        }
+
+        #region Search and Filter
+        /*
+        [HttpGet("search")]
+        public async Task<ActionResult<PaginatedResponse<FieldDto>>> SearchFields([FromQuery] FieldSearchDto search)
+        {
+            var fields = await _fieldService.SearchFieldsAsync(search);
+            return Ok(fields);
+        }
+
+        [HttpGet("{id}/reviews")]
+        public async Task<ActionResult<PaginatedResponse<FieldReviewDto>>> GetFieldReviews(
+            int id, [FromQuery] int? rating, [FromQuery] string sort, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var reviews = await _fieldService.GetFieldReviewsAsync(id, rating, sort, page, pageSize);
+            return Ok(reviews);
+        }
+
+        [HttpGet("nearby")]
+        public async Task<ActionResult<PaginatedResponse<FieldDto>>> GetNearbyFields(
+            [FromQuery] decimal latitude, [FromQuery] decimal longitude, [FromQuery] decimal radius,
+            [FromQuery] string sort, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var fields = await _fieldService.GetNearbyFieldsAsync(latitude, longitude, radius, sort, page, pageSize);
+            return Ok(fields);
+        }
+
+        [Authorize(Roles = "User")]
+        [HttpPost("{fieldId}/report")]
+        public async Task<ActionResult> ReportField(int fieldId, [FromBody] FieldReportDto reportDto)
+        {
+            await _fieldService.ReportFieldAsync(fieldId, reportDto);
+            return NoContent();
+        }
+
+        [HttpGet("suggested")]
+        public async Task<ActionResult<PaginatedResponse<FieldDto>>> GetSuggestedFields(
+            [FromQuery] decimal? latitude,
+            [FromQuery] decimal? longitude,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var fields = await _fieldService.GetSuggestedFieldsAsync(latitude, longitude, page, pageSize);
+            return Ok(fields);
+        }
+        */
+        #endregion
+    }
+}
+
+// Models
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace api.Models
+{
+    public class Field
+    {
+        public int FieldId { get; set; } // Mã sân (PK)
+        public int SportId { get; set; } // Liên kết với bảng Sports (FK)
+        public string FieldName { get; set; } // Tên sân
+        public string Phone { get; set; } // Số điện thoại đặt lịch
+        public string Address { get; set; } // Địa chỉ sân
+        public string OpenHours { get; set; } // Khung giờ mở cửa (VD: 8:00 - 22:00)
+        public int OwnerId { get; set; } // Liên kết với bảng Owners (FK)
+        public string Status { get; set; } // Trạng thái sân (Active, Inactive, Maintenance)
+        public decimal Latitude { get; set; } // Vĩ độ GPS
+        public decimal Longitude { get; set; } // Kinh độ GPS
+        public DateTime CreatedAt { get; set; } // Ngày tạo sân
+        public DateTime UpdatedAt { get; set; } // Ngày cập nhật sân
+
+        // Các thuộc tính điều hướng (Navigation Properties)
+        public Sport Sport { get; set; }
+        public Owner Owner { get; set; }
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public ICollection<FieldImage> FieldImages { get; set; } = new List<FieldImage>();
+        public ICollection<SubField> SubFields { get; set; } = new List<SubField>();
+        public ICollection<FieldAmenity> FieldAmenities { get; set; } = new List<FieldAmenity>();
+        public ICollection<FieldDescription> FieldDescriptions { get; set; } = new List<FieldDescription>();
+        public ICollection<Service> Services { get; set; } = new List<Service>();
+        public ICollection<FavoriteField> FavoriteFields { get; set; } = new List<FavoriteField>();
+    }
+}
+
+    public class SubField
+    {
+        public int SubFieldId { get; set; } // Mã sân nhỏ (PK)
+        public int FieldId { get; set; } // Liên kết với sân lớn (FK)
+        public string SubFieldName { get; set; } // Tên sân nhỏ (ví dụ: "Sân 5-1", "Sân 7-2")
+        public int Size { get; set; } // Kích thước (5 người, 7 người, 11 người, v.v.)
+        public decimal PricePerHour { get; set; } // Giá mỗi giờ
+
+        public Field Field { get; set; } // Quan hệ với bảng Field
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>(); // Đặt sân riêng
+    }
+
+        public class FieldAmenity
+    {
+        public int FieldAmenityId { get; set; }
+        public int FieldId { get; set; }
+        public string AmenityName { get; set; } // Tên tiện ích (vd: Wifi, Điều hòa, Nước uống,...)
+
+        public Field Field { get; set; }
+    }
+
+        public class Service
+    {
+        public int ServiceId { get; set; }
+        public int FieldId { get; set; }
+        public string ServiceName { get; set; } // Tên dịch vụ (vd: Nước uống, Đồ ăn nhẹ,...)
+        public decimal Price { get; set; } // Giá dịch vụ (vd: 20000 cho nước uống, 50000 cho đồ ăn nhẹ,...)
+
+        public Field Field { get; set; }
+        public ICollection<BookingService> BookingServices { get; set; } // Thêm quan hệ 1-n
+    }
+
+        public class FieldImage
+    {
+        public int FieldImageId { get; set; }
+        public int FieldId { get; set; }
+        public string? Thumbnail { get; set; } // Ảnh Thumbnail (nếu có)
+        public string ImageUrl { get; set; } // URL Cloudinary
+        
+        public Field Field { get; set; }
+    }
+
+    public class Booking
+    {
+        public int BookingId { get; set; } // Mã đặt sân (PK)
+        public int UserId { get; set; } // Người đặt (FK)
+        public int FieldId { get; set; } // Sân được đặt (FK)
+        public DateTime BookingDate { get; set; } // Ngày đặt sân
+        public TimeSpan StartTime { get; set; } // Giờ bắt đầu
+        public TimeSpan EndTime { get; set; } // Giờ kết thúc
+        public decimal TotalPrice { get; set; } // Tổng tiền
+        public string Status { get; set; } // Trạng thái (Pending, Confirmed, Canceled, Completed)
+        public string PaymentStatus { get; set; } // Trạng thái thanh toán (Unpaid, Partially Paid, Paid)
+        public DateTime CreatedAt { get; set; } // Ngày tạo đơn
+        public DateTime UpdatedAt { get; set; } // Ngày cập nhật đơn
+
+        public User User { get; set; } // Quan hệ với bảng User
+        public SubField SubField { get; set; } // Quan hệ với bảng SubField
+    }
+
+    

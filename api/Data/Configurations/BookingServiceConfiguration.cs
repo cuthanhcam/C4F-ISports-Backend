@@ -10,19 +10,19 @@ namespace api.Data.Configurations
         {
             builder.HasKey(bs => bs.BookingServiceId);
             builder.Property(bs => bs.BookingId).IsRequired();
-            builder.Property(bs => bs.ServiceId).IsRequired();
+            builder.Property(bs => bs.FieldServiceId).IsRequired(); // Đổi từ ServiceId
             builder.Property(bs => bs.Quantity).IsRequired();
             builder.Property(bs => bs.Price).HasPrecision(10, 2);
 
             builder.HasOne(bs => bs.Booking)
                    .WithMany()
                    .HasForeignKey(bs => bs.BookingId)
-                   .OnDelete(DeleteBehavior.NoAction); // Thêm NoAction để tránh cascade
+                   .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasOne(bs => bs.Service)
-                   .WithMany(s => s.BookingServices)
-                   .HasForeignKey(bs => bs.ServiceId)
-                   .OnDelete(DeleteBehavior.NoAction); // Thêm NoAction để tránh cascade
+            builder.HasOne(bs => bs.FieldService) // Đổi từ Service
+                   .WithMany(fs => fs.BookingServices)
+                   .HasForeignKey(bs => bs.FieldServiceId)
+                   .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

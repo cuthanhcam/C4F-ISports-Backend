@@ -5,7 +5,7 @@ namespace api.Data.Seeders
 {
     public static class OwnerSeeder
     {
-        public static void Seed(ApplicationDbContext context)
+        public static async Task SeedAsync(ApplicationDbContext context)
         {
             if (!context.Owners.Any())
             {
@@ -32,7 +32,7 @@ namespace api.Data.Seeders
                         UpdatedAt = DateTime.UtcNow
                     }
                 );
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
         }
     }

@@ -6,8 +6,6 @@ using api.Models;
 
 namespace api.Interfaces
 {
-    // This interface is used to define the Unit of Work pattern
-    // The Unit of Work pattern is used to group all the repositories and save changes to the database in a single transaction
     public interface IUnitOfWork : IDisposable
     {
         IGenericRepository<Account> Accounts { get; }
@@ -20,6 +18,10 @@ namespace api.Interfaces
         IGenericRepository<Sport> Sports { get; }
         IGenericRepository<Review> Reviews { get; }
         IGenericRepository<FieldAmenity> FieldAmenities { get; }
+        IGenericRepository<FieldService> FieldServices { get; } // Thêm
+        IGenericRepository<SubField> SubFields { get; } // Thêm
+        IGenericRepository<FieldImage> FieldImages { get; } // Thêm
+        IGenericRepository<FieldDescription> FieldDescriptions { get; } // Thêm
         Task<int> SaveChangesAsync();
     }
 }

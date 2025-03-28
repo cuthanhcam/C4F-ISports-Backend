@@ -1,3 +1,4 @@
+using api.Data;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -5,20 +6,26 @@ namespace api.Data.Seeders
 {
     public static class FieldImageSeeder
     {
-        public static void Seed(ApplicationDbContext context)
+        public static async Task SeedAsync(ApplicationDbContext context)
         {
             if (!context.FieldImages.Any())
             {
-                var field1 = context.Fields.First(f => f.FieldName == "Football Field A");
-                var field2 = context.Fields.First(f => f.FieldName == "Football Field B");
-                var field3 = context.Fields.First(f => f.FieldName == "Badminton Court X");
+                // Đảm bảo Field với FieldId = 1 tồn tại
+                var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldId == 1);
+                if (field == null)
+                {
+                    // Nếu không có, bạn có thể log lỗi hoặc bỏ qua
+                    return;
+                }
 
-                context.FieldImages.AddRange(
-                    new FieldImage { FieldId = field1.FieldId, ImageUrl = "https://drive.google.com/file/d/1FYAj_423LzrnzD70PUykfqRFUIbd-LVC/view?usp=drive_link" },
-                    new FieldImage { FieldId = field2.FieldId, ImageUrl = "https://drive.google.com/file/d/11GsdxasHRWmAjYf9H4GTS3C2ArkXhjan/view?usp=drive_link" },
-                    new FieldImage { FieldId = field3.FieldId, ImageUrl = "https://drive.google.com/file/d/16jmCurClrNNbXVJcl6_mR7gng4fjDTsy/view?usp=drive_link" }
-                );
-                context.SaveChanges();
+                var fieldImages = new List<FieldImage>
+                {
+                    new FieldImage { FieldId = field.FieldId, ImageUrl = "https://example.com/image1.jpg" },
+                    new FieldImage { FieldId = field.FieldId, ImageUrl = "https://example.com/image2.jpg" }
+                };
+
+                await context.FieldImages.AddRangeAsync(fieldImages);
+                await context.SaveChangesAsync();
             }
         }
     }

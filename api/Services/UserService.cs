@@ -81,7 +81,7 @@ namespace api.Services
                     Phone = dbUser.Phone,
                     Gender = dbUser.Gender,
                     DateOfBirth = dbUser.DateOfBirth?.ToString("yyyy-MM-dd"),
-                    AvatarUrl = dbUser.AvatarUrl
+                    // AvatarUrl = dbUser.AvatarUrl
                 };
             }
             else if (role == "Owner")
@@ -102,7 +102,7 @@ namespace api.Services
                     Phone = dbOwner.Phone,
                     Gender = null, // Owner không có trường Gender
                     DateOfBirth = null, // Owner không có trường DateOfBirth
-                    AvatarUrl = null // Owner không có trường AvatarUrl
+                    // AvatarUrl = null // Owner không có trường AvatarUrl 
                 };
             }
             else
@@ -131,14 +131,11 @@ namespace api.Services
                     throw new Exception("Không tìm thấy người dùng.");
                 }
 
+                // Cập nhật các trường bắt buộc
                 dbUser.FullName = updateProfileDto.FullName;
                 dbUser.Phone = updateProfileDto.Phone;
                 dbUser.Gender = updateProfileDto.Gender;
                 dbUser.DateOfBirth = updateProfileDto.DateOfBirth;
-                if (!string.IsNullOrEmpty(updateProfileDto.AvatarUrl)) // Chỉ cập nhật nếu có AvatarUrl mới
-                {
-                    dbUser.AvatarUrl = updateProfileDto.AvatarUrl;
-                }
 
                 _unitOfWork.Users.Update(dbUser);
             }
@@ -169,7 +166,7 @@ namespace api.Services
         {
             var dbUser = await GetCurrentUserAsync(user); // Chỉ áp dụng cho User
             var query = _unitOfWork.Bookings.GetAll()
-                .Include(b => b.Field)
+                .Include(b => b.SubField)
                 .Where(b => b.UserId == dbUser.UserId)
                 .AsQueryable();
 

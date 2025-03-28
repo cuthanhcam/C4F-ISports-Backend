@@ -4,11 +4,13 @@ using api.Interfaces;
 using api.Dtos.Field;
 using api.Dtos;
 using System.Security.Claims;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace api.Controllers
 {
+    [Route("api/field")]
     [ApiController]
-    [Route("api/[controller]")]
+    [EnableRateLimiting("auth")]
     public class FieldController : ControllerBase
     {
         private readonly IFieldService _fieldService;
@@ -34,20 +36,13 @@ namespace api.Controllers
             return Ok(field);
         }
 
-        [HttpGet("search")]
-        public async Task<ActionResult<PaginatedResponse<FieldDto>>> SearchFields([FromQuery] FieldSearchDto search)
+        [HttpGet("{id}/availability")]
+        public async Task<ActionResult<FieldAvailabilityDto>> GetFieldAvailability(int id, [FromQuery] DateTime date)
         {
-            var fields = await _fieldService.SearchFieldsAsync(search);
-            return Ok(fields);
-        }
-
-        [HttpGet("{id}/available-slots")]
-        public async Task<ActionResult<List<TimeSlotDto>>> GetAvailableSlots(int id, [FromQuery] DateTime date)
-        {
-            var slots = await _fieldService.GetAvailableSlotsAsync(id, date);
-            if (slots == null)
+            var availability = await _fieldService.GetFieldAvailabilityAsync(id, date);
+            if (availability == null)
                 return NotFound("Không tìm thấy sân");
-            return Ok(slots);
+            return Ok(availability);
         }
 
         [Authorize(Roles = "Owner")]
@@ -76,6 +71,33 @@ namespace api.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Owner")]
+        [HttpPost("{id}/images")]
+        public async Task<ActionResult<string>> UploadFieldImage(int id, [FromBody] string imageBase64)
+        {
+            var imageUrl = await _fieldService.UploadFieldImageAsync(User, id, imageBase64);
+            return Ok(new { imageUrl });
+        }
+
+        [Authorize(Roles = "Owner")]
+        [HttpGet("owner")]
+        public async Task<ActionResult<PaginatedResponse<FieldDto>>> GetOwnerFields(
+            [FromQuery] string status,
+            [FromQuery] string sort,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var fields = await _fieldService.GetOwnerFieldsAsync(User, status, sort, page, pageSize);
+            return Ok(fields);
+        }
+
+        [HttpGet("search")]
+        public async Task<ActionResult<PaginatedResponse<FieldDto>>> SearchFields([FromQuery] FieldSearchDto search)
+        {
+            var fields = await _fieldService.SearchFieldsAsync(search);
+            return Ok(fields);
+        }
+
         [HttpGet("{id}/reviews")]
         public async Task<ActionResult<PaginatedResponse<FieldReviewDto>>> GetFieldReviews(
             int id, [FromQuery] int? rating, [FromQuery] string sort, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
@@ -93,44 +115,23 @@ namespace api.Controllers
             return Ok(fields);
         }
 
-        [Authorize(Roles = "Owner")]
-        [HttpPost("{id}/images")]
-        public async Task<ActionResult<string>> UploadFieldImage(int id, [FromBody] string imageBase64)
+        [Authorize(Roles = "User")]
+        [HttpPost("{fieldId}/report")]
+        public async Task<ActionResult> ReportField(int fieldId, [FromBody] FieldReportDto reportDto)
         {
-            var imageUrl = await _fieldService.UploadFieldImageAsync(User, id, imageBase64);
-            return Ok(new { imageUrl });
+            await _fieldService.ReportFieldAsync(fieldId, reportDto);
+            return NoContent();
         }
 
-        #region TODO: Uncomment and implement the following methods as needed
-        // [HttpGet("owner")]
-        // public async Task<ActionResult<PaginatedResponse<FieldDto>>> GetOwnerFields(
-        //     [FromQuery] string status,
-        //     [FromQuery] string sort,
-        //     [FromQuery] int page = 1,
-        //     [FromQuery] int pageSize = 10)
-        // {
-        //     var user = User;
-        //     var fields = await _fieldService.GetOwnerFieldsAsync(user, status, sort, page, pageSize);
-        //     return Ok(fields);
-        // }
-
-        // [HttpPost("{fieldId}/report")]
-        // public async Task<ActionResult> ReportField(int fieldId, FieldReportDto reportDto)
-        // {
-        //     await _fieldService.ReportFieldAsync(fieldId, reportDto);
-        //     return NoContent();
-        // }
-
-        // [HttpGet("suggested")]
-        // public async Task<ActionResult<PaginatedResponse<FieldDto>>> GetSuggestedFields(
-        //     [FromQuery] decimal? latitude,
-        //     [FromQuery] decimal? longitude,
-        //     [FromQuery] int page = 1,
-        //     [FromQuery] int pageSize = 10)
-        // {
-        //     var fields = await _fieldService.GetSuggestedFieldsAsync(latitude, longitude, page, pageSize);
-        //     return Ok(fields);
-        // }
-        #endregion
+        [HttpGet("suggested")]
+        public async Task<ActionResult<PaginatedResponse<FieldDto>>> GetSuggestedFields(
+            [FromQuery] decimal? latitude,
+            [FromQuery] decimal? longitude,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            var fields = await _fieldService.GetSuggestedFieldsAsync(latitude, longitude, page, pageSize);
+            return Ok(fields);
+        }
     }
-} 
+}
