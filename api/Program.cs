@@ -24,6 +24,13 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Cấu hình logging
+builder.Services.AddLogging(logging =>
+{
+    logging.AddConsole();
+    logging.AddDebug();
+});
+
 // Add services to the container.
 
 // 1. Cấu hình DbContext với SQL Server
@@ -54,6 +61,12 @@ builder.Services.AddSingleton(new Cloudinary(new Account(
     cloudinarySettings["ApiSecret"]
 )));
 builder.Services.AddScoped<CloudinaryService>();
+
+// Thêm HttpClient và GeocodingService với timeout
+builder.Services.AddHttpClient<IGeocodingService, GeocodingService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
 
 // 4. Đăng ký các service khác
 builder.Services.AddScoped<IAuthService, AuthService>();

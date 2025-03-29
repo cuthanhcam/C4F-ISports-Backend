@@ -71,13 +71,13 @@ namespace api.Dtos.Field
         [Required(ErrorMessage = "Loại thể thao không được để trống")]
         public int SportId { get; set; }
 
-        [Required(ErrorMessage = "Vĩ độ không được để trống")]
-        [Range(-90, 90, ErrorMessage = "Vĩ độ không hợp lệ")]
-        public decimal Latitude { get; set; }
+        // [Required(ErrorMessage = "Vĩ độ không được để trống")]
+        // [Range(-90, 90, ErrorMessage = "Vĩ độ không hợp lệ")]
+        // public decimal Latitude { get; set; }
 
-        [Required(ErrorMessage = "Kinh độ không được để trống")]
-        [Range(-180, 180, ErrorMessage = "Kinh độ không hợp lệ")]
-        public decimal Longitude { get; set; }
+        // [Required(ErrorMessage = "Kinh độ không được để trống")]
+        // [Range(-180, 180, ErrorMessage = "Kinh độ không hợp lệ")]
+        // public decimal Longitude { get; set; }
 
         [Required(ErrorMessage = "Trạng thái không được để trống")]
         [RegularExpression("^(Active|Inactive|Maintenance)$", ErrorMessage = "Trạng thái không hợp lệ")]
@@ -114,13 +114,13 @@ namespace api.Dtos.Field
         [RegularExpression("^(Active|Inactive|Maintenance)$", ErrorMessage = "Trạng thái không hợp lệ")]
         public string Status { get; set; }
 
-        [Required(ErrorMessage = "Vĩ độ không được để trống")]
-        [Range(-90, 90, ErrorMessage = "Vĩ độ không hợp lệ")]
-        public decimal Latitude { get; set; }
+        // [Required(ErrorMessage = "Vĩ độ không được để trống")]
+        // [Range(-90, 90, ErrorMessage = "Vĩ độ không hợp lệ")]
+        // public decimal Latitude { get; set; }
 
-        [Required(ErrorMessage = "Kinh độ không được để trống")]
-        [Range(-180, 180, ErrorMessage = "Kinh độ không hợp lệ")]
-        public decimal Longitude { get; set; }
+        // [Required(ErrorMessage = "Kinh độ không được để trống")]
+        // [Range(-180, 180, ErrorMessage = "Kinh độ không hợp lệ")]
+        // public decimal Longitude { get; set; }
 
         public List<UpdateFieldAmenityDto> Amenities { get; set; } // Đổi từ List<string> thành List<UpdateFieldAmenityDto>
         public List<UpdateFieldServiceDto> Services { get; set; }

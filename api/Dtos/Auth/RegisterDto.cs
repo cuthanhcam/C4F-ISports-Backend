@@ -13,7 +13,9 @@ namespace api.Dtos.Auth
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
-        [MinLength(6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự")]
+        [MinLength(8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$", 
+            ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt")]
         public string Password { get; set; }
 
         [Required(ErrorMessage = "Vai trò là bắt buộc")]

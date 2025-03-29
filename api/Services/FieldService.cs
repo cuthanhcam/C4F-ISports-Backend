@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Linq;
 using api.Data;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using api.Exceptions;
 
 namespace api.Services
 {
@@ -16,17 +17,20 @@ namespace api.Services
         private readonly IConfiguration _configuration;
         private readonly ILogger<FieldService> _logger;
         private readonly CloudinaryService _cloudinaryService;
+        private readonly IGeocodingService _geocodingService;
 
         public FieldService(
             IUnitOfWork unitOfWork,
             IConfiguration configuration,
             ILogger<FieldService> logger,
-            CloudinaryService cloudinaryService)
+            CloudinaryService cloudinaryService,
+            IGeocodingService geocodingService)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
             _logger = logger;
             _cloudinaryService = cloudinaryService;
+            _geocodingService = geocodingService;
         }
 
         public async Task<PaginatedResponse<FieldDto>> GetFieldsAsync(FieldFilterDto filter)
@@ -115,7 +119,24 @@ namespace api.Services
             var owner = await _unitOfWork.Owners.GetAll()
                 .FirstOrDefaultAsync(o => o.AccountId == accountId);
             if (owner == null)
-                throw new InvalidOperationException($"No Owner found for AccountId {accountId}");
+                throw new ResourceNotFoundException($"No Owner found for AccountId {accountId}");
+
+            var normalizedAddress = NormalizeAddress(createFieldDto.Address);
+            decimal latitude = 0m; // Tọa độ mặc định nếu thất bại
+            decimal longitude = 0m;
+            try
+            {
+                (latitude, longitude) = await _geocodingService.GetCoordinatesFromAddressAsync(normalizedAddress);
+                if (Math.Abs(latitude) > 90 || Math.Abs(longitude) > 180)
+                    throw new AppException("Tọa độ không hợp lệ từ dịch vụ địa chỉ");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Geocoding failed for address: {Address}. Using default coordinates (0,0)", normalizedAddress);
+                latitude = 0m; // Fallback tọa độ
+                longitude = 0m;
+                // Không ném exception để tiếp tục tạo field
+            }
 
             var field = new Field
             {
@@ -125,8 +146,8 @@ namespace api.Services
                 OpenHours = createFieldDto.OpenHours,
                 Status = createFieldDto.Status,
                 SportId = createFieldDto.SportId,
-                Latitude = createFieldDto.Latitude,
-                Longitude = createFieldDto.Longitude,
+                Latitude = latitude,
+                Longitude = longitude,
                 OwnerId = owner.OwnerId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -135,6 +156,7 @@ namespace api.Services
             await _unitOfWork.Fields.AddAsync(field);
             await _unitOfWork.SaveChangesAsync();
 
+            // Logic thêm description, amenities, services, subfields giữ nguyên
             if (!string.IsNullOrEmpty(createFieldDto.Description))
             {
                 field.FieldDescriptions.Add(new FieldDescription
@@ -152,7 +174,7 @@ namespace api.Services
                     {
                         FieldId = field.FieldId,
                         AmenityName = amenity.Name,
-                        Description = amenity.Description
+                        Description = amenity.Description ?? string.Empty
                     });
                 }
             }
@@ -166,7 +188,7 @@ namespace api.Services
                         FieldId = field.FieldId,
                         ServiceName = service.ServiceName,
                         Price = service.Price,
-                        Description = service.Description
+                        Description = service.Description ?? string.Empty
                     });
                 }
             }
@@ -175,15 +197,14 @@ namespace api.Services
             {
                 foreach (var subFieldDto in createFieldDto.SubFields)
                 {
-                    var subField = new SubField
+                    field.SubFields.Add(new SubField
                     {
                         FieldId = field.FieldId,
                         SubFieldName = subFieldDto.SubFieldName,
                         Size = subFieldDto.Size,
                         PricePerHour = subFieldDto.PricePerHour,
                         Status = "Active"
-                    };
-                    field.SubFields.Add(subField);
+                    });
                 }
             }
 
@@ -205,22 +226,42 @@ namespace api.Services
                 .FirstOrDefaultAsync(f => f.FieldId == id);
 
             if (field == null)
-                return null;
+                throw new ResourceNotFoundException($"Field with ID {id} not found");
 
             var owner = await _unitOfWork.Owners.GetAll()
                 .FirstOrDefaultAsync(o => o.AccountId == accountId);
-            if (field.OwnerId != owner.OwnerId)
+            if (field.OwnerId != owner?.OwnerId)
                 throw new UnauthorizedAccessException("User is not the owner of this field");
+
+            var normalizedAddress = NormalizeAddress(updateFieldDto.Address);
+            decimal latitude = field.Latitude;
+            decimal longitude = field.Longitude;
+
+            if (!string.Equals(field.Address, normalizedAddress, StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    (latitude, longitude) = await _geocodingService.GetCoordinatesFromAddressAsync(normalizedAddress);
+                    if (Math.Abs(latitude) > 90 || Math.Abs(longitude) > 180)
+                        throw new AppException("Tọa độ không hợp lệ từ dịch vụ địa chỉ");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Geocoding failed during update for address: {Address}", normalizedAddress);
+                    throw new AppException($"Không thể xác định vị trí từ địa chỉ mới '{normalizedAddress}'. Vui lòng cung cấp địa chỉ chi tiết hơn (ví dụ: số nhà, tên đường, phường/xã).");
+                }
+            }
 
             field.FieldName = updateFieldDto.FieldName;
             field.Address = updateFieldDto.Address;
             field.Phone = updateFieldDto.Phone;
             field.OpenHours = updateFieldDto.OpenHours;
             field.Status = updateFieldDto.Status;
-            field.Latitude = updateFieldDto.Latitude;
-            field.Longitude = updateFieldDto.Longitude;
+            field.Latitude = latitude;
+            field.Longitude = longitude;
             field.UpdatedAt = DateTime.UtcNow;
 
+            // Logic cập nhật description, amenities, services, subfields giữ nguyên
             field.FieldDescriptions.Clear();
             if (!string.IsNullOrEmpty(updateFieldDto.Description))
             {
@@ -240,12 +281,12 @@ namespace api.Services
                     {
                         FieldId = field.FieldId,
                         AmenityName = amenity.Name,
-                        Description = amenity.Description
+                        Description = amenity.Description ?? string.Empty
                     });
                 }
             }
 
-            field.FieldServices.Clear(); // Chỉ cần một lần
+            field.FieldServices.Clear();
             if (updateFieldDto.Services != null && updateFieldDto.Services.Any())
             {
                 foreach (var service in updateFieldDto.Services)
@@ -255,7 +296,7 @@ namespace api.Services
                         FieldId = field.FieldId,
                         ServiceName = service.ServiceName,
                         Price = service.Price,
-                        Description = service.Description
+                        Description = service.Description ?? string.Empty
                     });
                 }
             }
@@ -265,20 +306,52 @@ namespace api.Services
             {
                 foreach (var subFieldDto in updateFieldDto.SubFields)
                 {
-                    var subField = new SubField
+                    field.SubFields.Add(new SubField
                     {
                         FieldId = field.FieldId,
                         SubFieldName = subFieldDto.SubFieldName,
                         Size = subFieldDto.Size,
                         PricePerHour = subFieldDto.PricePerHour,
                         Status = subFieldDto.Status ?? "Active"
-                    };
-                    field.SubFields.Add(subField);
+                    });
                 }
             }
 
             await _unitOfWork.SaveChangesAsync();
             return await GetFieldByIdAsync(id);
+        }
+
+        private string NormalizeAddress(string address)
+        {
+            if (string.IsNullOrWhiteSpace(address))
+            {
+                _logger.LogError("Address is null or empty");
+                throw new ArgumentException("Địa chỉ không được để trống");
+            }
+
+            // Loại bỏ khoảng trắng thừa
+            address = address.Trim();
+
+            // Chuẩn hóa dấu phẩy
+            address = address.Replace(" ,", ",").Replace(", ", ",");
+
+            // Loại bỏ "Việt Nam" hoặc "Vietnam" ở cuối nếu có
+            address = address.TrimEnd(new[] { ',', ' ' });
+            if (address.EndsWith(",Việt Nam", StringComparison.OrdinalIgnoreCase) ||
+                address.EndsWith(",Vietnam", StringComparison.OrdinalIgnoreCase))
+            {
+                address = address.Substring(0, address.LastIndexOf(','));
+            }
+
+            // Thêm quốc gia nếu chưa có
+            if (!address.EndsWith(", Việt Nam", StringComparison.OrdinalIgnoreCase) &&
+                !address.EndsWith(", Vietnam", StringComparison.OrdinalIgnoreCase))
+            {
+                address = $"{address}, Việt Nam";
+            }
+
+            _logger.LogDebug("Normalized address from '{Original}' to '{Normalized}'", address, address);
+            return address;
         }
 
         public async Task DeleteFieldAsync(ClaimsPrincipal user, int id)
