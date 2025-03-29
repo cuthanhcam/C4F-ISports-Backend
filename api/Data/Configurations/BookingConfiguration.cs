@@ -29,6 +29,11 @@ namespace api.Data.Configurations
                    .WithMany(sf => sf.Bookings)
                    .HasForeignKey(b => b.SubFieldId)
                    .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasMany(b => b.BookingServices)
+                   .WithOne(bs => bs.Booking)
+                   .HasForeignKey(bs => bs.BookingId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

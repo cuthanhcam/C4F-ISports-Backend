@@ -16,40 +16,51 @@ namespace api.Data
 
             logger.LogInformation("Starting database seeding...");
 
-            await AccountSeeder.SeedAsync(context);
-            logger.LogInformation("AccountSeeder completed.");
+            try
+            {
+                await context.Database.MigrateAsync(); // Áp dụng migration trước khi seed
+                logger.LogInformation("Database migrations applied.");
 
-            await UserSeeder.SeedAsync(context);
-            logger.LogInformation("UserSeeder completed.");
+                await AccountSeeder.SeedAsync(context);
+                logger.LogInformation("AccountSeeder completed.");
 
-            await OwnerSeeder.SeedAsync(context);
-            logger.LogInformation("OwnerSeeder completed.");
+                await SportSeeder.SeedAsync(context);
+                logger.LogInformation("SportSeeder completed.");
 
-            await SportSeeder.SeedAsync(context);
-            logger.LogInformation("SportSeeder completed.");
+                await UserSeeder.SeedAsync(context);
+                logger.LogInformation("UserSeeder completed.");
 
-            await FieldSeeder.SeedAsync(context);
-            logger.LogInformation("FieldSeeder completed.");
+                await OwnerSeeder.SeedAsync(context);
+                logger.LogInformation("OwnerSeeder completed.");
 
-            await FieldDescriptionSeeder.SeedAsync(context);
-            logger.LogInformation("FieldDescriptionSeeder completed.");
+                await FieldSeeder.SeedAsync(context);
+                logger.LogInformation("FieldSeeder completed.");
 
-            await FieldImageSeeder.SeedAsync(context);
-            logger.LogInformation("FieldImageSeeder completed.");
+                await FieldDescriptionSeeder.SeedAsync(context);
+                logger.LogInformation("FieldDescriptionSeeder completed.");
 
-            await FieldAmenitySeeder.SeedAsync(context);
-            logger.LogInformation("FieldAmenitySeeder completed.");
+                await FieldImageSeeder.SeedAsync(context);
+                logger.LogInformation("FieldImageSeeder completed.");
 
-            await FieldServiceSeeder.SeedAsync(context);
-            logger.LogInformation("FieldServiceSeeder completed.");
+                await FieldAmenitySeeder.SeedAsync(context);
+                logger.LogInformation("FieldAmenitySeeder completed.");
 
-            await BookingSeeder.SeedAsync(context);
-            logger.LogInformation("BookingSeeder completed.");
+                await FieldServiceSeeder.SeedAsync(context);
+                logger.LogInformation("FieldServiceSeeder completed.");
 
-            await ReviewSeeder.SeedAsync(context);
-            logger.LogInformation("ReviewSeeder completed.");
+                await BookingSeeder.SeedAsync(context);
+                logger.LogInformation("BookingSeeder completed.");
 
-            logger.LogInformation("Database seeding completed.");
+                await ReviewSeeder.SeedAsync(context);
+                logger.LogInformation("ReviewSeeder completed.");
+
+                logger.LogInformation("Database seeding completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred during database seeding.");
+                throw; // Ném lại để bạn có thể thấy lỗi trong console
+            }
         }
     }
 }

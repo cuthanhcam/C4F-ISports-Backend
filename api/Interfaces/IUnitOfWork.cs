@@ -18,10 +18,11 @@ namespace api.Interfaces
         IGenericRepository<Sport> Sports { get; }
         IGenericRepository<Review> Reviews { get; }
         IGenericRepository<FieldAmenity> FieldAmenities { get; }
-        IGenericRepository<FieldService> FieldServices { get; } // Thêm
-        IGenericRepository<SubField> SubFields { get; } // Thêm
-        IGenericRepository<FieldImage> FieldImages { get; } // Thêm
-        IGenericRepository<FieldDescription> FieldDescriptions { get; } // Thêm
+        IGenericRepository<FieldService> FieldServices { get; }
+        IGenericRepository<SubField> SubFields { get; }
+        IGenericRepository<FieldImage> FieldImages { get; }
+        IGenericRepository<FieldDescription> FieldDescriptions { get; }
+        IGenericRepository<BookingService> BookingServices { get; }
         Task<int> SaveChangesAsync();
     }
 }

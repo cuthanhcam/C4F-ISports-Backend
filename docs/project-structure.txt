@@ -1,111 +1,84 @@
 api/
 │── Data/                                # Tầng Data Access (Quản lý database)
-│   ├── ApplicationDbContext.cs          # DbContext - Quản lý database
-│   ├── SeedData.cs                      # Chạy tất cả các Seeder khi ứng dụng khởi động
-│   ├── UnitOfWork.cs                    # Quản lý transaction cho database
-│   ├── Migrations/                      # Thư mục chứa các file Migration do EF Core tạo
-│   │   ├── 20250101_InitialCreate.cs    # Migration đầu tiên (ví dụ)
-│   │   ├── 20250101_InitialCreate.Designer.cs
-│   │   ├── ApplicationDbContextModelSnapshot.cs
-│   │   └── ...                          # Các Migration khác
+│   ├── ApplicationDbContext.cs          
+│   ├── SeedData.cs                      
+│   ├── UnitOfWork.cs                    
+│   ├── Migrations/                     
+│   │   └── ...                          
 │   ├── Configurations/                  # Cấu hình Entity (Fluent API)
-│   │   ├── AccountConfiguration.cs      
-│   │   ├── UserConfiguration.cs         
-│   │   ├── OwnerConfiguration.cs        
-│   │   ├── SportConfiguration.cs        
-│   │   ├── FieldConfiguration.cs        
-│   │   ├── FieldDescriptionConfiguration.cs
-│   │   ├── FieldImageConfiguration.cs   
-│   │   ├── FieldAmenityConfiguration.cs 
-│   │   ├── FieldPricingConfiguration.cs 
-│   │   ├── ServiceConfiguration.cs      
-│   │   ├── BookingConfiguration.cs      
+│   │   ├── AccountConfiguration.cs     
+│   │   ├── BookingConfiguration.cs   
 │   │   ├── BookingServiceConfiguration.cs
-│   │   ├── PaymentConfiguration.cs      
-│   │   ├── ReviewConfiguration.cs       
+│   │   ├── FavoriteFieldConfiguration.cs   
+│   │   ├── FieldAmenityConfiguration.cs    
+│   │   ├── FieldConfiguration.cs   
+│   │   ├── FieldDescriptionConfiguration.cs 
+│   │   ├── FieldImageConfiguration.cs   
+│   │   ├── FieldServiceConfiguration.cs  
 │   │   ├── NotificationConfiguration.cs 
-│   │   ├── PromotionConfiguration.cs    
+│   │   ├── OwnerConfiguration.cs        
+│   │   ├── PaymentConfiguration.cs  
+│   │   ├── PromotionConfiguration.cs   
 │   │   ├── RefreshTokenConfiguration.cs 
-│   │   └── ...                          # Các cấu hình khác
+│   │   ├── ReviewConfiguration.cs   
+│   │   ├── SportConfiguration.cs        
+│   │   ├── SubFieldConfiguration.cs      
+│   │   ├── UserConfiguration.cs   
+│   │   └── ...                          
 │   ├── Seeders/                         # Chứa các Seeder để thêm dữ liệu mẫu vào database
 │   │   ├── AccountSeeder.cs             
-│   │   ├── UserSeeder.cs                
-│   │   ├── OwnerSeeder.cs               
-│   │   ├── SportSeeder.cs               
-│   │   ├── FieldSeeder.cs               
-│   │   ├── FieldDescriptionSeeder.cs    
-│   │   ├── FieldImageSeeder.cs          
-│   │   ├── FieldAmenitySeeder.cs        
-│   │   ├── FieldPricingSeeder.cs        
-│   │   ├── ServiceSeeder.cs             
-│   │   ├── BookingSeeder.cs             
-│   │   ├── BookingServiceSeeder.cs      
-│   │   ├── PaymentSeeder.cs             
-│   │   ├── ReviewSeeder.cs              
-│   │   ├── NotificationSeeder.cs        
-│   │   ├── PromotionSeeder.cs           
-│   │   ├── RefreshTokenSeeder.cs        
-│   │   └── ...                          # Các Seeder khác
+│   │   ├── BookingSeeder.cs  
+│   │   ├── FieldAmenitySeeder.cs      
+│   │   ├── FieldDescriptionSeeder.cs
+│   │   ├── FieldImageSeeder.cs
+│   │   ├── FieldSeeder.cs
+│   │   ├── FieldServiceSeeder.cs
+│   │   ├── OwnerSeeder.cs
+│   │   ├── ReviewSeeder.cs
+│   │   ├── SportSeeder.cs                                       
+│   │   ├── UserSeeder.cs        
+│   │   └── ...                          
 |
 │── Models/                              # Tầng Model (Lớp ánh xạ với Database)
 │   ├── Account.cs
-│   ├── User.cs
-│   ├── Owner.cs
-│   ├── Sport.cs
-│   ├── Field.cs
-│   ├── FieldDescription.cs
-│   ├── FieldImage.cs
-│   ├── FieldAmenity.cs
-│   ├── FieldPricing.cs
-│   ├── Service.cs
 │   ├── Booking.cs
 │   ├── BookingService.cs
-│   ├── Payment.cs
-│   ├── Review.cs
+│   ├── Favorite.cs
+│   ├── Field.cs
+│   ├── FieldAmenity.cs
+│   ├── FieldDescription.cs
+│   ├── FieldImage.cs
+│   ├── FieldService.cs
 │   ├── Notification.cs
+│   ├── Owner.cs
+│   ├── Payment.cs
 │   ├── Promotion.cs
 │   ├── RefreshToken.cs
+│   ├── Review.cs
+│   ├── Sport.cs
+│   ├── SubField.cs
+│   └── User.cs     
 |
 │── Interfaces/                          # Tầng Interface (Định nghĩa hợp đồng cho Service & Repository)
-│   ├── IGenericRepository.cs             # Interface Repository chung cho CRUD
 │   ├── IAuthService.cs
-│   ├── IBookingService.cs
-│   ├── IPaymentService.cs
+│   ├── ICloudinaryService.cs
+│   ├── IEmailService.cs
 │   ├── IFieldService.cs
-│   ├── IReviewService.cs
-│   ├── INotificationService.cs
-│   ├── IPromotionService.cs
-│   ├── IAdminService.cs
-│   ├── IUnitOfWork.cs                    # Interface cho UnitOfWork
+│   ├── IGenericRepository.cs            
+│   ├── IGeocodingService.cs
+│   ├── IUnitOfWork.cs   
+│   ├── IUserService.cs
 |
 │── Repositories/                        # Tầng Repository (Tương tác với Database)
-│   ├── GenericRepository.cs              # Repository CRUD chung
-│   ├── AuthRepository.cs
-│   ├── BookingRepository.cs
-│   ├── PaymentRepository.cs
-│   ├── FieldRepository.cs
-│   ├── ReviewRepository.cs
-│   ├── NotificationRepository.cs
-│   ├── PromotionRepository.cs
-│   ├── AdminRepository.cs
+│   ├── GenericRepository.cs            
 |
 │── Services/                            # Tầng Service (Xử lý Business Logic)
 │   ├── AuthService.cs
-│   ├── BookingService.cs
-│   ├── PaymentService.cs
+│   ├── CloudinaryService.cs
 │   ├── FieldService.cs
-│   ├── ReviewService.cs
-│   ├── NotificationService.cs
-│   ├── PromotionService.cs
-│   ├── AdminService.cs
-|
-│── Mappers/                             # Tầng Mapper (Chuyển đổi Model ↔ DTO)
-│   ├── UserMapper.cs
-│   ├── FieldMapper.cs
-│   ├── BookingMapper.cs
-│   ├── PaymentMapper.cs
-│   ├── ReviewMapper.cs
-│   ├── NotificationMapper.cs
+│   ├── GeocodingService.cs
+│   ├── SendGridEmailSender.cs
+│   ├── UserService.cs
 |
 │── Dtos/                                # Tầng DTO (Truyền dữ liệu giữa Client & Server)
 │   ├── Auth/
@@ -115,13 +88,15 @@ api/
 │   │   ├── RegisterDto.cs
 │   │   ├── ResetPasswordDto.cs
 │   ├── Booking/
-│   │   ├── BookingDto.cs
 │   ├── Field/
+│   │   ├── FieldAmenityDto.cs
 │   │   ├── FieldDto.cs
+│   │   ├── FieldReviewDto.cs
+│   │   ├── FieldServiceDto.cs
+│   │   ├── SubFieldDto.cs
+│   │   ├── TimeSlotDto.cs
 │   ├── Payment/
-│   │   ├── PaymentDto.cs
 │   ├── Review/
-│   │   ├── ReviewDto.cs
 │   ├── User/
 │   │   ├── BookingResponseDto.cs
 │   │   ├── FavoriteFieldResponseDto.cs
@@ -131,37 +106,21 @@ api/
 |
 │── Controllers/                         # Tầng API (Tiếp nhận Request từ Client)
 │   ├── AuthController.cs
-│   ├── UserController.cs
-│   ├── OwnerController.cs
 │   ├── FieldController.cs
-│   ├── BookingController.cs
-│   ├── PaymentController.cs
-│   ├── ReviewController.cs
-│   ├── NotificationController.cs
-│   ├── PromotionController.cs
-│   ├── AdminController.cs
+│   ├── UserController.cs
 |
 │── Middlewares/                         # Middleware (Xử lý Request & Security)
-│   ├── ExceptionHandlingMiddleware.cs
-│   ├── JwtMiddleware.cs
-|
-│── Helpers/                             # Các class hỗ trợ (JWT, Email, Password Hashing)
-│   ├── JwtTokenHelper.cs
-│   ├── EmailHelper.cs
-│   ├── PasswordHasher.cs
+│   ├── RoleMiddleware.cs
 |
 │── Configurations/                      # Cấu hình hệ thống
-│   ├── JwtSettings.cs
-│   ├── EmailSettings.cs
-│   ├── PaymentSettings.cs
 |
 │── Utils/                               # Tiện ích chung
-│   ├── SlugGenerator.cs
-│   ├── CurrencyFormatter.cs
 |
-│── BackgroundServices/                  # Xử lý công việc chạy nền
-│   ├── NotificationBackgroundService.cs
-│   ├── PaymentStatusChecker.cs
+│── BackgroundServices/     
+|  
+│── Exceptions/                        
+│   ├── AppException.cs
+│   ├── ResourceNotFoundException.cs              
 |
 │── Properties/
 │   ├── launchSettings.json

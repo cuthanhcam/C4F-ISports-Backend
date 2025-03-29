@@ -1,5 +1,5 @@
 // Account
-public class Account
+    public class Account
     {
         public int AccountId { get; set; } // Mã tài khoản (PK)
         public string Email { get; set; } // Email đăng nhập (UNIQUE)
@@ -19,39 +19,38 @@ public class Account
     }
 
 // Booking
-	public class Booking
+    public class Booking
     {
-        public int BookingId { get; set; } // Mã đặt sân (PK)
-        public int UserId { get; set; } // Người đặt (FK)
-        public int FieldId { get; set; } // Sân được đặt (FK)
-        public DateTime BookingDate { get; set; } // Ngày đặt sân
-        public TimeSpan StartTime { get; set; } // Giờ bắt đầu
-        public TimeSpan EndTime { get; set; } // Giờ kết thúc
-        public decimal TotalPrice { get; set; } // Tổng tiền
-        public string Status { get; set; } // Trạng thái (Pending, Confirmed, Canceled, Completed)
-        public string PaymentStatus { get; set; } // Trạng thái thanh toán (Unpaid, Partially Paid, Paid)
-        public DateTime CreatedAt { get; set; } // Ngày tạo đơn
-        public DateTime UpdatedAt { get; set; } // Ngày cập nhật đơn
+        public int BookingId { get; set; }
+        public int UserId { get; set; }
+        public int SubFieldId { get; set; }
+        public DateTime BookingDate { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
+        public decimal TotalPrice { get; set; }
+        public string Status { get; set; }
+        public string PaymentStatus { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
-        public User User { get; set; } // Quan hệ với bảng User
-        public SubField SubField { get; set; } // Quan hệ với bảng SubField
+        public User User { get; set; }
+        public SubField SubField { get; set; }
     }
 
 // BookingService
-	public class BookingService
+    public class BookingService
     {
         public int BookingServiceId { get; set; }
-        public int BookingId { get; set; }  // Liên kết với Booking
-        public int ServiceId { get; set; }  // Liên kết với Service
-        public int Quantity { get; set; }   // Số lượng dịch vụ đặt
-        public decimal Price { get; set; }  // Giá tại thời điểm đặt
+        public int BookingId { get; set; }
+        public int FieldServiceId { get; set; }
+        public int Quantity { get; set; }
+        public decimal Price { get; set; }
 
         public Booking Booking { get; set; }
-        public Service Service { get; set; }
+        public FieldService FieldService { get; set; }
     }
-	
 // FavoriteField
-	public class FavoriteField
+    public class FavoriteField
     {
         public int FavoriteId { get; set; }
         public int UserId { get; set; }
@@ -63,22 +62,21 @@ public class Account
     }
 	
 // Field
-	public class Field
+    public class Field
     {
-        public int FieldId { get; set; } // Mã sân (PK)
-        public int SportId { get; set; } // Liên kết với bảng Sports (FK)
-        public string FieldName { get; set; } // Tên sân
-        public string Phone { get; set; } // Số điện thoại đặt lịch
-        public string Address { get; set; } // Địa chỉ sân
-        public string OpenHours { get; set; } // Khung giờ mở cửa (VD: 8:00 - 22:00)
-        public int OwnerId { get; set; } // Liên kết với bảng Owners (FK)
-        public string Status { get; set; } // Trạng thái sân (Active, Inactive, Maintenance)
-        public decimal Latitude { get; set; } // Vĩ độ GPS
-        public decimal Longitude { get; set; } // Kinh độ GPS
-        public DateTime CreatedAt { get; set; } // Ngày tạo sân
-        public DateTime UpdatedAt { get; set; } // Ngày cập nhật sân
+        public int FieldId { get; set; }
+        public int SportId { get; set; }
+        public string FieldName { get; set; }
+        public string Phone { get; set; }
+        public string Address { get; set; }
+        public string OpenHours { get; set; }
+        public int OwnerId { get; set; }
+        public string Status { get; set; }
+        public decimal Latitude { get; set; }
+        public decimal Longitude { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
-        // Các thuộc tính điều hướng (Navigation Properties)
         public Sport Sport { get; set; }
         public Owner Owner { get; set; }
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
@@ -87,16 +85,16 @@ public class Account
         public ICollection<SubField> SubFields { get; set; } = new List<SubField>();
         public ICollection<FieldAmenity> FieldAmenities { get; set; } = new List<FieldAmenity>();
         public ICollection<FieldDescription> FieldDescriptions { get; set; } = new List<FieldDescription>();
-        public ICollection<Service> Services { get; set; } = new List<Service>();
+        public ICollection<FieldService> FieldServices { get; set; } = new List<FieldService>(); // Đổi tên
         public ICollection<FavoriteField> FavoriteFields { get; set; } = new List<FavoriteField>();
     }
-
 // FieldAmenity
 	public class FieldAmenity
     {
         public int FieldAmenityId { get; set; }
         public int FieldId { get; set; }
         public string AmenityName { get; set; }
+        public string Description { get; set; }
 
         public Field Field { get; set; }
     }
@@ -106,7 +104,7 @@ public class Account
     {
         public int FieldDescriptionId { get; set; }
         public int FieldId { get; set; }
-        public string Description { get; set; }
+        public string Description { get; set; } // Mô tả sân (vd: Sân cỏ nhân tạo, Sân bóng đá mini,...)
 
         public Field Field { get; set; }
     }
@@ -116,14 +114,26 @@ public class Account
     {
         public int FieldImageId { get; set; }
         public int FieldId { get; set; }
-        public string? Thumbnail { get; set; }
-        public string ImageUrl { get; set; }
+        public string? Thumbnail { get; set; } // Ảnh Thumbnail (nếu có)
+        public string ImageUrl { get; set; } // URL Cloudinary
         
         public Field Field { get; set; }
     }
 	
+// FieldService
+public class FieldService
+    {
+        public int FieldServiceId { get; set; }
+        public int FieldId { get; set; }
+        public string ServiceName { get; set; }
+        public decimal Price { get; set; }
+        public string Description { get; set; }
+
+        public Field Field { get; set; }
+        public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
+    }
 // Notification
-	public class Notification
+	 public class Notification
     {
         public int NotificationId { get; set; }
         public int UserId { get; set; }         // Liên kết với User
@@ -213,7 +223,7 @@ public class Account
     }
 	
 // Review
-	public class Review
+public class Review
     {
         public int ReviewId { get; set; }
         public int UserId { get; set; }
@@ -224,22 +234,10 @@ public class Account
 
         public User User { get; set; }
         public Field Field { get; set; }
-    }
-	
-// Service
-	public class Service
-    {
-        public int ServiceId { get; set; }
-        public int FieldId { get; set; }
-        public string ServiceName { get; set; } // Tên dịch vụ (vd: Nước uống, Đồ ăn nhẹ,...)
-        public decimal Price { get; set; } // Giá dịch vụ (vd: 20000 cho nước uống, 50000 cho đồ ăn nhẹ,...)
-
-        public Field Field { get; set; }
-        public ICollection<BookingService> BookingServices { get; set; } // Thêm quan hệ 1-n
-    }
+    }	
 	
 // Sport
-	public class Sport
+	 public class Sport
     {
         public int SportId { get; set; } // Mã loại thể thao (PK)
         public string SportName { get; set; } // Tên loại thể thao (VD: Bóng đá, Cầu lông)
@@ -248,30 +246,18 @@ public class Account
     }
 
 // SubField
-    public class SubField
+     public class SubField
     {
-        public int SubFieldId { get; set; } // Mã sân nhỏ (PK)
-        public int FieldId { get; set; } // Liên kết với sân lớn (FK)
-        public string SubFieldName { get; set; } // Tên sân nhỏ (ví dụ: "Sân 5-1", "Sân 7-2")
-        public int Size { get; set; } // Kích thước (5 người, 7 người, 11 người, v.v.)
+        public int SubFieldId { get; set; }
+        public int FieldId { get; set; }
+        public string SubFieldName { get; set; }
+        public string Size { get; set; } // Đổi thành string để lưu "Badminton"
+        public decimal PricePerHour { get; set; }
+        public string Status { get; set; } // Thêm Status
 
-        public Field Field { get; set; } // Quan hệ với bảng Field
-        public ICollection<SubFieldPricing> SubFieldPricings { get; set; } = new List<SubFieldPricing>(); // Giá riêng
-        public ICollection<Booking> Bookings { get; set; } = new List<Booking>(); // Đặt sân riêng
+        public Field Field { get; set; }
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     }
-
-// SubFieldPricing
-    public class SubFieldPricing
-    {
-        public int SubFieldPricingId { get; set; }
-        public int SubFieldId { get; set; } // Liên kết với sân nhỏ (FK)
-        public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTime { get; set; }
-        public int DayOfWeek { get; set; }
-        public decimal Price { get; set; }
-
-        public SubField SubField { get; set; }
-    }    
 
 // User
 	public class User

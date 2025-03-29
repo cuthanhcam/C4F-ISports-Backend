@@ -1,72 +1,82 @@
-// AccountConfiguration 
-	 public class AccountConfiguration : IEntityTypeConfiguration<Account>
-    {
-        public void Configure(EntityTypeBuilder<Account> builder)
-        {
-            builder.HasKey(a => a.AccountId);
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
 
-            builder.Property(a => a.Email)
-                   .IsRequired()
-                   .HasMaxLength(255);
-            builder.HasIndex(a => a.Email)
-                   .IsUnique();
+namespace api.Data.Configurations
+{
+       public class AccountConfiguration : IEntityTypeConfiguration<Account>
+       {
+              public void Configure(EntityTypeBuilder<Account> builder)
+              {
+                     builder.HasKey(a => a.AccountId);
 
-            builder.Property(a => a.Password)
-                   .IsRequired()
-                   .HasMaxLength(255);
+                     builder.Property(a => a.Email)
+                            .IsRequired()
+                            .HasMaxLength(255);
+                     builder.HasIndex(a => a.Email)
+                            .IsUnique();
 
-            builder.Property(a => a.Role)
-                   .IsRequired()
-                   .HasMaxLength(20);
+                     builder.Property(a => a.Password)
+                            .IsRequired()
+                            .HasMaxLength(255);
 
-            builder.Property(a => a.IsActive)
-                   .IsRequired();
+                     builder.Property(a => a.Role)
+                            .IsRequired()
+                            .HasMaxLength(20);
 
-            builder.Property(a => a.CreatedAt)
-                   .IsRequired();
+                     builder.Property(a => a.IsActive)
+                            .IsRequired();
 
-            // Cấu hình ResetToken và ResetTokenExpiry
-            builder.Property(a => a.ResetToken)
-                   .HasMaxLength(255);
+                     builder.Property(a => a.CreatedAt)
+                            .IsRequired();
 
-            builder.Property(a => a.ResetTokenExpiry)
-                   .IsRequired(false); // Nullable
+                     // Cấu hình ResetToken và ResetTokenExpiry
+                     builder.Property(a => a.ResetToken)
+                            .HasMaxLength(255);
 
-            // Cấu hình VerificationToken và VerificationTokenExpiry
-            builder.Property(a => a.VerificationToken)
-                   .HasMaxLength(255);
+                     builder.Property(a => a.ResetTokenExpiry)
+                            .IsRequired(false); // Nullable
 
-            builder.Property(a => a.VerificationTokenExpiry)
-                   .IsRequired(false); // Nullable
+                     // Cấu hình VerificationToken và VerificationTokenExpiry
+                     builder.Property(a => a.VerificationToken)
+                            .HasMaxLength(255);
 
-            // Quan hệ 1-1 với User
-            builder.HasOne(a => a.User)
-                   .WithOne(u => u.Account)
-                   .HasForeignKey<User>(u => u.AccountId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                     builder.Property(a => a.VerificationTokenExpiry)
+                            .IsRequired(false); // Nullable
 
-            // Quan hệ 1-1 với Owner
-            builder.HasOne(a => a.Owner)
-                   .WithOne(o => o.Account)
-                   .HasForeignKey<Owner>(o => o.AccountId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                     // Quan hệ 1-1 với User
+                     builder.HasOne(a => a.User)
+                            .WithOne(u => u.Account)
+                            .HasForeignKey<User>(u => u.AccountId)
+                            .OnDelete(DeleteBehavior.Cascade);
 
-            // Quan hệ 1-nhiều với RefreshToken
-            builder.HasMany(a => a.RefreshTokens)
-                   .WithOne(rt => rt.Account)
-                   .HasForeignKey(rt => rt.AccountId)
-                   .OnDelete(DeleteBehavior.Cascade);
-        }
-    }
-	
-// BookingConfiguration
-	public class BookingConfiguration : IEntityTypeConfiguration<Booking>
+                     // Quan hệ 1-1 với Owner
+                     builder.HasOne(a => a.Owner)
+                            .WithOne(o => o.Account)
+                            .HasForeignKey<Owner>(o => o.AccountId)
+                            .OnDelete(DeleteBehavior.Cascade);
+
+                     // Quan hệ 1-nhiều với RefreshToken
+                     builder.HasMany(a => a.RefreshTokens)
+                            .WithOne(rt => rt.Account)
+                            .HasForeignKey(rt => rt.AccountId)
+                            .OnDelete(DeleteBehavior.Cascade);
+              }
+       }
+}	
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
+
+namespace api.Data.Configurations
+{
+    public class BookingConfiguration : IEntityTypeConfiguration<Booking>
     {
         public void Configure(EntityTypeBuilder<Booking> builder)
         {
             builder.HasKey(b => b.BookingId);
             builder.Property(b => b.UserId).IsRequired();
-            builder.Property(b => b.FieldId).IsRequired();
+            builder.Property(b => b.SubFieldId).IsRequired();
             builder.Property(b => b.BookingDate).IsRequired();
             builder.Property(b => b.StartTime).IsRequired();
             builder.Property(b => b.EndTime).IsRequired();
@@ -76,44 +86,53 @@
             builder.Property(b => b.CreatedAt).IsRequired();
             builder.Property(b => b.UpdatedAt).IsRequired();
 
-            // Quan hệ với User và Field, sử dụng NoAction để tránh multiple cascade paths
             builder.HasOne(b => b.User)
                    .WithMany(u => u.Bookings)
                    .HasForeignKey(b => b.UserId)
-                   .OnDelete(DeleteBehavior.NoAction); // Thay Cascade thành NoAction
+                   .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasOne(b => b.Field)
-                   .WithMany(f => f.Bookings)
-                   .HasForeignKey(b => b.FieldId)
-                   .OnDelete(DeleteBehavior.NoAction); // Thay Cascade thành NoAction
+            builder.HasOne(b => b.SubField)
+                   .WithMany(sf => sf.Bookings)
+                   .HasForeignKey(b => b.SubFieldId)
+                   .OnDelete(DeleteBehavior.NoAction);
         }
     }
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
 
-// BookingServiceConfiguration
-	public class BookingServiceConfiguration : IEntityTypeConfiguration<BookingService>
+namespace api.Data.Configurations
+{
+    public class BookingServiceConfiguration : IEntityTypeConfiguration<BookingService>
     {
         public void Configure(EntityTypeBuilder<BookingService> builder)
         {
             builder.HasKey(bs => bs.BookingServiceId);
             builder.Property(bs => bs.BookingId).IsRequired();
-            builder.Property(bs => bs.ServiceId).IsRequired();
+            builder.Property(bs => bs.FieldServiceId).IsRequired(); // Đổi từ ServiceId
             builder.Property(bs => bs.Quantity).IsRequired();
             builder.Property(bs => bs.Price).HasPrecision(10, 2);
 
             builder.HasOne(bs => bs.Booking)
                    .WithMany()
                    .HasForeignKey(bs => bs.BookingId)
-                   .OnDelete(DeleteBehavior.NoAction); // Thêm NoAction để tránh cascade
+                   .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasOne(bs => bs.Service)
-                   .WithMany(s => s.BookingServices)
-                   .HasForeignKey(bs => bs.ServiceId)
-                   .OnDelete(DeleteBehavior.NoAction); // Thêm NoAction để tránh cascade
+            builder.HasOne(bs => bs.FieldService) // Đổi từ Service
+                   .WithMany(fs => fs.BookingServices)
+                   .HasForeignKey(bs => bs.FieldServiceId)
+                   .OnDelete(DeleteBehavior.NoAction);
         }
-	}
-	
-// FavoriteFieldConfiguration
-	public class FavoriteFieldConfiguration : IEntityTypeConfiguration<FavoriteField>
+    }
+}
+using api.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace api.Data.Configurations
+{
+    public class FavoriteFieldConfiguration : IEntityTypeConfiguration<FavoriteField>
     {
         public void Configure(EntityTypeBuilder<FavoriteField> builder)
         {
@@ -132,24 +151,36 @@
             builder.HasIndex(ff => new { ff.UserId, ff.FieldId }).IsUnique();
         }
     }
-	
-// FieldAmenityConfiguration
-	public class FieldAmenityConfiguration : IEntityTypeConfiguration<FieldAmenity>
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
+
+namespace api.Data.Configurations
+{
+    public class FieldAmenityConfiguration : IEntityTypeConfiguration<FieldAmenity>
     {
         public void Configure(EntityTypeBuilder<FieldAmenity> builder)
         {
             builder.HasKey(fa => fa.FieldAmenityId);
             builder.Property(fa => fa.FieldId).IsRequired();
             builder.Property(fa => fa.AmenityName).IsRequired().HasMaxLength(100);
+            builder.Property(fa => fa.Description).HasMaxLength(200);
 
             builder.HasOne(fa => fa.Field)
-                   .WithMany()
-                   .HasForeignKey(fa => fa.FieldId);
+                   .WithMany(f => f.FieldAmenities)
+                   .HasForeignKey(fa => fa.FieldId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
-	
-// FieldConfiguration
-	public class FieldConfiguration : IEntityTypeConfiguration<Field>
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
+
+namespace api.Data.Configurations
+{
+    public class FieldConfiguration : IEntityTypeConfiguration<Field>
     {
         public void Configure(EntityTypeBuilder<Field> builder)
         {
@@ -166,19 +197,26 @@
             builder.Property(f => f.CreatedAt).IsRequired();
             builder.Property(f => f.UpdatedAt).IsRequired();
 
-            builder.HasIndex(f => f.FieldId); // Index cho tìm kiếm nhanh
+            builder.HasIndex(f => f.FieldId);
             builder.HasOne(f => f.Sport)
-                   .WithMany(s => s.Fields)
-                   .HasForeignKey(f => f.SportId);
+                .WithMany(s => s.Fields)
+                .HasForeignKey(f => f.SportId);
             builder.HasOne(f => f.Owner)
-                   .WithMany(o => o.Fields)
-                   .HasForeignKey(f => f.OwnerId);
+                .WithMany(o => o.Fields)
+                .HasForeignKey(f => f.OwnerId);
+            builder.HasMany(f => f.SubFields)
+                .WithOne(sf => sf.Field)
+                .HasForeignKey(sf => sf.FieldId);
         }
     }
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
 
-
-// FieldDescriptionConfiguration
-	public class FieldDescriptionConfiguration : IEntityTypeConfiguration<FieldDescription>
+namespace api.Data.Configurations
+{
+    public class FieldDescriptionConfiguration : IEntityTypeConfiguration<FieldDescription>
     {
         public void Configure(EntityTypeBuilder<FieldDescription> builder)
         {
@@ -191,9 +229,14 @@
                    .HasForeignKey(fd => fd.FieldId);
         }
     }
-	
-// FieldImageConfiguration
-	public class FieldImageConfiguration : IEntityTypeConfiguration<FieldImage>
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
+
+namespace api.Data.Configurations
+{
+    public class FieldImageConfiguration : IEntityTypeConfiguration<FieldImage>
     {
         public void Configure(EntityTypeBuilder<FieldImage> builder)
         {
@@ -207,27 +250,37 @@
                    .HasForeignKey(fi => fi.FieldId);
         }
     }
-	
-// FieldPricingConfiguration
-	public class FieldPricingConfiguration : IEntityTypeConfiguration<FieldPricing>
-    {
-        public void Configure(EntityTypeBuilder<FieldPricing> builder)
-        {
-            builder.HasKey(fp => fp.FieldPricingId);
-            builder.Property(fp => fp.FieldId).IsRequired();
-            builder.Property(fp => fp.StartTime).IsRequired();
-            builder.Property(fp => fp.EndTime).IsRequired();
-            builder.Property(fp => fp.DayOfWeek).IsRequired();
-            builder.Property(fp => fp.Price).HasPrecision(10, 2);
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
 
-            builder.HasOne(fp => fp.Field)
-                   .WithMany()
-                   .HasForeignKey(fp => fp.FieldId);
+namespace api.Data.Configurations
+{
+    public class FieldServiceConfiguration : IEntityTypeConfiguration<FieldService>
+    {
+        public void Configure(EntityTypeBuilder<FieldService> builder)
+        {
+            builder.HasKey(fs => fs.FieldServiceId);
+            builder.Property(fs => fs.FieldId).IsRequired();
+            builder.Property(fs => fs.ServiceName).IsRequired().HasMaxLength(100);
+            builder.Property(fs => fs.Price).HasPrecision(10, 2);
+            builder.Property(fs => fs.Description).HasMaxLength(200);
+
+            builder.HasOne(fs => fs.Field)
+                   .WithMany(f => f.FieldServices)
+                   .HasForeignKey(fs => fs.FieldId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
-	
-// NotificationConfiguration
-	public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
+
+namespace api.Data.Configurations
+{
+    public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
     {
         public void Configure(EntityTypeBuilder<Notification> builder)
         {
@@ -243,9 +296,14 @@
                    .HasForeignKey(n => n.UserId);
         }
     }
-	
-// OwnerConfiguration
-	public class OwnerConfiguration : IEntityTypeConfiguration<Owner>
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
+
+namespace api.Data.Configurations
+{
+    public class OwnerConfiguration : IEntityTypeConfiguration<Owner>
     {
         public void Configure(EntityTypeBuilder<Owner> builder)
         {
@@ -257,9 +315,14 @@
             builder.HasIndex(o => o.Email).IsUnique();
         }
     }
-	
-// PaymentConfiguration
-	public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
+
+namespace api.Data.Configurations
+{
+    public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
     {
         public void Configure(EntityTypeBuilder<Payment> builder)
         {
@@ -276,9 +339,14 @@
                    .HasForeignKey(p => p.BookingId);
         }
     }
-	
-// PromotionConfiguration
-	public class PromotionConfiguration : IEntityTypeConfiguration<Promotion>
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
+
+namespace api.Data.Configurations
+{
+    public class PromotionConfiguration : IEntityTypeConfiguration<Promotion>
     {
         public void Configure(EntityTypeBuilder<Promotion> builder)
         {
@@ -295,9 +363,14 @@
             builder.Property(p => p.IsActive).IsRequired();
         }
     }
-	
-// RefreshTokenConfiguration
-	public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
+
+namespace api.Data.Configurations
+{
+    public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
     {
         public void Configure(EntityTypeBuilder<RefreshToken> builder)
         {
@@ -312,9 +385,14 @@
                    .HasForeignKey(rt => rt.AccountId);
         }
     }
-	
-// ReviewConfiguration
-	public class ReviewConfiguration : IEntityTypeConfiguration<Review>
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
+
+namespace api.Data.Configurations
+{
+    public class ReviewConfiguration : IEntityTypeConfiguration<Review>
     {
         public void Configure(EntityTypeBuilder<Review> builder)
         {
@@ -337,24 +415,14 @@
                    .OnDelete(DeleteBehavior.NoAction); // Thay Cascade thành NoAction
         }
     }
-	
-// ServiceConfiguration
-	public class ServiceConfiguration : IEntityTypeConfiguration<Service>
-    {
-        public void Configure(EntityTypeBuilder<Service> builder)
-        {
-            builder.HasKey(s => s.ServiceId);
-            builder.Property(s => s.FieldId).IsRequired();
-            builder.Property(s => s.ServiceName).IsRequired().HasMaxLength(100);
-            builder.Property(s => s.Price).HasPrecision(10, 2);
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
 
-            builder.HasOne(s => s.Field)
-                   .WithMany()
-                   .HasForeignKey(s => s.FieldId);
-        }
-		
-// SportConfiguration
-	public class SportConfiguration : IEntityTypeConfiguration<Sport>
+namespace api.Data.Configurations
+{
+    public class SportConfiguration : IEntityTypeConfiguration<Sport>
     {
         public void Configure(EntityTypeBuilder<Sport> builder)
         {
@@ -362,9 +430,41 @@
             builder.Property(s => s.SportName).IsRequired().HasMaxLength(50);
         }
     }
-	
-// UserConfiguration
-	public class UserConfiguration : IEntityTypeConfiguration<User>
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
+
+namespace api.Data.Configurations
+{
+    public class SubFieldConfiguration : IEntityTypeConfiguration<SubField>
+    {
+        public void Configure(EntityTypeBuilder<SubField> builder)
+        {
+            builder.Property(sf => sf.SubFieldName)
+                   .IsRequired()
+                   .HasMaxLength(50);
+
+            builder.Property(sf => sf.Size)
+                   .IsRequired()
+                   .HasMaxLength(20);
+
+            builder.Property(sf => sf.PricePerHour)
+                   .IsRequired();
+
+            builder.Property(sf => sf.Status)
+                   .IsRequired()
+                   .HasMaxLength(20);
+        }
+    }
+}
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using api.Models;
+
+namespace api.Data.Configurations
+{
+    public class UserConfiguration : IEntityTypeConfiguration<User>
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
@@ -376,6 +476,6 @@
             builder.Property(u => u.Phone).HasMaxLength(20);
             builder.Property(u => u.Gender).HasMaxLength(10);
             builder.Property(u => u.DateOfBirth);
-            builder.Property(u => u.AvatarUrl).HasMaxLength(255);
         }
     }
+}

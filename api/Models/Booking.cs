@@ -21,5 +21,6 @@ namespace api.Models
 
         public User User { get; set; }
         public SubField SubField { get; set; }
+        public List<BookingService> BookingServices { get; set; } = new List<BookingService>();
     }
 }
