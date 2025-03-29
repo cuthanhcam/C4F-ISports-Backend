@@ -10,11 +10,9 @@ namespace api.Data.Seeders
         {
             if (!context.FieldImages.Any())
             {
-                // Đảm bảo Field với FieldId = 1 tồn tại
                 var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldId == 1);
                 if (field == null)
                 {
-                    // Nếu không có, bạn có thể log lỗi hoặc bỏ qua
                     return;
                 }
 

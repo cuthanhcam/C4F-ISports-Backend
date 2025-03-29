@@ -10,16 +10,16 @@ namespace api.Data.Configurations
         {
             builder.HasKey(bs => bs.BookingServiceId);
             builder.Property(bs => bs.BookingId).IsRequired();
-            builder.Property(bs => bs.FieldServiceId).IsRequired(); // Đổi từ ServiceId
+            builder.Property(bs => bs.FieldServiceId).IsRequired();
             builder.Property(bs => bs.Quantity).IsRequired();
             builder.Property(bs => bs.Price).HasPrecision(10, 2);
 
             builder.HasOne(bs => bs.Booking)
-                   .WithMany()
+                   .WithMany(b => b.BookingServices)
                    .HasForeignKey(bs => bs.BookingId)
                    .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasOne(bs => bs.FieldService) // Đổi từ Service
+            builder.HasOne(bs => bs.FieldService)
                    .WithMany(fs => fs.BookingServices)
                    .HasForeignKey(bs => bs.FieldServiceId)
                    .OnDelete(DeleteBehavior.NoAction);
