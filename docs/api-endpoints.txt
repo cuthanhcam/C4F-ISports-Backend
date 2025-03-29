@@ -9,6 +9,7 @@ API Endpoints
     POST /api/auth/logout - Đăng xuất (xóa refresh token)
     GET /api/auth/verify-token - Kiểm tra token hợp lệ
     POST /api/auth/verify-email
+    POST /api/auth/resend-verification
     GET /api/auth/me [Authorize]
     POST /api/auth/change-password [Authorize]
 
@@ -17,67 +18,41 @@ API Endpoints
 2. User Management Endpoints [Authorize]
     GET /api/users/profile - Xem thông tin cá nhân
     PUT /api/users/profile - Cập nhật thông tin cá nhân
-    GET /api/users/bookings - Lấy lịch sử đặt sân
-        Query Parameters: ?status=Pending&date=2025-03-10&sort=BookingDate:desc&page=1&pageSize=10
     DELETE /api/users/profile - Xóa tài khoản người dùng
+    GET /api/users/bookings - Lấy lịch sử đặt sân
     GET /api/users/favorite-fields - Lấy danh sách sân yêu thích
-        Query Parameters: ?sort=AddedDate:desc&page=1&pageSize=10
     POST /api/users/favorite-fields/{fieldId} - Thêm sân vào danh sách yêu thích
     DELETE /api/users/favorite-fields/{fieldId} - Xóa sân khỏi danh sách yêu thích.
+
 -------------------------------------------------------------------------------------------------------
 
 3. Field Management Endpoints [Authorize]
-    GET /api/fields - Lấy danh sách sân (có filter)
-        Query Parameters: ?sportId=1&location=HoChiMinh&status=Active&sort=FieldName:asc&page=1&pageSize=10
-    POST /api/fields - Thêm sân mới (Owner)    
-    GET /api/fields/{id} - Lấy chi tiết sân
-    PUT /api/fields/{id} - Cập nhật thông tin sân (Owner)
-    DELETE /api/fields/{id} - Xóa sân (Owner)
-    GET /api/fields/search - Tìm kiếm sân (location, sport type, time...)
-        Query Parameters: ?location=HoChiMinh&sportType=Football&time=2025-03-10T14:00&sort=Distance:asc&page=1&pageSize=10
-    GET /api/fields/{id}/available-slots - Kiểm tra khung giờ trống
-        Query Parameters: ?date=2025-03-10
-    GET /api/fields/{id}/reviews - Lấy đánh giá của sân
-        Query Parameters: ?rating=5&sort=CreatedAt:desc&page=1&pageSize=10
-    GET /api/fields/nearby - Tìm sân gần vị trí người dùng
-        Query Parameters: ?latitude=10.7769&longitude=106.7009&radius=5&sort=Distance:asc&page=1&pageSize=10
-    POST /api/fields/{id}/images - Upload ảnh cho sân (Owner)
+    GET /api/field - Lấy danh sách sân (có filter)
+    POST /api/field - Thêm sân mới (Owner)    
+    GET /api/field/{id} - Lấy chi tiết sân
+    PUT /api/field/{id} - Cập nhật thông tin sân (Owner)
+    DELETE /api/field/{id} - Xóa sân (Owner)
+    GET /api/field/{id}/availability - Kiểm tra khung giờ trống
+    POST /api/field/{id}/images - Upload ảnh cho sân (Owner)
+    GET /api/field/{id}/images - Upload ảnh cho sân (Owner)
+    GET /api/field/owner
+    GET /api/field/search
+    GET /api/field/{id}/reviews - Lấy đánh giá của sân
+    GET /api/field/nearby - Tìm sân gần vị trí người dùng
+    POST /api/field/{fieldId}/report
+    GET /api/field/suggested
+
+-------------------------------------------------------------------------------------------------------
 
 4. Booking Management Endpoints
-    POST /api/bookings - Tạo đơn đặt sân
-    GET /api/bookings - Lấy danh sách đặt sân (cho User/Owner)
-        Query Parameters: ?status=Confirmed&fieldId=1&sort=BookingDate:desc&page=1&pageSize=10
-    GET /api/bookings/{id} - Xem chi tiết đơn đặt sân
-    PUT /api/bookings/{id} - Cập nhật đơn đặt sân
-    DELETE /api/bookings/{id} - Hủy đơn đặt sân
-    PUT /api/bookings/{id}/status - Cập nhật trạng thái đơn (Owner)
-    GET /api/bookings/{id}/services - Lấy danh sách dịch vụ đi kèm
-
-Gợi ý bổ sung:
-
-GET /api/fields/{id}/pricing
-Mô tả: Lấy bảng giá chi tiết của sân theo khung giờ/ngày.
-Query Parameters: ?date=2025-03-15
-Response: [{ startTime, endTime, dayOfWeek, price }]
-Lý do: FE cần hiển thị giá cụ thể trên trang chi tiết sân.
-GET /api/fields/{id}/amenities
-Mô tả: Lấy danh sách tiện ích của sân.
-Response: [{ amenityId, amenityName }]
-Lý do: Hiển thị tiện ích (wifi, phòng thay đồ...) trên trang chi tiết sân.
-GET /api/fields/{id}/services
-Mô tả: Lấy danh sách dịch vụ đi kèm của sân.
-Response: [{ serviceId, serviceName, price }]
-Lý do: Hỗ trợ hiển thị và chọn dịch vụ khi đặt sân.
-POST /api/fields/{id}/report
-Mô tả: Người dùng báo cáo sân có vấn đề (ví dụ: thông tin sai, không hoạt động).
-Request Body: { reason: "Incorrect info", description: "..." }
-Response: { success: true, message: "Report submitted" }
-Lý do: Tăng tính tương tác và kiểm soát chất lượng sân.
-GET /api/fields/suggestions
-Mô tả: Gợi ý sân dựa trên lịch sử đặt hoặc vị trí người dùng.
-Query Parameters: ?latitude=10.7769&longitude=106.7009&page=1&pageSize=5
-Response: [{ fieldId, fieldName, distance, rating }]
-Lý do: Tăng trải nghiệm người dùng trên trang chủ hoặc tìm kiếm.
+    POST /api/booking - Tạo đơn đặt sân.
+    GET /api/booking - Lấy danh sách đặt sân của người dùng hiện tại hoặc chủ sân (tùy theo vai trò).
+    GET /api/booking/{id} - Xem chi tiết một đơn đặt sân.
+    PUT /api/booking/{id} - Cập nhật thông tin đơn đặt sân (chỉ áp dụng trước khi xác nhận hoặc thanh toán).
+    DELETE /api/booking/{id} - Hủy đơn đặt sân
+    PUT /api/booking/{id}/status - Cập nhật trạng thái đơn đặt sân (dành cho Owner).
+    GET /api/booking/{id}/services - Lấy danh sách dịch vụ đi kèm của một đơn đặt sân.
+    POST /api/booking/preview - Xem trước chi tiết đơn đặt sân trước khi xác nhận (bao gồm giá và dịch vụ).
 
 -------------------------------------------------------------------------------------------------------
 
