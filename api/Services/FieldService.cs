@@ -234,22 +234,20 @@ namespace api.Services
                 throw new UnauthorizedAccessException("User is not the owner of this field");
 
             var normalizedAddress = NormalizeAddress(updateFieldDto.Address);
-            decimal latitude = field.Latitude;
-            decimal longitude = field.Longitude;
-
-            if (!string.Equals(field.Address, normalizedAddress, StringComparison.OrdinalIgnoreCase))
+            decimal latitude = 0m; // Tọa độ mặc định nếu thất bại
+            decimal longitude = 0m;
+            try
             {
-                try
-                {
-                    (latitude, longitude) = await _geocodingService.GetCoordinatesFromAddressAsync(normalizedAddress);
-                    if (Math.Abs(latitude) > 90 || Math.Abs(longitude) > 180)
-                        throw new AppException("Tọa độ không hợp lệ từ dịch vụ địa chỉ");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Geocoding failed during update for address: {Address}", normalizedAddress);
-                    throw new AppException($"Không thể xác định vị trí từ địa chỉ mới '{normalizedAddress}'. Vui lòng cung cấp địa chỉ chi tiết hơn (ví dụ: số nhà, tên đường, phường/xã).");
-                }
+                (latitude, longitude) = await _geocodingService.GetCoordinatesFromAddressAsync(normalizedAddress);
+                if (Math.Abs(latitude) > 90 || Math.Abs(longitude) > 180)
+                    throw new AppException("Tọa độ không hợp lệ từ dịch vụ địa chỉ");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Geocoding failed for address: {Address}. Using default coordinates (0,0)", normalizedAddress);
+                latitude = 0m; // Fallback tọa độ
+                longitude = 0m;
+                // Không ném exception để tiếp tục tạo field
             }
 
             field.FieldName = updateFieldDto.FieldName;
