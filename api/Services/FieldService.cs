@@ -655,6 +655,7 @@ namespace api.Services
 
         public async Task<PaginatedResponse<FieldDto>> SearchFieldsAsync(FieldSearchDto search)
         {
+            // Thiết lập query cơ bản
             var query = _unitOfWork.Fields.GetAll()
                 .Include(f => f.Sport)
                 .Include(f => f.FieldImages)
@@ -662,26 +663,37 @@ namespace api.Services
                 .Include(f => f.FieldAmenities)
                 .Include(f => f.FieldServices)
                 .Include(f => f.FieldDescriptions)
+                .Where(f => f.Status == "Active") // Chỉ lấy sân active
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(search.SearchTerm))
+            // Áp dụng các bộ lọc
+            if (!string.IsNullOrWhiteSpace(search.SearchTerm))
             {
-                var searchTermLower = search.SearchTerm.ToLower();
+                var searchTerm = search.SearchTerm.Trim().ToLower();
                 query = query.Where(f =>
-                    f.FieldName.ToLower().Contains(searchTermLower) ||
-                    f.FieldDescriptions.Any(d => d.Description != null && d.Description.ToLower().Contains(searchTermLower)) ||
-                    f.Address.ToLower().Contains(searchTermLower));
+                    f.FieldName.ToLower().Contains(searchTerm) ||
+                    f.Address.ToLower().Contains(searchTerm) ||
+                    (f.FieldDescriptions.Any(d =>
+                        d.Description != null &&
+                        d.Description.ToLower().Contains(searchTerm))));
             }
 
             if (search.SportId.HasValue)
+            {
                 query = query.Where(f => f.SportId == search.SportId.Value);
+            }
 
             if (search.MinPrice.HasValue)
+            {
                 query = query.Where(f => f.SubFields.Any(sf => sf.PricePerHour >= search.MinPrice.Value));
+            }
 
             if (search.MaxPrice.HasValue)
+            {
                 query = query.Where(f => f.SubFields.Any(sf => sf.PricePerHour <= search.MaxPrice.Value));
+            }
 
+            // Tìm kiếm theo vị trí
             if (search.Latitude.HasValue && search.Longitude.HasValue && search.Radius.HasValue)
             {
                 query = query.Where(f =>
@@ -689,49 +701,45 @@ namespace api.Services
             }
             else if (!string.IsNullOrEmpty(search.Location))
             {
-                var locationLower = search.Location.ToLower();
-                query = query.Where(f => f.Address.ToLower().Contains(locationLower));
+                var location = search.Location.ToLower();
+                query = query.Where(f => f.Address.ToLower().Contains(location));
             }
 
+            // Kiểm tra thời gian khả dụng
             if (search.Time.HasValue)
             {
                 var date = search.Time.Value.Date;
                 var time = search.Time.Value.TimeOfDay;
+
                 query = query.Where(f => f.SubFields.Any(sf =>
                     !sf.Bookings.Any(b => b.BookingDate.Date == date &&
-                                         b.StartTime <= time && b.EndTime >= time)));
+                                         b.StartTime <= time &&
+                                         b.EndTime > time)));
             }
 
-            if (!string.IsNullOrEmpty(search.Sort))
+            // Sắp xếp kết quả
+            var sortParts = search.Sort?.Split(':') ?? new[] { "name", "asc" };
+            var sortField = sortParts[0].ToLower();
+            var sortOrder = sortParts.Length > 1 ? sortParts[1].ToLower() : "asc";
+
+            query = sortField switch
             {
-                switch (search.Sort.ToLower())
-                {
-                    case "rating:asc":
-                        query = query.OrderBy(f => f.Reviews.Any() ? f.Reviews.Average(r => r.Rating) : 0);
-                        break;
-                    case "rating:desc":
-                        query = query.OrderByDescending(f => f.Reviews.Any() ? f.Reviews.Average(r => r.Rating) : 0);
-                        break;
-                    case "price:asc":
-                        query = query.OrderBy(f => f.SubFields.Any() ? f.SubFields.Min(sf => sf.PricePerHour) : 0);
-                        break;
-                    case "price:desc":
-                        query = query.OrderByDescending(f => f.SubFields.Any() ? f.SubFields.Max(sf => sf.PricePerHour) : decimal.MaxValue);
-                        break;
-                    case "distance:asc":
-                        if (search.Latitude.HasValue && search.Longitude.HasValue)
-                            query = query.OrderBy(f => CalculateDistance(f.Latitude, f.Longitude, search.Latitude.Value, search.Longitude.Value));
-                        break;
-                    case "distance:desc":
-                        if (search.Latitude.HasValue && search.Longitude.HasValue)
-                            query = query.OrderByDescending(f => CalculateDistance(f.Latitude, f.Longitude, search.Latitude.Value, search.Longitude.Value));
-                        break;
-                    default:
-                        query = query.OrderBy(f => f.FieldName);
-                        break;
-                }
-            }
+                "rating" => sortOrder == "asc"
+                    ? query.OrderBy(f => f.Reviews.Average(r => r.Rating))
+                    : query.OrderByDescending(f => f.Reviews.Average(r => r.Rating)),
+                "price" => sortOrder == "asc"
+                    ? query.OrderBy(f => f.SubFields.Min(sf => sf.PricePerHour))
+                    : query.OrderByDescending(f => f.SubFields.Max(sf => sf.PricePerHour)),
+                "distance" when search.Latitude.HasValue && search.Longitude.HasValue =>
+                    sortOrder == "asc"
+                        ? query.OrderBy(f => CalculateDistance(f.Latitude, f.Longitude, search.Latitude.Value, search.Longitude.Value))
+                        : query.OrderByDescending(f => CalculateDistance(f.Latitude, f.Longitude, search.Latitude.Value, search.Longitude.Value)),
+                _ => sortOrder == "asc"
+                    ? query.OrderBy(f => f.FieldName)
+                    : query.OrderByDescending(f => f.FieldName)
+            };
 
+            // Phân trang
             var totalItems = await query.CountAsync();
             var items = await query
                 .Skip((search.Page - 1) * search.PageSize)
