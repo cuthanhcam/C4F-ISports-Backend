@@ -24,7 +24,7 @@ Tạo UserService và UserController cho profile, cập nhật profile, lịch s
 Merge: Từ feature/UserManagement vào develop.
 
 -------------------------------------------------------------------------------------------------------
-
+(Đã hoàn thành)
 Giai đoạn 4: Quản lý sân (Field Management)
 Nhánh: feature/FieldManagement
 Công việc:
@@ -33,7 +33,7 @@ Tích hợp Cloudinary để upload ảnh sân.
 Merge: Từ feature/FieldManagement vào develop.
 
 -------------------------------------------------------------------------------------------------------
-
+(Đã hoàn thành)
 Giai đoạn 5: Quản lý đặt sân (Booking Management)
 Nhánh: feature/BookingManagement
 Công việc:
