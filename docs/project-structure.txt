@@ -61,6 +61,7 @@ api/
 |
 │── Interfaces/                          # Tầng Interface (Định nghĩa hợp đồng cho Service & Repository)
 │   ├── IAuthService.cs
+│   ├── IBookingService.cs
 │   ├── ICloudinaryService.cs
 │   ├── IEmailService.cs
 │   ├── IFieldService.cs
@@ -74,6 +75,7 @@ api/
 |
 │── Services/                            # Tầng Service (Xử lý Business Logic)
 │   ├── AuthService.cs
+│   ├── BookingService.cs
 │   ├── CloudinaryService.cs
 │   ├── FieldService.cs
 │   ├── GeocodingService.cs
@@ -88,6 +90,12 @@ api/
 │   │   ├── RegisterDto.cs
 │   │   ├── ResetPasswordDto.cs
 │   ├── Booking/
+│   │   ├── BookingDto.cs
+│   │   ├── BookingPreviewDto.cs
+│   │   ├── BookingServiceDto.cs
+│   │   ├── CreateBookingDto.cs
+│   │   ├── UpdateBookingDto.cs
+│   │   ├── UpdateBookingStatusDto.cs
 │   ├── Field/
 │   │   ├── FieldAmenityDto.cs
 │   │   ├── FieldDto.cs
@@ -95,8 +103,6 @@ api/
 │   │   ├── FieldServiceDto.cs
 │   │   ├── SubFieldDto.cs
 │   │   ├── TimeSlotDto.cs
-│   ├── Payment/
-│   ├── Review/
 │   ├── User/
 │   │   ├── BookingResponseDto.cs
 │   │   ├── FavoriteFieldResponseDto.cs
@@ -106,6 +112,7 @@ api/
 |
 │── Controllers/                         # Tầng API (Tiếp nhận Request từ Client)
 │   ├── AuthController.cs
+│   ├── BookingController.cs
 │   ├── FieldController.cs
 │   ├── UserController.cs
 |
