@@ -10,13 +10,15 @@ namespace api.Controllers
 {
     [Route("api/field")]
     [ApiController]
-    [EnableRateLimiting("auth")]
+    // [EnableRateLimiting("auth")]
     public class FieldController : ControllerBase
     {
         private readonly IFieldService _fieldService;
+        private readonly ILogger<FieldController> _logger;
 
-        public FieldController(IFieldService fieldService)
+        public FieldController(IFieldService fieldService, ILogger<FieldController> logger)
         {
+            _logger = logger;
             _fieldService = fieldService;
         }
 
@@ -94,8 +96,21 @@ namespace api.Controllers
         [HttpGet("search")]
         public async Task<ActionResult<PaginatedResponse<FieldDto>>> SearchFields([FromQuery] FieldSearchDto search)
         {
-            var fields = await _fieldService.SearchFieldsAsync(search);
-            return Ok(fields);
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var result = await _fieldService.SearchFieldsAsync(search);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi tìm kiếm sân bóng");
+                return StatusCode(500, "Đã xảy ra lỗi khi tìm kiếm sân bóng");
+            }
         }
 
         [HttpGet("{id}/reviews")]

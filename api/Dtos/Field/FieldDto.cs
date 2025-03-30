@@ -141,17 +141,40 @@ namespace api.Dtos.Field
 
     public class FieldSearchDto
     {
-        public string SearchTerm { get; set; }
+        [StringLength(100, ErrorMessage = "Từ khóa tìm kiếm không được vượt quá 100 ký tự")]
+        public string? SearchTerm { get; set; }
+
+        [StringLength(100, ErrorMessage = "Địa điểm không được vượt quá 100 ký tự")]
         public string Location { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "ID môn thể thao không hợp lệ")]
         public int? SportId { get; set; }
+
         public DateTime? Time { get; set; }
+
+        [Range(-90, 90, ErrorMessage = "Vĩ độ phải từ -90 đến 90")]
         public decimal? Latitude { get; set; }
+
+        [Range(-180, 180, ErrorMessage = "Kinh độ phải từ -180 đến 180")]
         public decimal? Longitude { get; set; }
+
+        [Range(0.1, 100, ErrorMessage = "Bán kính phải từ 0.1 đến 100 km")]
         public decimal? Radius { get; set; }
+
+        [Range(0, double.MaxValue, ErrorMessage = "Giá tối thiểu không hợp lệ")]
         public decimal? MinPrice { get; set; }
+
+        [Range(0, double.MaxValue, ErrorMessage = "Giá tối đa không hợp lệ")]
         public decimal? MaxPrice { get; set; }
-        public string Sort { get; set; }
+
+        [RegularExpression("^(name|rating|price|distance)(:asc|:desc)?$",
+            ErrorMessage = "Sắp xếp không hợp lệ. Ví dụ hợp lệ: 'name:asc', 'price:desc'")]
+        public string Sort { get; set; } = "name:asc";
+
+        [Range(1, int.MaxValue, ErrorMessage = "Số trang phải lớn hơn 0")]
         public int Page { get; set; } = 1;
+
+        [Range(1, 100, ErrorMessage = "Kích thước trang phải từ 1 đến 100")]
         public int PageSize { get; set; } = 10;
     }
 
