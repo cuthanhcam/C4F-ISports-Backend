@@ -26,6 +26,7 @@ namespace api.Data
         public IGenericRepository<FavoriteField> FavoriteFields { get; private set; }
         public IGenericRepository<SubField> SubFields { get; private set; }
         public IGenericRepository<BookingService> BookingServices { get; private set; }
+        public IGenericRepository<BookingTimeSlot> BookingTimeSlots { get; private set; }
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -50,6 +51,7 @@ namespace api.Data
             FavoriteFields = new GenericRepository<FavoriteField>(_context);
             SubFields = new GenericRepository<SubField>(_context);
             BookingServices = new GenericRepository<BookingService>(_context);
+            BookingTimeSlots = new GenericRepository<BookingTimeSlot>(_context);
         }
 
         public async Task<int> SaveChangesAsync()

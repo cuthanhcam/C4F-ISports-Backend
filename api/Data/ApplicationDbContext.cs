@@ -27,6 +27,7 @@ namespace api.Data
         public DbSet<User> Users { get; set; }
         public DbSet<FavoriteField> FavoriteFields { get; set; }
         public DbSet<SubField> SubFields { get; set; }
+        public DbSet<BookingTimeSlot> BookingTimeSlots { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

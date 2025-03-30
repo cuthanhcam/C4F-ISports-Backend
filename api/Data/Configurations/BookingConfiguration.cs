@@ -20,20 +20,29 @@ namespace api.Data.Configurations
             builder.Property(b => b.CreatedAt).IsRequired();
             builder.Property(b => b.UpdatedAt).IsRequired();
 
+            // Quan hệ với User
             builder.HasOne(b => b.User)
                    .WithMany(u => u.Bookings)
                    .HasForeignKey(b => b.UserId)
                    .OnDelete(DeleteBehavior.NoAction);
 
+            // Quan hệ với SubField
             builder.HasOne(b => b.SubField)
                    .WithMany(sf => sf.Bookings)
                    .HasForeignKey(b => b.SubFieldId)
                    .OnDelete(DeleteBehavior.NoAction);
 
+            // Quan hệ với BookingServices
             builder.HasMany(b => b.BookingServices)
                    .WithOne(bs => bs.Booking)
                    .HasForeignKey(bs => bs.BookingId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   .OnDelete(DeleteBehavior.NoAction);
+
+            // Quan hệ tự tham chiếu (booking chính - booking phụ)
+            builder.HasMany(b => b.RelatedBookings)
+                   .WithOne(b => b.MainBooking)
+                   .HasForeignKey(b => b.MainBookingId)
+                   .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }
