@@ -7,6 +7,6 @@ namespace api.Interfaces
 {
     public interface IGeocodingService
     {
-        Task<(decimal latitude, decimal longitude)> GetCoordinatesFromAddressAsync(string address);
+        Task<(decimal latitude, decimal longitude)> GetCoordinatesFromAddressAsync(string fieldName, string address);
     }
 }

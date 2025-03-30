@@ -121,21 +121,21 @@ namespace api.Services
             if (owner == null)
                 throw new ResourceNotFoundException($"No Owner found for AccountId {accountId}");
 
-            var normalizedAddress = NormalizeAddress(createFieldDto.Address);
-            decimal latitude = 0m; // Tọa độ mặc định nếu thất bại
+            decimal latitude = 0m;
             decimal longitude = 0m;
             try
             {
-                (latitude, longitude) = await _geocodingService.GetCoordinatesFromAddressAsync(normalizedAddress);
+                (latitude, longitude) = await _geocodingService.GetCoordinatesFromAddressAsync(
+                    createFieldDto.FieldName, createFieldDto.Address);
                 if (Math.Abs(latitude) > 90 || Math.Abs(longitude) > 180)
                     throw new AppException("Tọa độ không hợp lệ từ dịch vụ địa chỉ");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Geocoding failed for address: {Address}. Using default coordinates (0,0)", normalizedAddress);
-                latitude = 0m; // Fallback tọa độ
+                _logger.LogError(ex, "Geocoding failed for {FieldName} at {Address}. Using default coordinates (0,0)",
+                    createFieldDto.FieldName, createFieldDto.Address);
+                latitude = 0m;
                 longitude = 0m;
-                // Không ném exception để tiếp tục tạo field
             }
 
             var field = new Field
@@ -156,7 +156,7 @@ namespace api.Services
             await _unitOfWork.Fields.AddAsync(field);
             await _unitOfWork.SaveChangesAsync();
 
-            // Logic thêm description, amenities, services, subfields giữ nguyên
+            // description, amenities, services, subfields
             if (!string.IsNullOrEmpty(createFieldDto.Description))
             {
                 field.FieldDescriptions.Add(new FieldDescription
@@ -233,21 +233,21 @@ namespace api.Services
             if (field.OwnerId != owner?.OwnerId)
                 throw new UnauthorizedAccessException("User is not the owner of this field");
 
-            var normalizedAddress = NormalizeAddress(updateFieldDto.Address);
-            decimal latitude = 0m; // Tọa độ mặc định nếu thất bại
+            decimal latitude = 0m;
             decimal longitude = 0m;
             try
             {
-                (latitude, longitude) = await _geocodingService.GetCoordinatesFromAddressAsync(normalizedAddress);
+                (latitude, longitude) = await _geocodingService.GetCoordinatesFromAddressAsync(
+                    updateFieldDto.FieldName, updateFieldDto.Address);
                 if (Math.Abs(latitude) > 90 || Math.Abs(longitude) > 180)
                     throw new AppException("Tọa độ không hợp lệ từ dịch vụ địa chỉ");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Geocoding failed for address: {Address}. Using default coordinates (0,0)", normalizedAddress);
-                latitude = 0m; // Fallback tọa độ
+                _logger.LogError(ex, "Geocoding failed for {FieldName} at {Address}. Using default coordinates (0,0)",
+                    updateFieldDto.FieldName, updateFieldDto.Address);
+                latitude = 0m;
                 longitude = 0m;
-                // Không ném exception để tiếp tục tạo field
             }
 
             field.FieldName = updateFieldDto.FieldName;
@@ -259,7 +259,7 @@ namespace api.Services
             field.Longitude = longitude;
             field.UpdatedAt = DateTime.UtcNow;
 
-            // Logic cập nhật description, amenities, services, subfields giữ nguyên
+            // description, amenities, services, subfields
             field.FieldDescriptions.Clear();
             if (!string.IsNullOrEmpty(updateFieldDto.Description))
             {
