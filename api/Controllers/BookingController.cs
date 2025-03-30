@@ -6,19 +6,20 @@ using api.Interfaces;
 using api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Logging;
 
 namespace api.Controllers
 {
     [Route("api/booking")]
     [ApiController]
+    [EnableRateLimiting("auth")]
     [Authorize]
     public class BookingController : ControllerBase
     {
         private readonly IBookingService _bookingService;
         private readonly ILogger<BookingController> _logger;
 
-        // Constructor duy nhất
         public BookingController(IBookingService bookingService, ILogger<BookingController> logger)
         {
             _bookingService = bookingService;
