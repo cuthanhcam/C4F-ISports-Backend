@@ -73,6 +73,29 @@ namespace api.Controllers
             }
         }
 
+        [HttpPut("profile/avatar")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> UpdateAvatar([FromForm] UpdateAvatarDto updateAvatarDto)
+        {
+            try
+            {
+                if (updateAvatarDto == null || updateAvatarDto.AvatarFile == null)
+                {
+                    return BadRequest(new { Error = "Vui lòng chọn file ảnh để cập nhật avatar" });
+                }
+
+                _logger.LogInformation("Updating user avatar for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
+                await _userService.UpdateUserAvatarAsync(User, updateAvatarDto, _cloudinaryService);
+                return Ok(new { Success = true, Message = "Cập nhật avatar thành công" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating user avatar for user: {UserId}", User.FindFirstValue(ClaimTypes.NameIdentifier));
+                return BadRequest(new { Error = ex.Message });
+            }
+        }
+
         [HttpGet("bookings")]
         [ProducesResponseType(typeof(PaginatedResponse<BookingResponseDto>), 200)]
         [ProducesResponseType(400)]

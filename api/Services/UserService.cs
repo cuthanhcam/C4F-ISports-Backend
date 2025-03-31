@@ -162,6 +162,37 @@ namespace api.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
+        public async Task UpdateUserAvatarAsync(ClaimsPrincipal user, UpdateAvatarDto updateAvatarDto, CloudinaryService cloudinaryService)
+        {
+            var account = await GetCurrentAccountAsync(user);
+            var role = account.Role;
+
+            if (role == "User")
+            {
+                var dbUser = await _unitOfWork.Users.GetAll()
+                    .FirstOrDefaultAsync(u => u.AccountId == account.AccountId);
+                if (dbUser == null)
+                {
+                    throw new Exception("Không tìm thấy người dùng.");
+                }
+
+                var avatarUrl = await cloudinaryService.UploadImageAsync(updateAvatarDto.AvatarFile);
+                dbUser.AvatarUrl = avatarUrl;
+
+                _unitOfWork.Users.Update(dbUser);
+            }
+            else if (role == "Owner")
+            {
+                throw new Exception("Chủ sân hiện không hỗ trợ cập nhật avatar.");
+            }
+            else
+            {
+                throw new Exception("Vai trò không được hỗ trợ.");
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+
         public async Task<PaginatedResponse<Booking>> GetUserBookingsAsync(ClaimsPrincipal user, string status, DateTime? date, string sort, int page, int pageSize)
         {
             var dbUser = await GetCurrentUserAsync(user); // Chỉ áp dụng cho User

@@ -17,6 +17,7 @@ namespace api.Models
         public string PaymentStatus { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public bool IsReminderSent { get; set; } = false;
 
         public User User { get; set; }
         public SubField SubField { get; set; }
