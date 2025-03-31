@@ -76,6 +76,7 @@ builder.Services.AddSingleton<IEmailSender, SendGridEmailSender>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddHostedService<BookingReminderService>();
 
 // 5. Cấu hình CORS
 builder.Services.AddCors(options =>

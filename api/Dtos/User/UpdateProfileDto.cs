@@ -20,11 +20,5 @@ namespace api.Dtos.User
 
         [DataType(DataType.Date)]
         public DateTime? DateOfBirth { get; set; }
-
-        /*
-        [Url(ErrorMessage = "URL avatar không hợp lệ")]
-        public string AvatarUrl { get; set; }
-        public IFormFile AvatarFile { get; set; }
-        */
     }
 }
