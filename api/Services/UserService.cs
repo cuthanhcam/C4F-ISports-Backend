@@ -81,7 +81,7 @@ namespace api.Services
                     Phone = dbUser.Phone,
                     Gender = dbUser.Gender,
                     DateOfBirth = dbUser.DateOfBirth?.ToString("yyyy-MM-dd"),
-                    // AvatarUrl = dbUser.AvatarUrl
+                    AvatarUrl = dbUser.AvatarUrl
                 };
             }
             else if (role == "Owner")
