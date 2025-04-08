@@ -1,0 +1,44 @@
+Client (Frontend, Postman, Mobile App)
+        │
+        ▼
+Request (HTTP)
+        │
+        ▼
++--------------------+
+|   Controllers      | <- Nhận request, validate input
++--------------------+
+        │
+        ▼
++--------------------+
+|   DTOs            | <- Chuyển đổi dữ liệu giữa Client & Server
++--------------------+
+        │
+        ▼
++--------------------+
+|   Services        | <- Xử lý nghiệp vụ, gọi repository hoặc API bên ngoài
++--------------------+
+        │
+        ▼
++--------------------+
+|   Repository      | <- Truy vấn, thêm, sửa, xóa dữ liệu từ DB
++--------------------+
+        │
+        ▼
++--------------------+
+|   Database        | <- SQL Server lưu trữ dữ liệu
++--------------------+
+        │
+        ▼
++--------------------+
+|   Response        | <- Trả về dữ liệu cho Client
++--------------------+
+
+
+Chi tiết luồng xử lý:
+
+1. Client gửi request đến API (POST, GET, PUT, DELETE).
+2. Controller nhận request, xác thực dữ liệu đầu vào.
+3. Service xử lý logic nghiệp vụ, có thể gọi các API bên ngoài hoặc thực hiện tính toán.
+4. Repository tương tác với database thông qua Entity Framework Core.
+5. Database lưu trữ hoặc truy vấn dữ liệu cần thiết.
+6. Kết quả được trả về theo thứ tự ngược lại.

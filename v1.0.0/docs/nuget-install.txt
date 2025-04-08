@@ -1,0 +1,74 @@
+Use packages:
+--version 8.0.3
+
+# Entity Framework Core và SQL Server
+dotnet add package Microsoft.EntityFrameworkCore --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.3
+
+# Quản lý Token & Xác thực (JWT)
+dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.3
+
+# AutoMapper (Chuyển đổi Model ↔ DTO)
+dotnet add package AutoMapper --version 12.0.1
+dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection --version 12.0.1
+
+# Bảo mật (Mã hóa mật khẩu)
+dotnet add package Microsoft.AspNetCore.Identity --version 8.0.3
+
+# Hỗ trợ Logging
+dotnet add package Serilog.AspNetCore --version 8.0.3
+dotnet add package Serilog.Sinks.Console --version 8.0.3
+dotnet add package Serilog.Sinks.File --version 8.0.3
+
+# Swagger (Tài liệu API)
+dotnet add package Swashbuckle.AspNetCore --version 8.0.3
+
+# Xử lý môi trường (Cấu hình settings từ appsettings.json)
+dotnet add package Microsoft.Extensions.Configuration.Json --version 8.0.3
+
+# Hỗ trợ các phương thức HTTP nâng cao
+dotnet add package Microsoft.AspNetCore.Mvc.NewtonsoftJson --version 8.0.3
+
+# Cài đặt thư viện Cloudinary trong ASP.NET Core
+dotnet add package CloudinaryDotNet --version 1.27.0
+
+dotnet add package Microsoft.EntityFrameworkCore --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.3
+dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore --version 8.0.3
+dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.3
+dotnet add package AutoMapper --version 12.0.1
+dotnet add package AutoMapper.Extensions.Microsoft.DependencyInjection --version 12.0.1
+dotnet add package Microsoft.Extensions.Configuration --version 8.0.0
+dotnet add package Microsoft.Extensions.Configuration.Json --version 8.0.0
+dotnet add package Microsoft.Extensions.Configuration.EnvironmentVariables --version 8.0.0
+dotnet add package Microsoft.Extensions.DependencyInjection --version 8.0.0
+dotnet add package Microsoft.Extensions.Logging --version 8.0.0
+dotnet add package Serilog.AspNetCore --version 8.0.1
+dotnet add package Hangfire.AspNetCore --version 1.8.0
+dotnet add package Microsoft.AspNetCore.Mvc.NewtonsoftJson --version 8.0.3
+
+# BCrypt.Net để hash mật khẩu
+
+dotnet add package BCrypt.Net-Next --version 4.0.3
+
+# verify-email by SendGrid:
+dotnet add package SendGrid
+
+--------------------------------------------------------------------------------------------------------------
+
+Installed packages:
+
+dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer --version 8.0.3
+dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore --version 8.0.3
+dotnet add package Microsoft.AspNetCore.Mvc.NewtonsoftJson --version 8.0.3
+dotnet add package Microsoft.AspNetCore.OpenApi --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.Design --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.SqlServer --version 8.0.3
+dotnet add package Microsoft.EntityFrameworkCore.Tools --version 8.0.3
+dotnet add package Microsoft.Extensions.Identity.Core --version 8.0.3
+dotnet add package Newtonsoft.Json --version 13.0.3
+dotnet add package Swashbuckle.AspNetCore --version 6.6.2
+

@@ -1,0 +1,227 @@
+API Endpoints
+
+1. Authentication & Authorization Endpoints
+    POST /api/auth/register - Đăng ký tài khoản
+    POST /api/auth/login - Đăng nhập
+    POST /api/auth/refresh-token - Làm mới token
+    POST /api/auth/forgot-password - Quên mật khẩu
+    POST /api/auth/reset-password - Đặt lại mật khẩu
+    POST /api/auth/logout - Đăng xuất (xóa refresh token)
+    GET /api/auth/verify-token - Kiểm tra token hợp lệ
+    POST /api/auth/verify-email
+    POST /api/auth/resend-verification
+    GET /api/auth/me [Authorize]
+    POST /api/auth/change-password [Authorize]
+
+-------------------------------------------------------------------------------------------------------
+
+2. User Management Endpoints [Authorize]
+    GET /api/users/profile - Xem thông tin cá nhân
+    PUT /api/users/profile - Cập nhật thông tin cá nhân
+    DELETE /api/users/profile - Xóa tài khoản người dùng
+    GET /api/users/bookings - Lấy lịch sử đặt sân
+    GET /api/users/favorite-fields - Lấy danh sách sân yêu thích
+    POST /api/users/favorite-fields/{fieldId} - Thêm sân vào danh sách yêu thích
+    DELETE /api/users/favorite-fields/{fieldId} - Xóa sân khỏi danh sách yêu thích.
+
+-------------------------------------------------------------------------------------------------------
+
+3. Field Management Endpoints [Authorize]
+    GET /api/field - Lấy danh sách sân (có filter)
+    POST /api/field - Thêm sân mới (Owner)    
+    GET /api/field/{id} - Lấy chi tiết sân
+    PUT /api/field/{id} - Cập nhật thông tin sân (Owner)
+    DELETE /api/field/{id} - Xóa sân (Owner)
+    GET /api/field/{id}/availability - Kiểm tra khung giờ trống
+    POST /api/field/{id}/images - Upload ảnh cho sân (Owner)
+    GET /api/field/{id}/images - Upload ảnh cho sân (Owner)
+    GET /api/field/owner
+    GET /api/field/search
+    GET /api/field/{id}/reviews - Lấy đánh giá của sân
+    GET /api/field/nearby - Tìm sân gần vị trí người dùng
+    POST /api/field/{fieldId}/report
+    GET /api/field/suggested
+
+-------------------------------------------------------------------------------------------------------
+
+4. Booking Management Endpoints
+    POST /api/booking - Tạo đơn đặt sân.
+    GET /api/booking - Lấy danh sách đặt sân của người dùng hiện tại hoặc chủ sân (tùy theo vai trò).
+    GET /api/booking/{id} - Xem chi tiết một đơn đặt sân.
+    PUT /api/booking/{id} - Cập nhật thông tin đơn đặt sân (chỉ áp dụng trước khi xác nhận hoặc thanh toán).
+    DELETE /api/booking/{id} - Hủy đơn đặt sân
+    PUT /api/booking/{id}/status - Cập nhật trạng thái đơn đặt sân (dành cho Owner).
+    GET /api/booking/{id}/services - Lấy danh sách dịch vụ đi kèm của một đơn đặt sân.
+    POST /api/booking/preview - Xem trước chi tiết đơn đặt sân trước khi xác nhận (bao gồm giá và dịch vụ).
+
+-------------------------------------------------------------------------------------------------------
+
+5. Payment Processing Endpoints
+    POST /api/payments - Tạo giao dịch thanh toán
+    GET /api/payments/{id} - Xem chi tiết thanh toán
+    POST /api/payments/webhook - Webhook nhận thông báo từ cổng thanh toán
+    POST /api/payments/{id}/refund - Xử lý hoàn tiền
+    GET /api/payments/history - Xem lịch sử giao dịch
+        Query Parameters: ?status=Paid&sort=CreatedAt:desc&page=1&pageSize=10
+
+Gợi ý bổ sung:
+
+POST /api/bookings/preview
+Mô tả: Xem trước chi tiết đơn đặt sân (bao gồm giá, dịch vụ, khuyến mãi) trước khi xác nhận.
+Request Body: { fieldId, date, startTime, endTime, serviceIds: [], promotionCode }
+Response: { totalPrice, discount, finalPrice, services: [] }
+Lý do: FE cần hiển thị tổng chi phí trước khi người dùng xác nhận đặt.
+GET /api/bookings/{id}/invoice
+Mô tả: Lấy hóa đơn chi tiết của đơn đặt sân.
+Response: { bookingId, fieldName, date, totalPrice, services: [], paymentStatus }
+Lý do: Hỗ trợ người dùng xem/tải hóa đơn trên trang cá nhân.
+POST /api/bookings/{id}/reschedule
+Mô tả: Yêu cầu đổi lịch đặt sân.
+Request Body: { newDate, newStartTime, newEndTime }
+Response: { success: true, message: "Reschedule request sent" }
+Lý do: Cho phép linh hoạt đổi lịch nếu sân cho phép.
+
+-------------------------------------------------------------------------------------------------------
+
+6. Review System Endpoints
+    POST /api/reviews - Thêm đánh giá
+    GET /api/fields/{id}/reviews - Lấy đánh giá của sân
+        Query Parameters: ?rating=5&sort=CreatedAt:desc&page=1&pageSize=10
+    PUT /api/reviews/{id} - Cập nhật đánh giá
+    DELETE /api/reviews/{id} - Xóa đánh giá
+
+Gợi ý bổ sung:
+
+POST /api/reviews/{id}/reply
+Mô tả: Chủ sân trả lời đánh giá của người dùng.
+Request Body: { content: "Cảm ơn bạn đã phản hồi!" }
+Response: { success: true, message: "Reply added" }
+Lý do: Hỗ trợ tương tác giữa chủ sân và người dùng trên trang chi tiết sân.
+GET /api/users/reviews
+Mô tả: Lấy danh sách đánh giá của người dùng hiện tại.
+Query Parameters: ?sort=CreatedAt:desc&page=1&pageSize=10
+Response: [{ reviewId, fieldName, rating, comment, createdAt }]
+Lý do: Hiển thị lịch sử đánh giá trên trang cá nhân.
+-------------------------------------------------------------------------------------------------------
+
+7. Notification System Endpoints
+    GET /api/notifications - Lấy danh sách thông báo
+        Query Parameters: ?isRead=false&sort=CreatedAt:desc&page=1&pageSize=10
+    PUT /api/notifications/{id}/read - Đánh dấu đã đọc
+    DELETE /api/notifications/{id} - Xóa thông báo
+    POST /api/notifications - Gửi thông báo (Admin/Owner)
+
+Gợi ý bổ sung:
+
+PUT /api/notifications/read-all
+Mô tả: Đánh dấu tất cả thông báo là đã đọc.
+Response: { success: true, message: "All notifications marked as read" }
+Lý do: Tiện lợi cho người dùng khi có nhiều thông báo.
+GET /api/notifications/count
+Mô tả: Đếm số lượng thông báo chưa đọc.
+Response: { unreadCount: 5 }
+Lý do: Hiển thị badge số thông báo chưa đọc trên giao diện.
+
+-------------------------------------------------------------------------------------------------------
+
+8. Sport Categories Endpoints
+    GET /api/sports - Lấy danh sách loại thể thao
+        Query Parameters: ?sort=SportName:asc&page=1&pageSize=10
+    GET /api/sports/{id} - Lấy chi tiết loại thể thao
+    POST /api/sports - Thêm loại thể thao mới (Admin)
+    PUT /api/sports/{id} - Cập nhật loại thể thao (Admin)
+    DELETE /api/sports/{id} - Xóa loại thể thao (Admin)
+
+Gợi ý bổ sung:
+
+GET /api/sports/popular
+Mô tả: Lấy danh sách loại thể thao phổ biến (dựa trên số lượng đặt sân).
+Response: [{ sportId, sportName, bookingCount }]
+Lý do: Hiển thị trên trang chủ để gợi ý cho người dùng.
+
+-------------------------------------------------------------------------------------------------------
+
+9. Owner Dashboard Endpoints
+    GET /api/owners/dashboard - Thông tin tổng quan
+    GET /api/owners/fields - Danh sách sân của chủ sân
+        Query Parameters: ?status=Active&sort=FieldName:asc&page=1&pageSize=10
+    GET /api/owners/bookings - Danh sách đơn đặt sân
+        Query Parameters: ?status=Confirmed&sort=BookingDate:desc&page=1&pageSize=10
+    GET /api/owners/revenues - Báo cáo doanh thu
+        Query Parameters: ?fromDate=2025-01-01&toDate=2025-03-10&sort=Amount:desc&page=1&pageSize=10
+
+Gợi ý bổ sung:
+
+GET /api/owners/fields/{id}/stats
+Mô tả: Thống kê chi tiết của một sân (số lượt đặt, doanh thu, đánh giá).
+Query Parameters: ?fromDate=2025-01-01&toDate=2025-03-15
+Response: { totalBookings, totalRevenue, averageRating }
+Lý do: Hỗ trợ chủ sân phân tích hiệu suất từng sân.
+
+-------------------------------------------------------------------------------------------------------
+
+10. Promotion Management Endpoints
+    POST /api/promotions - Tạo mã khuyến mãi mới (Admin/Owner)
+    GET /api/promotions - Lấy danh sách mã khuyến mãi
+        Query Parameters: ?isActive=true&sort=StartDate:desc&page=1&pageSize=10
+    GET /api/promotions/{id} - Lấy chi tiết mã khuyến mãi
+    PUT /api/promotions/{id} - Cập nhật mã khuyến mãi
+    DELETE /api/promotions/{id} - Xóa mã khuyến mãi
+    POST /api/promotions/verify - Kiểm tra tính hợp lệ của mã
+    GET /api/promotions/active - Lấy danh sách mã đang hoạt động
+        Query Parameters: ?sort=StartDate:desc&page=1&pageSize=10
+
+Gợi ý bổ sung:
+
+GET /api/promotions/suggestions
+Mô tả: Gợi ý mã khuyến mãi dựa trên đơn đặt sân hiện tại.
+Query Parameters: ?fieldId=1&totalPrice=500000
+Response: [{ promotionId, code, discountValue }]
+Lý do: Hỗ trợ FE tự động gợi ý mã khi người dùng đặt sân.
+
+-------------------------------------------------------------------------------------------------------
+
+11. Admin Management Endpoints
+    GET /api/admin/users - Quản lý người dùng
+        Query Parameters: ?role=User&sort=CreatedAt:desc&page=1&pageSize=10
+    GET /api/admin/owners - Quản lý chủ sân
+        Query Parameters: ?status=Pending&sort=CreatedAt:desc&page=1&pageSize=10
+    PUT /api/admin/owners/{id}/approve - Phê duyệt đăng ký chủ sân
+    GET /api/admin/fields - Quản lý sân
+        Query Parameters: ?status=Active&sort=FieldName:asc&page=1&pageSize=10
+    GET /api/admin/bookings - Quản lý đặt sân
+        Query Parameters: ?status=Confirmed&sort=BookingDate:desc&page=1&pageSize=10
+    GET /api/admin/reports - Xem báo cáo thống kê
+        Query Parameters: ?fromDate=2025-01-01&toDate=2025-03-10
+    PUT /api/admin/users/{id}/ban - Khóa tài khoản người dùng
+    GET /api/admin/promotions - Xem tất cả mã khuyến mãi
+        Query Parameters: ?isActive=true&sort=StartDate:desc&page=1&pageSize=10
+
+GET /api/admin/reviews
+Mô tả: Lấy danh sách tất cả đánh giá trong hệ thống để kiểm duyệt.
+Query Parameters: ?isPending=true&sort=CreatedAt:desc&page=1&pageSize=10
+Response: [{ reviewId, fieldName, userName, rating, comment }]
+Lý do: Admin cần kiểm soát nội dung đánh giá không phù hợp.
+PUT /api/admin/reviews/{id}/moderate
+Mô tả: Duyệt hoặc xóa đánh giá không phù hợp.
+Request Body: { action: "approve" | "reject" }
+Response: { success: true, message: "Review moderated" }
+Lý do: Hỗ trợ quy trình kiểm duyệt đánh giá.
+
+-------------------------------------------------------------------------------------------------------
+
+12. Statistics & Analytics Endpoints
+    GET /api/statistics/fields - Thống kê về sân (Admin/Owner)
+        Query Parameters: ?fromDate=2025-01-01&toDate=2025-03-10&sort=FieldName:asc&page=1&pageSize=10
+    GET /api/statistics/bookings - Thống kê về lượt đặt sân (Admin/Owner)
+        Query Parameters: ?fromDate=2025-01-01&toDate=2025-03-10&sort=BookingDate:desc&page=1&pageSize=10
+    GET /api/statistics/users - Thống kê về người dùng (Admin)
+        Query Parameters: ?fromDate=2025-01-01&toDate=2025-03-10&sort=CreatedAt:desc&page=1&pageSize=10
+
+Gợi ý bổ sung:
+
+GET /api/statistics/trends
+Mô tả: Thống kê xu hướng đặt sân theo thời gian.
+Query Parameters: ?fromDate=2025-01-01&toDate=2025-03-15&groupBy=day
+Response: [{ date, bookingCount, revenue }]
+Lý do: Hỗ trợ chủ sân và admin phân tích xu hướng qua biểu đồ.

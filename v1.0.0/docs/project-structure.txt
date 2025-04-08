@@ -1,0 +1,140 @@
+api/
+│── Data/                                # Tầng Data Access (Quản lý database)
+│   ├── ApplicationDbContext.cs          
+│   ├── SeedData.cs                      
+│   ├── UnitOfWork.cs                    
+│   ├── Migrations/                     
+│   │   └── ...                          
+│   ├── Configurations/                  # Cấu hình Entity (Fluent API)
+│   │   ├── AccountConfiguration.cs     
+│   │   ├── BookingConfiguration.cs   
+│   │   ├── BookingServiceConfiguration.cs
+│   │   ├── FavoriteFieldConfiguration.cs   
+│   │   ├── FieldAmenityConfiguration.cs    
+│   │   ├── FieldConfiguration.cs   
+│   │   ├── FieldDescriptionConfiguration.cs 
+│   │   ├── FieldImageConfiguration.cs   
+│   │   ├── FieldServiceConfiguration.cs  
+│   │   ├── NotificationConfiguration.cs 
+│   │   ├── OwnerConfiguration.cs        
+│   │   ├── PaymentConfiguration.cs  
+│   │   ├── PromotionConfiguration.cs   
+│   │   ├── RefreshTokenConfiguration.cs 
+│   │   ├── ReviewConfiguration.cs   
+│   │   ├── SportConfiguration.cs        
+│   │   ├── SubFieldConfiguration.cs      
+│   │   ├── UserConfiguration.cs   
+│   │   └── ...                          
+│   ├── Seeders/                         # Chứa các Seeder để thêm dữ liệu mẫu vào database
+│   │   ├── AccountSeeder.cs             
+│   │   ├── BookingSeeder.cs  
+│   │   ├── FieldAmenitySeeder.cs      
+│   │   ├── FieldDescriptionSeeder.cs
+│   │   ├── FieldImageSeeder.cs
+│   │   ├── FieldSeeder.cs
+│   │   ├── FieldServiceSeeder.cs
+│   │   ├── OwnerSeeder.cs
+│   │   ├── ReviewSeeder.cs
+│   │   ├── SportSeeder.cs                                       
+│   │   ├── UserSeeder.cs        
+│   │   └── ...                          
+|
+│── Models/                              # Tầng Model (Lớp ánh xạ với Database)
+│   ├── Account.cs
+│   ├── Booking.cs
+│   ├── BookingService.cs
+│   ├── Favorite.cs
+│   ├── Field.cs
+│   ├── FieldAmenity.cs
+│   ├── FieldDescription.cs
+│   ├── FieldImage.cs
+│   ├── FieldService.cs
+│   ├── Notification.cs
+│   ├── Owner.cs
+│   ├── Payment.cs
+│   ├── Promotion.cs
+│   ├── RefreshToken.cs
+│   ├── Review.cs
+│   ├── Sport.cs
+│   ├── SubField.cs
+│   └── User.cs     
+|
+│── Interfaces/                          # Tầng Interface (Định nghĩa hợp đồng cho Service & Repository)
+│   ├── IAuthService.cs
+│   ├── IBookingService.cs
+│   ├── ICloudinaryService.cs
+│   ├── IEmailService.cs
+│   ├── IFieldService.cs
+│   ├── IGenericRepository.cs            
+│   ├── IGeocodingService.cs
+│   ├── IUnitOfWork.cs   
+│   ├── IUserService.cs
+|
+│── Repositories/                        # Tầng Repository (Tương tác với Database)
+│   ├── GenericRepository.cs            
+|
+│── Services/                            # Tầng Service (Xử lý Business Logic)
+│   ├── AuthService.cs
+│   ├── BookingService.cs
+│   ├── CloudinaryService.cs
+│   ├── FieldService.cs
+│   ├── GeocodingService.cs
+│   ├── SendGridEmailSender.cs
+│   ├── UserService.cs
+|
+│── Dtos/                                # Tầng DTO (Truyền dữ liệu giữa Client & Server)
+│   ├── Auth/
+│   │   ├── ChangePasswordDto.cs
+│   │   ├── LoginDto.cs
+│   │   ├── RefreshTokenDto.cs
+│   │   ├── RegisterDto.cs
+│   │   ├── ResetPasswordDto.cs
+│   ├── Booking/
+│   │   ├── BookingDto.cs
+│   │   ├── BookingPreviewDto.cs
+│   │   ├── BookingServiceDto.cs
+│   │   ├── CreateBookingDto.cs
+│   │   ├── UpdateBookingDto.cs
+│   │   ├── UpdateBookingStatusDto.cs
+│   ├── Field/
+│   │   ├── FieldAmenityDto.cs
+│   │   ├── FieldDto.cs
+│   │   ├── FieldReviewDto.cs
+│   │   ├── FieldServiceDto.cs
+│   │   ├── SubFieldDto.cs
+│   │   ├── TimeSlotDto.cs
+│   ├── User/
+│   │   ├── BookingResponseDto.cs
+│   │   ├── FavoriteFieldResponseDto.cs
+│   │   ├── UserProfileDto.cs
+│   │   ├── UserProfileResponseDto.cs
+│   ├── PaginatedResponse.cs
+|
+│── Controllers/                         # Tầng API (Tiếp nhận Request từ Client)
+│   ├── AuthController.cs
+│   ├── BookingController.cs
+│   ├── FieldController.cs
+│   ├── UserController.cs
+|
+│── Middlewares/                         # Middleware (Xử lý Request & Security)
+│   ├── RoleMiddleware.cs
+|
+│── Configurations/                      # Cấu hình hệ thống
+|
+│── Utils/                               # Tiện ích chung
+|
+│── BackgroundServices/     
+|  
+│── Exceptions/                        
+│   ├── AppException.cs
+│   ├── ResourceNotFoundException.cs              
+|
+│── Properties/
+│   ├── launchSettings.json
+|
+│── .gitignore
+│── Program.cs
+│── Startup.cs
+│── api.csproj
+│── appsettings.json
+│── appsettings.Development.json
