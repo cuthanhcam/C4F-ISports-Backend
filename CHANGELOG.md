@@ -2,7 +2,7 @@
 
 ## [1.0.0] - 2025-04-08
 ### Added
-- Đầy đủ các tính năng phục vụ môn học
+- Đầy đủ các tính năng phục vụ đồ án Lập Trình Web
 - Có xác thực bằng JWT, các API cơ bản, phân quyền
 
 ### Known Issues
