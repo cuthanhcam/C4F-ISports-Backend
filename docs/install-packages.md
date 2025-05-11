@@ -21,3 +21,6 @@ dotnet add package Microsoft.Extensions.Logging --version 8.0.3
 dotnet add package SendGrid --version 9.29.3
 dotnet add package Serilog.AspNetCore --version 8.0.3
 dotnet add package Swashbuckle.AspNetCore --version 6.6.2
+dotnet add package Microsoft.AspNetCore.Authentication.Google
+dotnet add package Microsoft.AspNetCore.Authentication.Facebook
+dotnet add package StackExchange.Redis
