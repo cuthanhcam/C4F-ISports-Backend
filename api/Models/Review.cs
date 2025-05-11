@@ -28,5 +28,5 @@ namespace api.Models
 
         public User User { get; set; }
         public Field Field { get; set; }
-    }s
+    }
 }
