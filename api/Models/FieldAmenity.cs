@@ -1,0 +1,24 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace api.Models
+{
+    public class FieldAmenity
+    {
+        public int FieldAmenityId { get; set; }
+        public int FieldId { get; set; }
+
+        [Required, StringLength(100)]
+        public string AmenityName { get; set; }
+
+        [StringLength(500)]
+        public string? Description { get; set; }
+
+        [StringLength(500), Url]
+        public string? IconUrl { get; set; }
+
+        public Field Field { get; set; }
+    }
+}
