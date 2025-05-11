@@ -7,7 +7,7 @@ Backend sử dụng **.NET 8.0** với **Layered Architecture**, chia thành cá
 ```
 api/
 ├── Data/
-│   ├── ApplicationDbContext.cs                  # EF Core DbContext cho database
+│   ├── ApplicationDbContext.cs                 # EF Core DbContext cho database
 │   ├── UnitOfWork.cs                           # Quản lý transaction
 │   ├── Migrations/                             # EF Core migrations
 │   ├── Configurations/                         # Cấu hình ánh xạ entity
