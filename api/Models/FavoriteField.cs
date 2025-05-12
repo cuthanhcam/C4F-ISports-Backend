@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
-     public class FavoriteField
+    public class FavoriteField
     {
         public int FavoriteId { get; set; }
         public int UserId { get; set; }

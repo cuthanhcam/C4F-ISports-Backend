@@ -24,5 +24,4 @@ namespace api.Models
 
         public ICollection<Field> Fields { get; set; } = new List<Field>();
     }
-
 }
