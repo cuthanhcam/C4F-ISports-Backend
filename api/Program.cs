@@ -3,17 +3,17 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using api.Data;
-using api.Services;
+// using api.Services;
 using api.Interfaces;
 using Microsoft.OpenApi.Models;
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.Authentication.Google;
+// using Microsoft.AspNetCore.Authentication.Google;
 using Serilog;
-using Microsoft.Extensions.Caching.StackExchangeRedis;
+// using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.AspNetCore.Mvc;
-using api.Middlewares;
+// using api.Middlewares;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,7 +39,7 @@ var app = builder.Build();
 ConfigureMiddleware(app);
 
 // Áp dụng migrations và seed dữ liệu
-await SeedDatabaseAsync(app);
+// await SeedDatabaseAsync(app);
 
 app.Run();
 
@@ -71,14 +71,14 @@ void ConfigureServices(WebApplicationBuilder builder)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwtSettings["Secret"]))
         };
-    })
-    .AddGoogle(options =>
-    {
-        options.ClientId = builder.Configuration["OAuth:Google:ClientId"];
-        options.ClientSecret = builder.Configuration["OAuth:Google:ClientSecret"];
-        options.Scope.Add("profile");
-        options.Scope.Add("email");
     });
+    // .AddGoogle(options =>
+    // {
+    //     options.ClientId = builder.Configuration["OAuth:Google:ClientId"];
+    //     options.ClientSecret = builder.Configuration["OAuth:Google:ClientSecret"];
+    //     options.Scope.Add("profile");
+    //     options.Scope.Add("email");
+    // });
 
     // 3. Cấu hình Authorization Policies
     builder.Services.AddAuthorization(options =>
@@ -95,28 +95,28 @@ void ConfigureServices(WebApplicationBuilder builder)
         cloudinarySettings["ApiKey"],
         cloudinarySettings["ApiSecret"]
     )));
-    builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+    // builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
-    // 5. Đăng ký các service
-    builder.Services.AddHttpClient<IGeocodingService, GeocodingService>(client =>
-    {
-        client.Timeout = TimeSpan.FromSeconds(60);
-    });
-    builder.Services.AddHttpClient<IPaymentService, VNPayPaymentService>(client =>
-    {
-        client.BaseAddress = new Uri(builder.Configuration["VNPaySettings:PaymentUrl"]);
-        client.Timeout = TimeSpan.FromSeconds(60);
-    });
-    builder.Services.AddScoped<IAuthService, AuthService>();
-    builder.Services.AddScoped<ITokenService, TokenService>();
-    builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-    builder.Services.AddScoped<IFieldService, FieldService>();
-    builder.Services.AddScoped<ISubFieldService, SubFieldService>();
-    builder.Services.AddScoped<IEmailSender, SendGridEmailSender>();
-    builder.Services.AddScoped<IUserService, UserService>();
-    builder.Services.AddScoped<IBookingService, BookingService>();
-    builder.Services.AddScoped<IPaymentService, VNPayPaymentService>();
-    builder.Services.AddHostedService<BookingReminderService>();
+    // // 5. Đăng ký các service
+    // builder.Services.AddHttpClient<IGeocodingService, GeocodingService>(client =>
+    // {
+    //     client.Timeout = TimeSpan.FromSeconds(60);
+    // });
+    // builder.Services.AddHttpClient<IPaymentService, VNPayPaymentService>(client =>
+    // {
+    //     client.BaseAddress = new Uri(builder.Configuration["VNPaySettings:PaymentUrl"]);
+    //     client.Timeout = TimeSpan.FromSeconds(60);
+    // });
+    // builder.Services.AddScoped<IAuthService, AuthService>();
+    // builder.Services.AddScoped<ITokenService, TokenService>();
+    // builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+    // builder.Services.AddScoped<IFieldService, FieldService>();
+    // builder.Services.AddScoped<ISubFieldService, SubFieldService>();
+    // builder.Services.AddScoped<IEmailSender, SendGridEmailSender>();
+    // builder.Services.AddScoped<IUserService, UserService>();
+    // builder.Services.AddScoped<IBookingService, BookingService>();
+    // builder.Services.AddScoped<IPaymentService, VNPayPaymentService>();
+    // builder.Services.AddHostedService<BookingReminderService>();
 
     // 6. Cấu hình CORS
     builder.Services.AddCors(options =>
@@ -176,16 +176,16 @@ void ConfigureServices(WebApplicationBuilder builder)
     });
 
     // 8. Cấu hình Redis Cache
-    builder.Services.AddStackExchangeRedisCache(options =>
-    {
-        options.Configuration = builder.Configuration.GetConnectionString("Redis");
-        options.InstanceName = "C4F-ISports-";
-    });
+    // builder.Services.AddStackExchangeRedisCache(options =>
+    // {
+    //     options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    //     options.InstanceName = "C4F-ISports-";
+    // });
 
-    // 9. Cấu hình Health Checks
-    builder.Services.AddHealthChecks()
-        .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-        .AddRedis(builder.Configuration.GetConnectionString("Redis"));
+    // // 9. Cấu hình Health Checks
+    // builder.Services.AddHealthChecks()
+    //     .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+    //     .AddRedis(builder.Configuration.GetConnectionString("Redis"));
 
     // 10. Thêm Controllers với JSON options
     builder.Services.AddControllers()
@@ -227,22 +227,22 @@ void ConfigureServices(WebApplicationBuilder builder)
     });
 
     // 12. Cấu hình API Versioning
-    builder.Services.AddApiVersioning(options =>
-    {
-        options.DefaultApiVersion = new ApiVersion(2, 0);
-        options.AssumeDefaultVersionWhenUnspecified = true;
-        options.ReportApiVersions = true;
-    }).AddApiExplorer(options =>
-    {
-        options.GroupNameFormat = "'v'VVV";
-        options.SubstituteApiVersionInUrl = true;
-    });
+    // builder.Services.AddApiVersioning(options =>
+    // {
+    //     options.DefaultApiVersion = new ApiVersion(2, 0);
+    //     options.AssumeDefaultVersionWhenUnspecified = true;
+    //     options.ReportApiVersions = true;
+    // }).AddApiExplorer(options =>
+    // {
+    //     options.GroupNameFormat = "'v'VVV";
+    //     options.SubstituteApiVersionInUrl = true;
+    // });
 
-    // 13. Giới hạn kích thước file upload
-    builder.Services.Configure<FormOptions>(options =>
-    {
-        options.MultipartBodyLengthLimit = 10 * 1024 * 1024; // 10MB
-    });
+    // // 13. Giới hạn kích thước file upload
+    // builder.Services.Configure<FormOptions>(options =>
+    // {
+    //     options.MultipartBodyLengthLimit = 10 * 1024 * 1024; // 10MB
+    // });
 }
 
 void ConfigureMiddleware(WebApplication app)
@@ -254,7 +254,7 @@ void ConfigureMiddleware(WebApplication app)
     }
 
     // Middleware xử lý lỗi toàn cục
-    app.UseMiddleware<GlobalExceptionHandler>();
+    // app.UseMiddleware<GlobalExceptionHandler>();
 
     // Logging request/response
     app.Use(async (context, next) =>
@@ -280,23 +280,23 @@ void ConfigureMiddleware(WebApplication app)
     app.MapControllers();
 }
 
-async Task SeedDatabaseAsync(WebApplication app)
-{
-    using var scope = app.Services.CreateScope();
-    var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>();
-    try
-    {
-        logger.LogInformation("Starting database migration and seeding...");
-        var context = services.GetRequiredService<ApplicationDbContext>();
-        await context.Database.MigrateAsync();
-        logger.LogInformation("Migrations applied successfully.");
-        await SeedData.InitializeAsync(services);
-        logger.LogInformation("Database seeding completed successfully.");
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "An error occurred while migrating or seeding the database.");
-        throw;
-    }
-}
+// async Task SeedDatabaseAsync(WebApplication app)
+// {
+//     using var scope = app.Services.CreateScope();
+//     var services = scope.ServiceProvider;
+//     var logger = services.GetRequiredService<ILogger<Program>>();
+//     try
+//     {
+//         logger.LogInformation("Starting database migration and seeding...");
+//         var context = services.GetRequiredService<ApplicationDbContext>();
+//         await context.Database.MigrateAsync();
+//         logger.LogInformation("Migrations applied successfully.");
+//         await SeedData.InitializeAsync(services);
+//         logger.LogInformation("Database seeding completed successfully.");
+//     }
+//     catch (Exception ex)
+//     {
+//         logger.LogError(ex, "An error occurred while migrating or seeding the database.");
+//         throw;
+//     }
+// }
