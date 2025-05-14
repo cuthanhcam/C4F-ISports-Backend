@@ -38,8 +38,13 @@ var app = builder.Build();
 // Cấu hình pipeline
 ConfigureMiddleware(app);
 
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("Preparing to run SeedDatabaseAsync...");
+
 // Áp dụng migrations và seed dữ liệu
 await SeedDatabaseAsync(app);
+
+logger.LogInformation("Application startup completed.");
 
 app.Run();
 
@@ -274,7 +279,7 @@ void ConfigureMiddleware(WebApplication app)
     app.UseAuthorization();
 
     // Health Checks
-    app.MapHealthChecks("/health");
+    // app.MapHealthChecks("/health");`
 
     // Map Controllers
     app.MapControllers();
@@ -290,14 +295,28 @@ async Task SeedDatabaseAsync(WebApplication app)
         {
             logger.LogInformation("Starting database migration and seeding...");
             var context = services.GetRequiredService<ApplicationDbContext>();
+            
+            // Kiểm tra kết nối database
+            var canConnect = await context.Database.CanConnectAsync();
+            logger.LogInformation("Database connection status: {CanConnect}", canConnect);
+
+            // Kiểm tra bảng trước seeding
+            var accountCount = await context.Accounts.CountAsync();
+            logger.LogInformation("Accounts table has {Count} records before seeding.", accountCount);
+
             await context.Database.MigrateAsync();
             logger.LogInformation("Migrations applied successfully.");
+
             await SeedData.InitializeAsync(services);
             logger.LogInformation("Database seeding completed successfully.");
+
+            // Kiểm tra bảng sau seeding
+            accountCount = await context.Accounts.CountAsync();
+            logger.LogInformation("Accounts table has {Count} records after seeding.", accountCount);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred while migrating or seeding the database.");
+            logger.LogError(ex, "An error occurred while migrating or seeding the database. StackTrace: {StackTrace}", ex.StackTrace);
             throw;
         }
     }
