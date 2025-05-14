@@ -9,6 +9,7 @@ api/
 ├── Data/
 │   ├── ApplicationDbContext.cs                 # EF Core DbContext cho database
 │   ├── UnitOfWork.cs                           # Quản lý transaction
+│   ├── SeedData.cs
 │   ├── Migrations/                             # EF Core migrations
 │   ├── Configurations/                         # Cấu hình ánh xạ entity
 │   │   ├── AccountConfiguration.cs
