@@ -13,13 +13,13 @@ namespace api.Models
         public int FieldId { get; set; }
 
         [Required, StringLength(100)]
-        public string SubFieldName { get; set; }
+        public required string SubFieldName { get; set; }
 
         [Required, StringLength(50)] // Validate in service: "5-a-side", "7-a-side", "Badminton"
-        public string FieldType { get; set; }
+        public required string FieldType { get; set; }
 
         [Required, StringLength(20)]
-        public string Status { get; set; } // "Active", "Inactive"
+        public required string Status { get; set; } // "Active", "Inactive"
 
         [Required]
         public int Capacity { get; set; }
@@ -27,7 +27,7 @@ namespace api.Models
         [StringLength(500)]
         public string? Description { get; set; }
 
-        public Field Field { get; set; }
+        public required Field Field { get; set; }
         public ICollection<FieldPricing> FieldPricings { get; set; } = new List<FieldPricing>();
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     }

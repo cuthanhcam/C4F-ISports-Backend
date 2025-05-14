@@ -13,10 +13,10 @@ namespace api.Models
         public int AccountId { get; set; }
 
         [Required, StringLength(100)]
-        public string FullName { get; set; }
+        public required string FullName { get; set; }
 
         [Required, StringLength(20)]
-        public string Phone { get; set; }
+        public required string Phone { get; set; }
 
         [StringLength(10)]
         public string? Gender { get; set; } // "Male", "Female", "Other"
@@ -36,7 +36,7 @@ namespace api.Models
         [StringLength(100)]
         public string? District { get; set; }
 
-        public Account Account { get; set; }
+        public required Account Account { get; set; }
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
         public ICollection<Notification> Notifications { get; set; } = new List<Notification>();

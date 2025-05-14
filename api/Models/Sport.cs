@@ -12,7 +12,7 @@ namespace api.Models
         public int SportId { get; set; }
 
         [Required, StringLength(50)]
-        public string SportName { get; set; }
+        public required string SportName { get; set; }
 
         [StringLength(500)]
         public string? Description { get; set; }

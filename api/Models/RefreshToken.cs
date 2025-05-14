@@ -13,7 +13,7 @@ namespace api.Models
         public int AccountId { get; set; }
 
         [Required, StringLength(256)]
-        public string Token { get; set; }
+        public required string Token { get; set; }
 
         [Required]
         public DateTime Expires { get; set; }
@@ -26,6 +26,6 @@ namespace api.Models
         [StringLength(256)]
         public string? ReplacedByToken { get; set; }
 
-        public Account Account { get; set; }
+        public required Account Account { get; set; }
     }
 }

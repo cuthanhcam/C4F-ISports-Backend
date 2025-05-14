@@ -27,10 +27,10 @@ namespace api.Models
         public decimal TotalPrice { get; set; }
 
         [Required, StringLength(20), RegularExpression("^(Confirmed|Pending|Cancelled)$")]
-        public string Status { get; set; } // "Confirmed", "Pending", "Cancelled"
+        public required string Status { get; set; } // "Confirmed", "Pending", "Cancelled"
 
         [Required, StringLength(20), RegularExpression("^(Paid|Pending|Failed)$")]
-        public string PaymentStatus { get; set; } // "Paid", "Pending", "Failed"
+        public required string PaymentStatus { get; set; } // "Paid", "Pending", "Failed"
 
         [StringLength(1000)]
         public string? Notes { get; set; }
@@ -40,8 +40,8 @@ namespace api.Models
         public bool IsReminderSent { get; set; } = false;
         public int? PromotionId { get; set; }
 
-        public User User { get; set; }
-        public SubField SubField { get; set; }
+        public required User User { get; set; }
+        public required SubField SubField { get; set; }
         public Booking? MainBooking { get; set; }
         public ICollection<Booking> RelatedBookings { get; set; } = new List<Booking>();
         public Promotion? Promotion { get; set; }

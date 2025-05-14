@@ -13,8 +13,8 @@ namespace api.Models
         public int FieldId { get; set; }
 
         [Required, StringLength(2000)]
-        public string Description { get; set; }
+        public required string Description { get; set; }
 
-        public Field Field { get; set; }
+        public required Field Field { get; set; }
     }
 }

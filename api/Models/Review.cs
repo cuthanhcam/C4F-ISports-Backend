@@ -17,7 +17,7 @@ namespace api.Models
         public int Rating { get; set; }
 
         [Required, StringLength(1000)]
-        public string Comment { get; set; }
+        public required string Comment { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
@@ -28,7 +28,7 @@ namespace api.Models
         public DateTime? ReplyDate { get; set; }
         public bool IsVisible { get; set; } = true;
 
-        public User User { get; set; }
-        public Field Field { get; set; }
+        public required User User { get; set; }
+        public required Field Field { get; set; }
     }
 }

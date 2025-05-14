@@ -13,7 +13,7 @@ namespace api.Models
         public int FieldId { get; set; }
 
         [Required, StringLength(100)]
-        public string AmenityName { get; set; }
+        public required string AmenityName { get; set; }
 
         [StringLength(500)]
         public string? Description { get; set; }
@@ -21,6 +21,6 @@ namespace api.Models
         [StringLength(500), Url]
         public string? IconUrl { get; set; }
 
-        public Field Field { get; set; }
+        public required Field Field { get; set; }
     }
 }

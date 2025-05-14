@@ -13,10 +13,10 @@ namespace api.Models
         public int UserId { get; set; }
 
         [Required, StringLength(100)]
-        public string Title { get; set; }
+        public required string Title { get; set; }
 
         [Required, StringLength(2000)]
-        public string Content { get; set; }
+        public required string Content { get; set; }
 
         public bool IsRead { get; set; }
 
@@ -25,6 +25,6 @@ namespace api.Models
         [StringLength(50)]
         public string? NotificationType { get; set; } // "Booking", "Promotion", "System"
 
-        public User User { get; set; }
+        public required User User { get; set; }
     }
 }

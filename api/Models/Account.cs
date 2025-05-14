@@ -12,13 +12,13 @@ namespace api.Models
         public int AccountId { get; set; }
 
         [Required, StringLength(256), EmailAddress]
-        public string Email { get; set; }
+        public required string Email { get; set; }
 
         [StringLength(256)] // Hash password
         public string? Password { get; set; } // Nullable cho OAuth accounts
 
         [Required, StringLength(50)]
-        public string Role { get; set; } // "Admin", "Owner", "User"
+        public required string Role { get; set; } // "Admin", "Owner", "User"
 
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }

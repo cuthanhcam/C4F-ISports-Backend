@@ -21,6 +21,6 @@ namespace api.Models
         [Required]
         public decimal Price { get; set; }
 
-        public Booking Booking { get; set; }
+        public required Booking Booking { get; set; }
     }
 }

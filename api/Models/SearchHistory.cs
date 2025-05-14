@@ -13,7 +13,7 @@ namespace api.Models
         public int UserId { get; set; }
 
         [Required, StringLength(500)]
-        public string SearchQuery { get; set; }
+        public required string SearchQuery { get; set; }
 
         [Required]
         public DateTime SearchDate { get; set; }
@@ -22,7 +22,7 @@ namespace api.Models
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
 
-        public User User { get; set; }
+        public required User User { get; set; }
         public Field? Field { get; set; }
     }
 }

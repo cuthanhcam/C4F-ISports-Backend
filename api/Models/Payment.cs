@@ -16,13 +16,13 @@ namespace api.Models
         public decimal Amount { get; set; }
 
         [Required, StringLength(50)]
-        public string PaymentMethod { get; set; } // "CreditCard", "BankTransfer", "Cash"
+        public required string PaymentMethod { get; set; } // "CreditCard", "BankTransfer", "Cash"
 
         [Required, StringLength(100)]
-        public string TransactionId { get; set; }
+        public required string TransactionId { get; set; }
 
         [Required, StringLength(20)]
-        public string Status { get; set; } // "Success", "Pending", "Failed"
+        public required string Status { get; set; } // "Success", "Pending", "Failed"
 
         [Required, StringLength(3)]
         public string Currency { get; set; } = "VND";
@@ -30,6 +30,6 @@ namespace api.Models
         public DateTime CreatedAt { get; set; }
         public DateTime? PaymentDate { get; set; }
 
-        public Booking Booking { get; set; }
+        public required Booking Booking { get; set; }
     }
 }

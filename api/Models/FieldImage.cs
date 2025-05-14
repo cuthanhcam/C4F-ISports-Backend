@@ -13,7 +13,7 @@ namespace api.Models
         public int FieldId { get; set; }
 
         [Required, StringLength(500), Url]
-        public string ImageUrl { get; set; }
+        public required string ImageUrl { get; set; }
 
         [StringLength(500), Url]
         public string? Thumbnail { get; set; }
@@ -21,6 +21,6 @@ namespace api.Models
         public bool IsPrimary { get; set; }
         public DateTime UploadedAt { get; set; }
 
-        public Field Field { get; set; }
+        public required Field Field { get; set; }
     }
 }

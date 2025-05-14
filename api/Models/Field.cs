@@ -13,16 +13,16 @@ namespace api.Models
         public int SportId { get; set; }
 
         [Required, StringLength(100)]
-        public string FieldName { get; set; }
+        public required string FieldName { get; set; }
 
         [Required, StringLength(20)]
-        public string Phone { get; set; }
+        public required string Phone { get; set; }
 
         [Required, StringLength(500)]
-        public string Address { get; set; }
+        public required string Address { get; set; }
 
         [Required, StringLength(100)] // Format: "HH:mm-HH:mm"
-        public string OpenHours { get; set; }
+        public required string OpenHours { get; set; }
 
 		// Nullable, used for precise time validation in backend
         public TimeSpan? OpenTime { get; set; }
@@ -31,7 +31,7 @@ namespace api.Models
         public int OwnerId { get; set; }
 
         [Required, StringLength(20)]
-        public string Status { get; set; } // "Active", "Inactive", "Maintenance"
+        public required string Status { get; set; } // "Active", "Inactive", "Maintenance"
 
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
@@ -48,8 +48,8 @@ namespace api.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        public Sport Sport { get; set; }
-        public Owner Owner { get; set; }
+        public required Sport Sport { get; set; }
+        public required Owner Owner { get; set; }
         public ICollection<SubField> SubFields { get; set; } = new List<SubField>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
         public ICollection<FieldImage> FieldImages { get; set; } = new List<FieldImage>();

@@ -12,13 +12,13 @@ namespace api.Models
         public int PromotionId { get; set; }
 
         [Required, StringLength(50)]
-        public string Code { get; set; }
+        public required string Code { get; set; }
 
         [StringLength(500)]
-        public string Description { get; set; }
+        public required string Description { get; set; }
 
         [Required, StringLength(20)]
-        public string DiscountType { get; set; } // "Percentage", "Fixed"
+        public required string DiscountType { get; set; } // "Percentage", "Fixed"
 
         [Required]
         public decimal DiscountValue { get; set; }

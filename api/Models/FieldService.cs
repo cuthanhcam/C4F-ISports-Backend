@@ -13,7 +13,7 @@ namespace api.Models
         public int FieldId { get; set; }
 
         [Required, StringLength(100)]
-        public string ServiceName { get; set; }
+        public required string ServiceName { get; set; }
 
         [Required]
         public decimal Price { get; set; }
@@ -23,7 +23,7 @@ namespace api.Models
 
         public bool IsActive { get; set; } = true;
 
-        public Field Field { get; set; }
+        public required Field Field { get; set; }
         public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
     }
 }
