@@ -13,9 +13,9 @@ Dự án được chia thành 8 giai đoạn, mỗi giai đoạn tập trung và
   - Định nghĩa models (`Models-v2.0.0.cs`).
   - Xây dựng database schema (`database-schema.markdown`).
   - Thiết kế API endpoints (`api-endpoints.markdown`).
-- **Công việc còn lại**:
   - Tạo cấu trúc project (.NET Solution).
   - Cấu hình `ApplicationDbContext`, migrations, seeding dữ liệu.
+- **Công việc còn lại**:
   - Thiết lập OAuth2, CloudinaryService, SendGridService.
   - Cấu hình Swagger, Serilog, Redis.
   - Triển khai endpoint `/api/health`.
