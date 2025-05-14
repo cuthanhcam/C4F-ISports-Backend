@@ -39,7 +39,7 @@ var app = builder.Build();
 ConfigureMiddleware(app);
 
 // Áp dụng migrations và seed dữ liệu
-// await SeedDatabaseAsync(app);
+await SeedDatabaseAsync(app);
 
 app.Run();
 
@@ -138,10 +138,10 @@ void ConfigureServices(WebApplicationBuilder builder)
                 httpContext.User.Identity?.Name ?? "anonymous",
                 partition => new SlidingWindowRateLimiterOptions
                 {
-                    PermitLimit = 10, 
+                    PermitLimit = 10,
                     Window = TimeSpan.FromMinutes(1),
                     SegmentsPerWindow = 2,
-                    QueueLimit = 5, 
+                    QueueLimit = 5,
                     QueueProcessingOrder = QueueProcessingOrder.OldestFirst
                 }));
         options.AddPolicy("booking", httpContext =>
@@ -280,23 +280,25 @@ void ConfigureMiddleware(WebApplication app)
     app.MapControllers();
 }
 
-// async Task SeedDatabaseAsync(WebApplication app)
-// {
-//     using var scope = app.Services.CreateScope();
-//     var services = scope.ServiceProvider;
-//     var logger = services.GetRequiredService<ILogger<Program>>();
-//     try
-//     {
-//         logger.LogInformation("Starting database migration and seeding...");
-//         var context = services.GetRequiredService<ApplicationDbContext>();
-//         await context.Database.MigrateAsync();
-//         logger.LogInformation("Migrations applied successfully.");
-//         await SeedData.InitializeAsync(services);
-//         logger.LogInformation("Database seeding completed successfully.");
-//     }
-//     catch (Exception ex)
-//     {
-//         logger.LogError(ex, "An error occurred while migrating or seeding the database.");
-//         throw;
-//     }
-// }
+async Task SeedDatabaseAsync(WebApplication app)
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        try
+        {
+            logger.LogInformation("Starting database migration and seeding...");
+            var context = services.GetRequiredService<ApplicationDbContext>();
+            await context.Database.MigrateAsync();
+            logger.LogInformation("Migrations applied successfully.");
+            await SeedData.InitializeAsync(services);
+            logger.LogInformation("Database seeding completed successfully.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while migrating or seeding the database.");
+            throw;
+        }
+    }
+}
