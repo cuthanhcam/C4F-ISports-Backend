@@ -1,5 +1,6 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
@@ -7,10 +8,11 @@ namespace api.Data.Seeders
 {
     public static class PromotionSeeder
     {
-        public static async Task SeedAsync(ApplicationDbContext context)
+        public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
             if (!await context.Promotions.AnyAsync())
             {
+                logger?.LogInformation("Seeding Promotions...");
                 var promotions = new[]
                 {
                     new Promotion
@@ -31,6 +33,7 @@ namespace api.Data.Seeders
 
                 await context.Promotions.AddRangeAsync(promotions);
                 await context.SaveChangesAsync();
+                logger?.LogInformation("Promotions seeded successfully. Promotions: {Count}", await context.Promotions.CountAsync());
             }
         }
     }

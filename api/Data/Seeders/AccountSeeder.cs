@@ -1,14 +1,17 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace api.Data.Seeders
 {
     public static class AccountSeeder
     {
-        public static async Task SeedAsync(ApplicationDbContext context)
+        public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
             if (!await context.Accounts.AnyAsync())
             {
+                logger?.LogInformation("Seeding Accounts...");
                 var accounts = new List<Account>
                 {
                     new Account
@@ -45,6 +48,7 @@ namespace api.Data.Seeders
 
                 await context.Accounts.AddRangeAsync(accounts);
                 await context.SaveChangesAsync();
+                logger?.LogInformation("Accounts seeded successfully. Accounts: {Count}", await context.Accounts.CountAsync());
             }
         }
     }

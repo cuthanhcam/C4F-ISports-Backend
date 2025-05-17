@@ -1,5 +1,6 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
@@ -7,10 +8,11 @@ namespace api.Data.Seeders
 {
     public static class SportSeeder
     {
-        public static async Task SeedAsync(ApplicationDbContext context)
+        public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
             if (!await context.Sports.AnyAsync())
             {
+                logger?.LogInformation("Seeding Sports...");
                 var sports = new[]
                 {
                     new Sport
@@ -31,6 +33,7 @@ namespace api.Data.Seeders
 
                 await context.Sports.AddRangeAsync(sports);
                 await context.SaveChangesAsync();
+                logger?.LogInformation("Sports seeded successfully. Sports: {Count}", await context.Sports.CountAsync());
             }
         }
     }
