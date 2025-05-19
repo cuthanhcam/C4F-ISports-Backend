@@ -34,9 +34,11 @@ namespace api.Controllers
         /// <returns>JWT và Refresh Token.</returns>
         /// <response code="200">Đăng ký thành công.</response>
         /// <response code="400">Dữ liệu không hợp lệ hoặc email đã tồn tại.</response>
+        /// <response code="500">Lỗi hệ thống khi gửi email xác minh.</response>
         [HttpPost("register")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
         {
             try
@@ -51,10 +53,20 @@ namespace api.Controllers
                 _logger.LogInformation("User registered: {Email}", registerDto.Email);
                 return Ok(new { Token = token, RefreshToken = refreshToken, Message = "Đăng ký thành công. Vui lòng xác minh email." });
             }
+            catch (ArgumentException ex)
+            {
+                _logger.LogError(ex, "Validation error during registration for {Email}", registerDto.Email);
+                return BadRequest(new { Error = ex.Message });
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("Failed to send email"))
+            {
+                _logger.LogError(ex, "Email sending failed during registration for {Email}", registerDto.Email);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Không thể gửi email xác minh. Vui lòng thử lại sau." });
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during registration for {Email}", registerDto.Email);
-                return BadRequest(new { Error = ex.Message });
+                _logger.LogError(ex, "Unexpected error during registration for {Email}", registerDto.Email);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau." });
             }
         }
 

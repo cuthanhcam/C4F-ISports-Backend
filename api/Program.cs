@@ -101,12 +101,18 @@ void ConfigureServices(WebApplicationBuilder builder)
         client.Timeout = TimeSpan.FromSeconds(60);
     });
 
-    // 2.6. Cấu hình SendGridService
+    // 2.6. Cấu hình SendGridEmailSender - MailjetEmailSender
     var retryPolicy = HttpPolicyExtensions
     .HandleTransientHttpError()
     .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 
+    /*
     builder.Services.AddHttpClient<IEmailSender, SendGridEmailSender>(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(30);
+    }).AddPolicyHandler(retryPolicy);
+    */
+    builder.Services.AddHttpClient<IEmailSender, MailjetEmailSender>(client =>
     {
         client.Timeout = TimeSpan.FromSeconds(30);
     }).AddPolicyHandler(retryPolicy);
@@ -235,7 +241,8 @@ void ConfigureServices(WebApplicationBuilder builder)
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
     builder.Services.AddScoped<IAuthService, AuthService>();
-    builder.Services.AddScoped<IEmailSender, SendGridEmailSender>();
+    // builder.Services.AddScoped<IEmailSender, SendGridEmailSender>();
+    builder.Services.AddScoped<IEmailSender, MailjetEmailSender>();
     builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
     // 2.15 Cấu hình Logging

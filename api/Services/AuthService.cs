@@ -42,60 +42,73 @@ namespace api.Services
                 throw new ArgumentException("Email đã tồn tại.");
             }
 
-            var account = new Account
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                Email = registerDto.Email,
-                Password = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
-                Role = registerDto.Role,
-                IsActive = false,
-                CreatedAt = DateTime.UtcNow,
-                VerificationToken = GenerateSecureToken(),
-                VerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
-            };
-
-            await _unitOfWork.Repository<Account>().AddAsync(account);
-            await _unitOfWork.SaveChangesAsync();
-
-            if (registerDto.Role == "User")
-            {
-                var user = new User
+                var account = new Account
                 {
-                    AccountId = account.AccountId,
-                    FullName = registerDto.FullName,
-                    Phone = registerDto.Phone,
-                    Gender = null,
-                    DateOfBirth = null,
-                    CreatedAt = DateTime.UtcNow
-                };
-                await _unitOfWork.Repository<User>().AddAsync(user);
-            }
-            else if (registerDto.Role == "Owner")
-            {
-                var owner = new Owner
-                {
-                    AccountId = account.AccountId,
-                    FullName = registerDto.FullName,
-                    Phone = registerDto.Phone,
+                    Email = registerDto.Email,
+                    Password = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
+                    Role = registerDto.Role,
+                    IsActive = false,
                     CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    VerificationToken = GenerateSecureToken(),
+                    VerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
                 };
-                await _unitOfWork.Repository<Owner>().AddAsync(owner);
+
+                await _unitOfWork.Repository<Account>().AddAsync(account);
+                await _unitOfWork.SaveChangesAsync();
+
+                if (registerDto.Role == "User")
+                {
+                    var user = new User
+                    {
+                        AccountId = account.AccountId,
+                        FullName = registerDto.FullName,
+                        Phone = registerDto.Phone,
+                        Gender = null,
+                        DateOfBirth = null,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _unitOfWork.Repository<User>().AddAsync(user);
+                }
+                else if (registerDto.Role == "Owner")
+                {
+                    var owner = new Owner
+                    {
+                        AccountId = account.AccountId,
+                        FullName = registerDto.FullName,
+                        Phone = registerDto.Phone,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    await _unitOfWork.Repository<Owner>().AddAsync(owner);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+
+                var verificationLink = $"{_configuration["AppUrl"]}/api/auth/verify-email?email={Uri.EscapeDataString(account.Email)}&token={Uri.EscapeDataString(account.VerificationToken)}";
+                var emailSubject = "Xác thực tài khoản C4F ISports";
+                var emailBody = $"<h3>Xin chào {registerDto.FullName},</h3>" +
+                                $"<p>Vui lòng nhấp vào liên kết sau để xác thực email của bạn:</p>" +
+                                $"<a href='{verificationLink}'>Xác thực ngay</a>" +
+                                $"<p>Liên kết này có hiệu lực trong 24 giờ.</p>" +
+                                $"<p>Trân trọng,<br/>Đội ngũ C4F ISports</p>";
+                await _emailSender.SendEmailAsync(account.Email, emailSubject, emailBody);
+                _logger.LogInformation("Verification email sent to {Email}", account.Email);
+
+                var (token, refreshToken) = await GenerateTokensAsync(account);
+
+                await _unitOfWork.CommitTransactionAsync();
+                _logger.LogInformation("User registered successfully: {Email}", registerDto.Email);
+                return (token, refreshToken);
             }
-
-            await _unitOfWork.SaveChangesAsync();
-
-            var verificationLink = $"{_configuration["AppUrl"]}/api/auth/verify-email?email={Uri.EscapeDataString(account.Email)}&token={Uri.EscapeDataString(account.VerificationToken)}";
-            var emailSubject = "Xác thực tài khoản C4F ISports";
-            var emailBody = $"<h3>Xin chào {registerDto.FullName},</h3>" +
-                            $"<p>Vui lòng nhấp vào liên kết sau để xác thực email của bạn:</p>" +
-                            $"<a href='{verificationLink}'>Xác thực ngay</a>" +
-                            $"<p>Liên kết này có hiệu lực trong 24 giờ.</p>" +
-                            $"<p>Trân trọng,<br/>Đội ngũ C4F ISports</p>";
-            await _emailSender.SendEmailAsync(account.Email, emailSubject, emailBody);
-            _logger.LogInformation("Verification email sent to {Email}", account.Email);
-
-            var (token, refreshToken) = await GenerateTokensAsync(account);
-            return (token, refreshToken);
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                _logger.LogError(ex, "Error during registration for {Email}", registerDto.Email);
+                throw;
+            }
         }
 
         public async Task<(string Token, string RefreshToken)> LoginAsync(LoginDto loginDto)
