@@ -21,6 +21,6 @@ namespace api.Models
         public bool IsPrimary { get; set; }
         public DateTime UploadedAt { get; set; }
 
-        public required Field Field { get; set; }
+        public Field Field { get; set; }
     }
 }

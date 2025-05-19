@@ -21,6 +21,6 @@ namespace api.Models
         [StringLength(500), Url]
         public string? IconUrl { get; set; }
 
-        public required Field Field { get; set; }
+        public Field Field { get; set; }
     }
 }

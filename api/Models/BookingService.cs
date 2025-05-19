@@ -22,7 +22,7 @@ namespace api.Models
         [StringLength(500)]
         public string? Description { get; set; }
 
-        public required Booking Booking { get; set; }
-        public required FieldService FieldService { get; set; }
+        public Booking Booking { get; set; }
+        public FieldService FieldService { get; set; }
     }
 }

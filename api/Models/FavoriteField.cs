@@ -16,7 +16,7 @@ namespace api.Models
         [Required]
         public DateTime AddedDate { get; set; }
 
-        public required User User { get; set; }
-        public required Field Field { get; set; }
+        public User User { get; set; }
+        public Field Field { get; set; }
     }
 }

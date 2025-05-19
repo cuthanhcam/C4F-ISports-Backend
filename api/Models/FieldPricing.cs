@@ -26,6 +26,6 @@ namespace api.Models
 
         public bool IsActive { get; set; } = true;
 
-        public required SubField SubField { get; set; }
+        public SubField SubField { get; set; }
     }
 }

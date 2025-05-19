@@ -26,6 +26,6 @@ namespace api.Models
         [StringLength(256)]
         public string? ReplacedByToken { get; set; }
 
-        public required Account Account { get; set; }
+        public Account Account { get; set; }
     }
 }

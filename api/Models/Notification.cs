@@ -25,6 +25,6 @@ namespace api.Models
         [StringLength(50)]
         public string? NotificationType { get; set; } // "Booking", "Promotion", "System"
 
-        public required User User { get; set; }
+        public User User { get; set; }
     }
 }

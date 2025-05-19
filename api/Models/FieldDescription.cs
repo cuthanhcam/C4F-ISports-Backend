@@ -15,6 +15,6 @@ namespace api.Models
         [Required, StringLength(2000)]
         public required string Description { get; set; }
 
-        public required Field Field { get; set; }
+        public Field Field { get; set; }
     }
 }

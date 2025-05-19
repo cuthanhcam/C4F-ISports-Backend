@@ -48,8 +48,8 @@ namespace api.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        public required Sport Sport { get; set; }
-        public required Owner Owner { get; set; }
+        public Sport Sport { get; set; }
+        public Owner Owner { get; set; }
         public ICollection<SubField> SubFields { get; set; } = new List<SubField>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
         public ICollection<FieldImage> FieldImages { get; set; } = new List<FieldImage>();

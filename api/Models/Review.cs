@@ -28,7 +28,7 @@ namespace api.Models
         public DateTime? ReplyDate { get; set; }
         public bool IsVisible { get; set; } = true;
 
-        public required User User { get; set; }
-        public required Field Field { get; set; }
+        public User User { get; set; }
+        public Field Field { get; set; }
     }
 }

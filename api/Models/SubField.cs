@@ -27,7 +27,7 @@ namespace api.Models
         [StringLength(500)]
         public string? Description { get; set; }
 
-        public required Field Field { get; set; }
+        public Field Field { get; set; }
         public ICollection<FieldPricing> FieldPricings { get; set; } = new List<FieldPricing>();
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     }

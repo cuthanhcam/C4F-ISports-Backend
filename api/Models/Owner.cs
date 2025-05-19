@@ -24,7 +24,7 @@ namespace api.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        public required Account Account { get; set; }
+        public Account Account { get; set; }
         public ICollection<Field> Fields { get; set; } = new List<Field>();
     }
 }

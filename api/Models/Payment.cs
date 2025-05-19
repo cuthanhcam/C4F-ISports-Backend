@@ -30,6 +30,6 @@ namespace api.Models
         public DateTime CreatedAt { get; set; }
         public DateTime? PaymentDate { get; set; }
 
-        public required Booking Booking { get; set; }
+        public Booking Booking { get; set; }
     }
 }

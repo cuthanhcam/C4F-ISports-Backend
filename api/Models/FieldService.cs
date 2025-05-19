@@ -23,7 +23,7 @@ namespace api.Models
 
         public bool IsActive { get; set; } = true;
 
-        public required Field Field { get; set; }
+        public Field Field { get; set; }
         public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
     }
 }

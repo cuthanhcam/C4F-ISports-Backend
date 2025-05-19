@@ -40,8 +40,8 @@ namespace api.Models
         public bool IsReminderSent { get; set; } = false;
         public int? PromotionId { get; set; }
 
-        public required User User { get; set; }
-        public required SubField SubField { get; set; }
+        public User User { get; set; }
+        public SubField SubField { get; set; }
         public Booking? MainBooking { get; set; }
         public ICollection<Booking> RelatedBookings { get; set; } = new List<Booking>();
         public Promotion? Promotion { get; set; }
