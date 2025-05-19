@@ -1,7 +1,6 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
@@ -25,7 +24,7 @@ namespace api.Data.Seeders
                     new User
                     {
                         AccountId = userAccount.AccountId,
-                        Account = userAccount, // Gán navigation property
+                        Account = userAccount,
                         FullName = "Nguyễn Văn A",
                         Phone = "0901234567",
                         Gender = "Male",
@@ -38,9 +37,21 @@ namespace api.Data.Seeders
                     }
                 };
 
-                await context.Users.AddRangeAsync(users);
-                await context.SaveChangesAsync();
-                logger?.LogInformation("Users seeded successfully. Users: {Count}", await context.Users.CountAsync());
+                try
+                {
+                    await context.Users.AddRangeAsync(users);
+                    await context.SaveChangesAsync();
+                    logger?.LogInformation("Users seeded successfully. Users: {Count}", await context.Users.CountAsync());
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "Failed to seed Users. StackTrace: {StackTrace}", ex.StackTrace);
+                    throw;
+                }
+            }
+            else
+            {
+                logger?.LogInformation("Users already seeded. Skipping...");
             }
         }
     }

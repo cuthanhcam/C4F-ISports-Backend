@@ -1,14 +1,15 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
 {
     public static class SearchHistorySeeder
     {
-        public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
+        public static async Task SeedAsync(ApplicationDbContext context, IDistributedCache cache = null, ILogger logger = null)
         {
             if (!await context.SearchHistories.AnyAsync())
             {
@@ -26,18 +27,49 @@ namespace api.Data.Seeders
                     new SearchHistory
                     {
                         UserId = user.UserId,
-                        User = user, // Gán navigation property
+                        User = user,
                         SearchQuery = "Sân bóng Cầu Giấy",
                         SearchDate = DateTime.UtcNow,
                         FieldId = field.FieldId,
-                        Latitude = 21.030123m,
-                        Longitude = 105.801456m
+                        Latitude = field.Latitude,
+                        Longitude = field.Longitude
                     }
                 };
 
-                await context.SearchHistories.AddRangeAsync(searchHistories);
-                await context.SaveChangesAsync();
-                logger?.LogInformation("SearchHistories seeded successfully. SearchHistories: {Count}", await context.SearchHistories.CountAsync());
+                try
+                {
+                    await context.SearchHistories.AddRangeAsync(searchHistories);
+                    await context.SaveChangesAsync();
+
+                    if (cache != null)
+                    {
+                        try
+                        {
+                            var cacheKey = $"SearchHistory_User_{user.UserId}";
+                            var cacheValue = JsonSerializer.Serialize(searchHistories);
+                            await cache.SetStringAsync(cacheKey, cacheValue, new DistributedCacheEntryOptions
+                            {
+                                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(7)
+                            });
+                            logger?.LogInformation("Search history cached for UserId: {UserId}", user.UserId);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger?.LogWarning("Failed to cache search history for UserId: {UserId}: {Error}", user.UserId, ex.Message);
+                        }
+                    }
+
+                    logger?.LogInformation("SearchHistories seeded successfully. SearchHistories: {Count}", await context.SearchHistories.CountAsync());
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "Failed to seed SearchHistories. StackTrace: {StackTrace}", ex.StackTrace);
+                    throw;
+                }
+            }
+            else
+            {
+                logger?.LogInformation("SearchHistories already seeded. Skipping...");
             }
         }
     }

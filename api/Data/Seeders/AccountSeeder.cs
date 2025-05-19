@@ -2,6 +2,7 @@ using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using BCrypt.Net;
 
 namespace api.Data.Seeders
 {
@@ -46,9 +47,21 @@ namespace api.Data.Seeders
                     }
                 };
 
-                await context.Accounts.AddRangeAsync(accounts);
-                await context.SaveChangesAsync();
-                logger?.LogInformation("Accounts seeded successfully. Accounts: {Count}", await context.Accounts.CountAsync());
+                try
+                {
+                    await context.Accounts.AddRangeAsync(accounts);
+                    await context.SaveChangesAsync();
+                    logger?.LogInformation("Accounts seeded successfully. Accounts: {Count}", await context.Accounts.CountAsync());
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "Failed to seed Accounts. StackTrace: {StackTrace}", ex.StackTrace);
+                    throw;
+                }
+            }
+            else
+            {
+                logger?.LogInformation("Accounts already seeded. Skipping...");
             }
         }
     }

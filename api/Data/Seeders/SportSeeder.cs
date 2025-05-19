@@ -31,9 +31,21 @@ namespace api.Data.Seeders
                     }
                 };
 
-                await context.Sports.AddRangeAsync(sports);
-                await context.SaveChangesAsync();
-                logger?.LogInformation("Sports seeded successfully. Sports: {Count}", await context.Sports.CountAsync());
+                try
+                {
+                    await context.Sports.AddRangeAsync(sports);
+                    await context.SaveChangesAsync();
+                    logger?.LogInformation("Sports seeded successfully. Sports: {Count}", await context.Sports.CountAsync());
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "Failed to seed Sports. StackTrace: {StackTrace}", ex.StackTrace);
+                    throw;
+                }
+            }
+            else
+            {
+                logger?.LogInformation("Sports already seeded. Count: {Count}", await context.Sports.CountAsync());
             }
         }
     }
