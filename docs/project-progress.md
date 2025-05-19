@@ -16,7 +16,7 @@ Dự án được chia thành 8 giai đoạn, mỗi giai đoạn tập trung và
   - Tạo cấu trúc project (.NET Solution).
   - Cấu hình `ApplicationDbContext`, migrations, seeding dữ liệu.
 - **Công việc còn lại**:
-  - Thiết lập OAuth2, CloudinaryService, SendGridService.
+  - Thiết lập OAuth2, CloudinaryService, SendGridService, GeocodingService.
   - Cấu hình Swagger, Serilog, Redis.
   - Triển khai endpoint `/api/health`.
 - **Kết quả mong đợi**:
