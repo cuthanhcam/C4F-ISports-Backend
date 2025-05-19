@@ -1,18 +1,17 @@
 # Tổng Quan Dự Án C4F-ISports v2.0.0 (Backend)
 
 ## 1. Mô Tả Dự Án
-C4F-ISports là ứng dụng quản lý sân thể thao và đặt lịch trực tuyến, kết nối người dùng với chủ sân. Backend cung cấp API hỗ trợ tìm kiếm sân, đặt sân nhỏ, thanh toán, quản lý đánh giá, thông báo, và thống kê. Phiên bản 2.0.0 cải tiến từ phiên bản cũ, bổ sung quản lý sân nhỏ (`SubField`), tích hợp OAuth2, gợi ý sân thông minh, và điểm thưởng.
+C4F-ISports là ứng dụng quản lý sân thể thao và đặt lịch trực tuyến, kết nối người dùng với chủ sân. Backend cung cấp API hỗ trợ tìm kiếm sân, đặt sân nhỏ, thanh toán, quản lý đánh giá, thông báo, và thống kê. Phiên bản 2.0.0 cải tiến từ phiên bản cũ, bổ sung quản lý sân nhỏ (`SubField`), gợi ý sân thông minh, và điểm thưởng.
 
 ## 2. Mục Tiêu
 - Xây dựng backend mạnh mẽ, dễ mở rộng, hỗ trợ sân lớn chứa nhiều sân nhỏ với giá thuê linh hoạt.
-- Tích hợp OAuth2 cho xác thực an toàn.
 - Tối ưu hiệu suất với caching và indexing.
 - Bổ sung gợi ý sân, điểm thưởng, và lịch sử tìm kiếm.
 - Cung cấp tài liệu API chi tiết để tích hợp frontend và trình bày cho giảng viên.
 
 ## 3. Vai Trò và Chức Năng
 ### 3.1. Người Dùng (User)
-- Đăng ký/đăng nhập qua email hoặc OAuth2 (Google, Facebook).
+- Đăng ký/đăng nhập qua email và mật khẩu.
 - Tìm kiếm sân theo vị trí, loại thể thao, khung giờ.
 - Đặt sân nhỏ, chọn dịch vụ, thanh toán, áp dụng khuyến mãi.
 - Đánh giá sân lớn, xem lịch sử đặt sân, nhận thông báo.
@@ -29,8 +28,8 @@ C4F-ISports là ứng dụng quản lý sân thể thao và đặt lịch trực
 
 ## 4. Luồng Hoạt Động Chính
 ### 4.1. Đăng Ký và Đăng Nhập
-- Đăng ký qua email hoặc OAuth2, xác thực tài khoản.
-- Đăng nhập với email/mật khẩu hoặc OAuth provider.
+- Đăng ký qua email, xác thực tài khoản.
+- Đăng nhập với email/mật khẩu, nhận JWT.
 
 ### 4.2. Tìm Kiếm và Đặt Sân
 - Tìm kiếm sân lớn theo vị trí, loại thể thao.
@@ -54,7 +53,6 @@ C4F-ISports là ứng dụng quản lý sân thể thao và đặt lịch trực
 - **Tìm kiếm thông minh**: Bộ lọc vị trí, loại sân, khung giờ.
 - **Gợi ý sân**: Dựa trên lịch sử tìm kiếm, sân yêu thích.
 - **Điểm thưởng**: Tích lũy điểm khi đặt sân, đổi ưu đãi.
-- **OAuth2**: Đăng nhập an toàn qua Google, Facebook.
 
 ## 6. Công Nghệ Sử Dụng
 - **Ngôn ngữ**: C# (.NET Core 8.0)
@@ -65,8 +63,7 @@ C4F-ISports là ứng dụng quản lý sân thể thao và đặt lịch trực
   - SendGrid (gửi email)
   - VNPay (thanh toán)
   - Google Maps API (tìm kiếm vị trí)
-  - OAuth2 (Google, Facebook)
-- **Authentication**: OAuth2, JWT (cho tài khoản local)
+- **Authentication**: JWT (cho tài khoản local)
 - **Công cụ**: Swagger (tài liệu API), xUnit (unit test), Serilog (logging), Redis (caching)
 
 ## 7. Đội Ngũ Phát Triển

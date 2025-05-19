@@ -16,7 +16,7 @@ Dự án được chia thành 8 giai đoạn, mỗi giai đoạn tập trung và
   - Tạo cấu trúc project (.NET Solution).
   - Cấu hình `ApplicationDbContext`, migrations, seeding dữ liệu.
 - **Công việc còn lại**:
-  - Thiết lập OAuth2, CloudinaryService, SendGridService, GeocodingService.
+  - Thiết lập CloudinaryService, SendGridService, GeocodingService.
   - Cấu hình Swagger, Serilog, Redis.
   - Triển khai endpoint `/api/health`.
 - **Kết quả mong đợi**:
@@ -29,12 +29,12 @@ Dự án được chia thành 8 giai đoạn, mỗi giai đoạn tập trung và
 - **Thời gian**: 4 ngày
 - **Trạng thái**: Chưa bắt đầu
 - **Công việc**:
-  - Triển khai `AuthService` (OAuth2, local login, refresh token).
-  - Tạo `AuthController` với các endpoint (`/api/auth/register`, `/api/auth/login`, v.v.).
+  - Triển khai `AuthService` (JWT login, refresh token).
+  - Tạo `AuthController` với các endpoint (`/api/auth/register`, `/api/auth/login`, `/api/auth/refresh-token`, `/api/auth/forgot-password`, `/api/auth/reset-password`, `/api/auth/verify-email`).
   - Thiết lập `RoleMiddleware` kiểm tra quyền (`User`, `Owner`, `Admin`).
   - Viết unit test cho `AuthService`.
 - **Kết quả mong đợi**:
-  - Đăng ký, đăng nhập qua email và OAuth2 (Google).
+  - Đăng ký, đăng nhập qua email và mật khẩu với JWT.
   - Middleware bảo vệ các endpoint yêu cầu xác thực.
 
 ### Giai Đoạn 3: Quản Lý Người Dùng

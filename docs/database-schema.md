@@ -9,30 +9,28 @@ Stores user account information, including authentication details.
 
 | Column                  | Data Type          | Constraints                              | Description                                      |
 |-------------------------|--------------------|------------------------------------------|------------------------------------------------|
-| AccountId               | int                | PK, Auto-increment                       | Primary key                                      |
-| Email                   | varchar(256)       | NOT NULL, UNIQUE                         | Email address (unique)                          |
-| Password                | varchar(256)       | NULL                                     | Hashed password using bcrypt (nullable for OAuth) |
-| Role                    | varchar(50)        | NOT NULL                                 | Role: "Admin", "Owner", "User"                  |
-| IsActive                | bit                | NOT NULL, DEFAULT 1                      | Account status (active/inactive)                |
-| CreatedAt               | datetime2          | NOT NULL, DEFAULT CURRENT_TIMESTAMP      | Creation timestamp                              |
-| UpdatedAt               | datetime2          | NULL                                     | Last update timestamp                           |
-| LastLogin               | datetime2          | NULL                                     | Last login timestamp                            |
-| OAuthProvider           | varchar(50)        | NULL                                     | OAuth provider (e.g., "Google")                 |
-| OAuthId                 | varchar(100)       | NULL, UNIQUE                             | OAuth provider ID                               |
-| AccessToken             | varchar(512)       | NULL                                     | OAuth access token                              |
-| VerificationToken       | varchar(256)       | NULL                                     | Email verification token                        |
-| VerificationTokenExpiry | datetime2          | NULL                                     | Verification token expiry                       |
-| ResetToken              | varchar(256)       | NULL                                     | Password reset token                            |
-| ResetTokenExpiry        | datetime2          | NULL                                     | Reset token expiry                              |
+| AccountId               | int                | PK, Auto-increment                       | Khóa chính                                      |
+| Email                   | varchar(256)       | NOT NULL, UNIQUE                         | Địa chỉ email (duy nhất)                        |
+| Password                | varchar(256)       | NOT NULL                                 | Mật khẩu băm bằng bcrypt                        |
+| Role                    | varchar(50)        | NOT NULL                                 | Vai trò: "Admin", "Owner", "User"               |
+| IsActive                | bit                | NOT NULL, DEFAULT 1                      | Trạng thái tài khoản (kích hoạt/không kích hoạt) |
+| CreatedAt               | datetime2          | NOT NULL, DEFAULT CURRENT_TIMESTAMP      | Thời gian tạo                                   |
+| UpdatedAt               | datetime2          | NULL                                     | Thời gian cập nhật cuối                         |
+| LastLogin               | datetime2          | NULL                                     | Thời gian đăng nhập cuối                        |
+| VerificationToken       | varchar(256)       | NULL                                     | Token xác minh email                            |
+| VerificationTokenExpiry | datetime2          | NULL                                     | Thời gian hết hạn token xác minh                |
+| ResetToken              | varchar(256)       | NULL                                     | Token đặt lại mật khẩu                          |
+| ResetTokenExpiry        | datetime2          | NULL                                     | Thời gian hết hạn token đặt lại                 |
 
 **Relationships**:
-- 1-1 with `Users` (FK: `Users.AccountId`)
-- 1-1 with `Owners` (FK: `Owners.AccountId`)
-- 1-N with `RefreshTokens` (FK: `RefreshTokens.AccountId`)
+- 1-1 với `Users` (FK: `Users.AccountId`)
+- 1-1 với `Owners` (FK: `Owners.AccountId`)
+- 1-N với `RefreshTokens` (FK: `RefreshTokens.AccountId`)
 
 **Indexes**:
-- UNIQUE INDEX on `Email`
-- UNIQUE INDEX on `OAuthId`
+- INDEX DUY NHẤT trên `Email`
+
+[... Phần còn lại của tệp không thay đổi ...]
 
 ---
 

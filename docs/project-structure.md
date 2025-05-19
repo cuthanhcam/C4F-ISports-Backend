@@ -1,7 +1,7 @@
 # Cấu Trúc Project Backend C4F-ISports v2.0.0
 
 ## 1. Tổng Quan
-Backend sử dụng **.NET 8.0** với **Layered Architecture**, chia thành các tầng: **Data**, **Models**, **Interfaces**, **Repositories**, **Services**, **Dtos**, **Controllers**, **Middlewares**, **BackgroundServices**, và **Tests**. Cấu trúc được thiết kế để hỗ trợ các tính năng chính như quản lý sân lớn/sân nhỏ, đặt sân, thanh toán, đánh giá, thông báo, và xác thực OAuth2. Tất cả mã nguồn được tổ chức để dễ bảo trì và mở rộng.
+Backend sử dụng **.NET 8.0** với **Layered Architecture**, chia thành các tầng: **Data**, **Models**, **Interfaces**, **Repositories**, **Services**, **Dtos**, **Controllers**, **Middlewares**, **BackgroundServices**, và **Tests**. Cấu trúc được thiết kế để hỗ trợ các tính năng chính như quản lý sân lớn/sân nhỏ, đặt sân, thanh toán, đánh giá, thông báo, và xác thực JWT. Tất cả mã nguồn được tổ chức để dễ bảo trì và mở rộng.
 
 ## 2. Cấu Trúc Thư Mục
 ```
@@ -9,7 +9,7 @@ api/
 ├── Data/
 │   ├── ApplicationDbContext.cs                 # EF Core DbContext cho database
 │   ├── UnitOfWork.cs                           # Quản lý transaction
-│   ├── SeedData.cs
+│   ├── SeedData.cs                         
 │   ├── Migrations/                             # EF Core migrations
 │   ├── Configurations/                         # Cấu hình ánh xạ entity
 │   │   ├── AccountConfiguration.cs
@@ -38,7 +38,7 @@ api/
 │   ├── BookingRepository.cs                    # Repository cho Bookings
 │   ├── ...
 ├── Services/
-│   ├── AuthService.cs                          # Logic xác thực (login, OAuth2)
+│   ├── AuthService.cs                          # Logic xác thực (JWT login, refresh token)
 │   ├── SubFieldService.cs                      # Logic quản lý sân nhỏ
 │   ├── BookingService.cs                       # Logic quản lý đặt sân
 │   ├── CloudinaryService.cs                    # Tích hợp Cloudinary
@@ -68,7 +68,6 @@ api/
 │   ├── RoleMiddleware.cs                       # Kiểm tra quyền truy cập
 │   ├── ExceptionMiddleware.cs                  # Xử lý lỗi toàn cục
 ├── Configurations/
-│   ├── OAuthConfig.cs                          # Cấu hình OAuth2
 │   ├── VNPayConfig.cs                          # Cấu hình VNPay
 │   ├── CloudinaryConfig.cs                     # Cấu hình Cloudinary
 │   ├── SendGridConfig.cs                       # Cấu hình SendGrid
@@ -115,6 +114,21 @@ api/
 - **BackgroundServices**: Chạy các tác vụ nền như gửi thông báo nhắc nhở (`BookingReminderService`) hoặc xóa thông báo cũ (`NotificationCleanupService`).
 - **Tests**: Chứa unit tests (kiểm tra logic services) và integration tests (kiểm tra API endpoints) sử dụng xUnit hoặc NUnit.
 - **Configurations**: Cấu hình các dịch vụ bên thứ ba (OAuth2, VNPay, Cloudinary, SendGrid).
+- **Utils**: Các tiện ích hỗ trợ như mã hóa mật khẩu (`PasswordHasher`), tính toán khoảng cách địa lý (`GeoCalculator`), hoặc kiểm tra khung giờ (`TimeSlotValidator`).
+
+
+## 3. Mô Tả Tầng
+- **Data**: Quản lý kết nối database qua EF Core, bao gồm `ApplicationDbContext` (DbContext), migrations, cấu hình ánh xạ entity, và seeding dữ liệu mẫu.
+- **Models**: Định nghĩa các entity ánh xạ với bảng database (e.g., `Account`, `SubField`, `Booking`). Sử dụng Data Annotations để validation.
+- **Interfaces**: Định nghĩa hợp đồng cho services (`IAuthService`, `ISubFieldService`) và repositories (`IRepository<T>`).
+- **Repositories**: Tương tác với database qua EF Core, cung cấp các phương thức CRUD và truy vấn tùy chỉnh (e.g., `SubFieldRepository`, `BookingRepository`).
+- **Services**: Chứa logic nghiệp vụ (e.g., `AuthService` xử lý đăng nhập JWT, `BookingService` kiểm tra khung giờ trống). Tích hợp với các dịch vụ bên thứ ba (Cloudinary, VNPay, SendGrid).
+- **Dtos**: Chuyển đổi dữ liệu giữa client và server, đảm bảo dữ liệu gửi/nhận gọn nhẹ và bảo mật (e.g., `LoginDto`, `SubFieldDto`).
+- **Controllers**: Xử lý HTTP requests, ánh xạ tới services (e.g., `AuthController`, `BookingController`). Sử dụng `[Authorize]` và `[Role]` để bảo vệ endpoint.
+- **Middlewares**: Xử lý xác thực (`RoleMiddleware`), lỗi toàn cục (`ExceptionMiddleware`), và logging.
+- **BackgroundServices**: Chạy các tác vụ nền như gửi thông báo nhắc nhở (`BookingReminderService`) hoặc xóa thông báo cũ (`NotificationCleanupService`).
+- **Tests**: Chứa unit tests (kiểm tra logic services) và integration tests (kiểm tra API endpoints) sử dụng xUnit hoặc NUnit.
+- **Configurations**: Cấu hình các dịch vụ bên thứ ba (VNPay, Cloudinary, SendGrid).
 - **Utils**: Các tiện ích hỗ trợ như mã hóa mật khẩu (`PasswordHasher`), tính toán khoảng cách địa lý (`GeoCalculator`), hoặc kiểm tra khung giờ (`TimeSlotValidator`).
 
 ## 4. Công Cụ và Thư Viện
