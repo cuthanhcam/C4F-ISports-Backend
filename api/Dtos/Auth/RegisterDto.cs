@@ -29,7 +29,7 @@ namespace api.Dtos.Auth
         [Required(ErrorMessage = "Họ tên là bắt buộc.")]
         [StringLength(100, ErrorMessage = "Họ tên không được vượt quá 100 ký tự.")]
         [RegularExpression(@"^[\p{L}\p{M}\s'.-]+$", ErrorMessage = "Họ tên chỉ được chứa chữ cái và khoảng trắng.")]
-        public required string Fullname { get; set; }
+        public required string FullName { get; set; }
 
         [Required(ErrorMessage = "Số điện thoại là bắt buộc.")]
         [RegularExpression(@"^(0[3|5|7|8|9])[0-9]{8}$", ErrorMessage = "Số điện thoại không hợp lệ. Phải có 10 chữ số và bắt đầu bằng 03, 05, 07, 08 hoặc 09.")]
