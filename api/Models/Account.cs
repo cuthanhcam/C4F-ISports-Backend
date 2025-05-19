@@ -14,8 +14,8 @@ namespace api.Models
         [Required, StringLength(256), EmailAddress]
         public required string Email { get; set; }
 
-        [StringLength(256)] // Hash password
-        public string? Password { get; set; } // Nullable cho OAuth accounts
+        [Required, StringLength(256)] // Mật khẩu băm
+        public required string Password { get; set; }
 
         [Required, StringLength(50)]
         public required string Role { get; set; } // "Admin", "Owner", "User"
@@ -24,15 +24,6 @@ namespace api.Models
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? LastLogin { get; set; }
-
-        [StringLength(50)]
-        public string? OAuthProvider { get; set; } // "Google"
-
-        [StringLength(100)]
-        public string? OAuthId { get; set; }
-
-        [StringLength(512)]
-        public string? AccessToken { get; set; }
 
         [StringLength(256)]
         public string? VerificationToken { get; set; }
