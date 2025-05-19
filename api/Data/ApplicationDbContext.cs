@@ -45,10 +45,6 @@ namespace api.Data
                 .HasIndex(a => a.Email)
                 .IsUnique();
 
-            modelBuilder.Entity<Account>()
-                .HasIndex(a => a.OAuthId)
-                .IsUnique();
-
             modelBuilder.Entity<Promotion>()
                 .HasIndex(p => p.Code)
                 .IsUnique();
