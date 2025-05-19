@@ -3,18 +3,17 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using api.Data;
-// using api.Services;
 using api.Interfaces;
+using api.Services;
 using Microsoft.OpenApi.Models;
-using CloudinaryDotNet;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
-// using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.Google;
 using Serilog;
-// using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.AspNetCore.Mvc;
-// using api.Middlewares;
 using System.Reflection;
+using api.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,14 +75,14 @@ void ConfigureServices(WebApplicationBuilder builder)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwtSettings["Secret"]))
         };
+    })
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["OAuth:Google:ClientId"];
+        options.ClientSecret = builder.Configuration["OAuth:Google:ClientSecret"];
+        options.Scope.Add("profile");
+        options.Scope.Add("email");
     });
-    // .AddGoogle(options =>
-    // {
-    //     options.ClientId = builder.Configuration["OAuth:Google:ClientId"];
-    //     options.ClientSecret = builder.Configuration["OAuth:Google:ClientSecret"];
-    //     options.Scope.Add("profile");
-    //     options.Scope.Add("email");
-    // });
 
     // 3. Cấu hình Authorization Policies
     builder.Services.AddAuthorization(options =>
@@ -94,41 +93,22 @@ void ConfigureServices(WebApplicationBuilder builder)
     });
 
     // 4. Cấu hình CloudinaryService
-    var cloudinarySettings = builder.Configuration.GetSection("CloudinarySettings");
-    builder.Services.AddSingleton(new Cloudinary(new Account(
-        cloudinarySettings["CloudName"],
-        cloudinarySettings["ApiKey"],
-        cloudinarySettings["ApiSecret"]
-    )));
-    // builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+    builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+    builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
-    // // 5. Đăng ký các service
-    // builder.Services.AddHttpClient<IGeocodingService, GeocodingService>(client =>
-    // {
-    //     client.Timeout = TimeSpan.FromSeconds(60);
-    // });
-    // builder.Services.AddHttpClient<IPaymentService, VNPayPaymentService>(client =>
-    // {
-    //     client.BaseAddress = new Uri(builder.Configuration["VNPaySettings:PaymentUrl"]);
-    //     client.Timeout = TimeSpan.FromSeconds(60);
-    // });
-    // builder.Services.AddScoped<IAuthService, AuthService>();
-    // builder.Services.AddScoped<ITokenService, TokenService>();
-    // builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-    // builder.Services.AddScoped<IFieldService, FieldService>();
-    // builder.Services.AddScoped<ISubFieldService, SubFieldService>();
-    // builder.Services.AddScoped<IEmailSender, SendGridEmailSender>();
-    // builder.Services.AddScoped<IUserService, UserService>();
-    // builder.Services.AddScoped<IBookingService, BookingService>();
-    // builder.Services.AddScoped<IPaymentService, VNPayPaymentService>();
-    // builder.Services.AddHostedService<BookingReminderService>();
+    // 5. Đăng ký các service
+    builder.Services.AddHttpClient<IGeocodingService, GeocodingService>(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(60);
+    });
+    builder.Services.AddScoped<IEmailSender, SendGridEmailSender>();
 
     // 6. Cấu hình CORS
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowSpecificOrigins", builder =>
         {
-            builder.WithOrigins("http://localhost:5173") // Có thể thay đổi theo domain Frontend
+            builder.WithOrigins("http://localhost:5173")
                    .AllowAnyMethod()
                    .AllowAnyHeader()
                    .AllowCredentials();
@@ -181,22 +161,22 @@ void ConfigureServices(WebApplicationBuilder builder)
     });
 
     // 8. Cấu hình Redis Cache
-    // builder.Services.AddStackExchangeRedisCache(options =>
-    // {
-    //     options.Configuration = builder.Configuration.GetConnectionString("Redis");
-    //     options.InstanceName = "C4F-ISports-";
-    // });
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = builder.Configuration.GetConnectionString("Redis");
+        options.InstanceName = "C4F-ISports-";
+    });
 
-    // // 9. Cấu hình Health Checks
-    // builder.Services.AddHealthChecks()
-    //     .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-    //     .AddRedis(builder.Configuration.GetConnectionString("Redis"));
+    // 9. Cấu hình Health Checks
+    builder.Services.AddHealthChecks()
+        .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+        .AddRedis(builder.Configuration.GetConnectionString("Redis"));
 
     // 10. Thêm Controllers với JSON options
     builder.Services.AddControllers()
         .AddJsonOptions(options =>
         {
-            options.JsonSerializerOptions.PropertyNamingPolicy = null; // Giữ nguyên tên thuộc tính
+            options.JsonSerializerOptions.PropertyNamingPolicy = null;
         });
 
     // 11. Cấu hình Swagger
@@ -230,24 +210,6 @@ void ConfigureServices(WebApplicationBuilder builder)
             }
         });
     });
-
-    // 12. Cấu hình API Versioning
-    // builder.Services.AddApiVersioning(options =>
-    // {
-    //     options.DefaultApiVersion = new ApiVersion(2, 0);
-    //     options.AssumeDefaultVersionWhenUnspecified = true;
-    //     options.ReportApiVersions = true;
-    // }).AddApiExplorer(options =>
-    // {
-    //     options.GroupNameFormat = "'v'VVV";
-    //     options.SubstituteApiVersionInUrl = true;
-    // });
-
-    // // 13. Giới hạn kích thước file upload
-    // builder.Services.Configure<FormOptions>(options =>
-    // {
-    //     options.MultipartBodyLengthLimit = 10 * 1024 * 1024; // 10MB
-    // });
 }
 
 void ConfigureMiddleware(WebApplication app)
@@ -258,10 +220,6 @@ void ConfigureMiddleware(WebApplication app)
         app.UseSwaggerUI();
     }
 
-    // Middleware xử lý lỗi toàn cục
-    // app.UseMiddleware<GlobalExceptionHandler>();
-
-    // Logging request/response
     app.Use(async (context, next) =>
     {
         var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
@@ -270,18 +228,14 @@ void ConfigureMiddleware(WebApplication app)
         logger.LogInformation("Finished handling request: {StatusCode}", context.Response.StatusCode);
     });
 
-    // Áp dụng CORS
     app.UseCors("AllowSpecificOrigins");
 
-    // Middleware Authentication và Authorization
     app.UseAuthentication();
     app.UseRateLimiter();
     app.UseAuthorization();
 
-    // Health Checks
-    // app.MapHealthChecks("/health");`
+    app.MapHealthChecks("/api/health");
 
-    // Map Controllers
     app.MapControllers();
 }
 
@@ -296,11 +250,9 @@ async Task SeedDatabaseAsync(WebApplication app)
             logger.LogInformation("Starting database migration and seeding...");
             var context = services.GetRequiredService<ApplicationDbContext>();
             
-            // Kiểm tra kết nối database
             var canConnect = await context.Database.CanConnectAsync();
             logger.LogInformation("Database connection status: {CanConnect}", canConnect);
 
-            // Kiểm tra bảng trước seeding
             var accountCount = await context.Accounts.CountAsync();
             logger.LogInformation("Accounts table has {Count} records before seeding.", accountCount);
 
@@ -310,7 +262,6 @@ async Task SeedDatabaseAsync(WebApplication app)
             await SeedData.InitializeAsync(services);
             logger.LogInformation("Database seeding completed successfully.");
 
-            // Kiểm tra bảng sau seeding
             accountCount = await context.Accounts.CountAsync();
             logger.LogInformation("Accounts table has {Count} records after seeding.", accountCount);
         }
