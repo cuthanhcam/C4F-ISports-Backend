@@ -1,17 +1,20 @@
 # API Endpoints - C4F-ISports v2.0.0
 
 ## Base URL
+
 ```
 https://api.c4f-isports.com/v2
 ```
 
 ## Authentication
+
 - Most endpoints require a **JWT Bearer Token** in the `Authorization` header: `Authorization: Bearer <token>`.
 - Endpoints marked with `[Public]` are accessible without authentication.
 - Endpoints marked with `[User]`, `[Owner]`, or `[Admin]` require specific roles.
-- OAuth2 (Google) is supported for login via `/api/auth/oauth/google`.
+- Authentication is handled via JWT Bearer Tokens.
 
 ## Error Responses
+
 - **400 Bad Request**: Invalid input or request parameters.
   ```json
   {
@@ -56,6 +59,7 @@ https://api.c4f-isports.com/v2
 ## 1. Authentication
 
 ### 1.1. Register
+
 - **Method**: POST
 - **Path**: `/api/auth/register`
 - **Role**: [Public]
@@ -97,6 +101,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -118,6 +123,7 @@ https://api.c4f-isports.com/v2
     "verificationToken": "abc123"
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/auth/register \
@@ -126,6 +132,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 1.2. Login
+
 - **Method**: POST
 - **Path**: `/api/auth/login`
 - **Role**: [Public]
@@ -164,6 +171,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -181,6 +189,7 @@ https://api.c4f-isports.com/v2
     "expiresIn": 3600
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/auth/login \
@@ -188,51 +197,8 @@ https://api.c4f-isports.com/v2
   -d '{"email":"user@example.com","password":"Password123!"}'
   ```
 
-### 1.3. Google OAuth Login
-- **Method**: POST
-- **Path**: `/api/auth/oauth/google`
-- **Role**: [Public]
-- **Description**: Authenticates a user via Google OAuth2 access token.
-- **Request Body**:
-  ```json
-  {
-    "accessToken": "string"
-  }
-  ```
-- **Response**:
-  - **200 OK**: Same as `/api/auth/login`.
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid Google access token"
-    }
-    ```
-- **Example**:
-  ```json
-  // Request
-  {
-    "accessToken": "ya29.a0AfH6SMD..."
-  }
+### 1.3. Refresh Token
 
-  // Response
-  {
-    "accountId": 1,
-    "email": "user@example.com",
-    "role": "User",
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refreshToken": "xyz456",
-    "expiresIn": 3600
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/auth/oauth/google \
-  -H "Content-Type: application/json" \
-  -d '{"accessToken":"ya29.a0AfH6SMD..."}'
-  ```
-
-### 1.4. Refresh Token
 - **Method**: POST
 - **Path**: `/api/auth/refresh`
 - **Role**: [Public]
@@ -260,6 +226,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -273,6 +240,7 @@ https://api.c4f-isports.com/v2
     "expiresIn": 3600
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/auth/refresh \
@@ -280,7 +248,8 @@ https://api.c4f-isports.com/v2
   -d '{"refreshToken":"xyz456"}'
   ```
 
-### 1.5. Forgot Password
+### 1.4. Forgot Password
+
 - **Method**: POST
 - **Path**: `/api/auth/forgot-password`
 - **Role**: [Public]
@@ -306,6 +275,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -317,6 +287,7 @@ https://api.c4f-isports.com/v2
     "message": "Password reset link sent to your email"
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/auth/forgot-password \
@@ -324,7 +295,8 @@ https://api.c4f-isports.com/v2
   -d '{"email":"user@example.com"}'
   ```
 
-### 1.6. Reset Password
+### 1.5. Reset Password
+
 - **Method**: POST
 - **Path**: `/api/auth/reset-password`
 - **Role**: [Public]
@@ -351,6 +323,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -363,6 +336,7 @@ https://api.c4f-isports.com/v2
     "message": "Password reset successfully"
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/auth/reset-password \
@@ -370,7 +344,8 @@ https://api.c4f-isports.com/v2
   -d '{"resetToken":"abc123","newPassword":"NewPassword123!"}'
   ```
 
-### 1.7. Logout
+### 1.6. Logout
+
 - **Method**: POST
 - **Path**: `/api/auth/logout`
 - **Role**: [User, Owner, Admin]
@@ -396,6 +371,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -407,6 +383,7 @@ https://api.c4f-isports.com/v2
     "message": "Logged out successfully"
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/auth/logout \
@@ -415,7 +392,8 @@ https://api.c4f-isports.com/v2
   -d '{"refreshToken":"xyz456"}'
   ```
 
-### 1.8. Get Current User
+### 1.7. Get Current User
+
 - **Method**: GET
 - **Path**: `/api/auth/me`
 - **Role**: [User, Owner, Admin]
@@ -455,7 +433,8 @@ https://api.c4f-isports.com/v2
   -H "Authorization: Bearer <token>"
   ```
 
-### 1.9. Change Password
+### 1.8. Change Password
+
 - **Method**: POST
 - **Path**: `/api/auth/change-password`
 - **Role**: [User, Owner, Admin]
@@ -482,6 +461,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -494,6 +474,7 @@ https://api.c4f-isports.com/v2
     "message": "Password changed successfully"
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/auth/change-password \
@@ -502,7 +483,8 @@ https://api.c4f-isports.com/v2
   -d '{"currentPassword":"Password123!","newPassword":"NewPassword123!"}'
   ```
 
-### 1.10. Verify Email
+### 1.9. Verify Email
+
 - **Method**: POST
 - **Path**: `/api/auth/verify-email`
 - **Role**: [Public]
@@ -528,6 +510,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -539,6 +522,7 @@ https://api.c4f-isports.com/v2
     "message": "Email verified successfully"
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/auth/verify-email \
@@ -546,7 +530,8 @@ https://api.c4f-isports.com/v2
   -d '{"verificationToken":"abc123"}'
   ```
 
-### 1.11. Resend Verification Email
+### 1.10. Resend Verification Email
+
 - **Method**: POST
 - **Path**: `/api/auth/resend-verification`
 - **Role**: [Public]
@@ -572,6 +557,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -583,6 +569,7 @@ https://api.c4f-isports.com/v2
     "message": "Verification email resent"
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/auth/resend-verification \
@@ -590,7 +577,8 @@ https://api.c4f-isports.com/v2
   -d '{"email":"user@example.com"}'
   ```
 
-### 1.12. Verify Token
+### 1.11. Verify Token
+
 - **Method**: GET
 - **Path**: `/api/auth/verify-token`
 - **Role**: [User, Owner, Admin]
@@ -629,6 +617,7 @@ https://api.c4f-isports.com/v2
 ## 2. User Management
 
 ### 2.1. Get Profile
+
 - **Method**: GET
 - **Path**: `/api/users/profile`
 - **Role**: [User, Owner]
@@ -673,6 +662,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 2.2. Update Profile
+
 - **Method**: PUT
 - **Path**: `/api/users/profile`
 - **Role**: [User, Owner]
@@ -713,6 +703,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -734,6 +725,7 @@ https://api.c4f-isports.com/v2
     }
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X PUT https://api.c4f-isports.com/v2/api/users/profile \
@@ -743,6 +735,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 2.3. Delete Profile
+
 - **Method**: DELETE
 - **Path**: `/api/users/profile`
 - **Role**: [User, Owner]
@@ -775,6 +768,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 2.4. Get Booking History
+
 - **Method**: GET
 - **Path**: `/api/users/bookings`
 - **Role**: [User]
@@ -840,6 +834,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 2.5. Get Favorite Fields
+
 - **Method**: GET
 - **Path**: `/api/users/favorites`
 - **Role**: [User]
@@ -896,6 +891,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 2.6. Add Favorite Field
+
 - **Method**: POST
 - **Path**: `/api/users/favorites`
 - **Role**: [User]
@@ -929,6 +925,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -941,6 +938,7 @@ https://api.c4f-isports.com/v2
     "favoriteId": 1
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/users/favorites \
@@ -950,6 +948,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 2.7. Remove Favorite Field
+
 - **Method**: DELETE
 - **Path**: `/api/users/favorites/{fieldId}`
 - **Role**: [User]
@@ -981,9 +980,69 @@ https://api.c4f-isports.com/v2
   -H "Authorization: Bearer <token>"
   ```
 
+### 2.8. Get User Reviews
+
+- **Method**: GET
+- **Path**: `/api/users/reviews`
+- **Role**: [User]
+- **Description**: Retrieves the reviews posted by the current user.
+- **Query Parameters**:
+  - `sort`: Sort by field (e.g., "CreatedAt:desc").
+  - `page`: Page number (default: 1).
+  - `pageSize`: Items per page (default: 10).
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "data": [
+        {
+          "reviewId": 1,
+          "fieldName": "ABC Field",
+          "rating": 5,
+          "comment": "Great field!",
+          "createdAt": "2025-06-01T10:00:00Z"
+        }
+      ],
+      "total": 1,
+      "page": 1,
+      "pageSize": 10
+    }
+    ```
+  - **401 Unauthorized**:
+    ```json
+    {
+      "error": "Unauthorized",
+      "message": "Invalid or missing token"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "data": [
+      {
+        "reviewId": 1,
+        "fieldName": "ABC Field",
+        "rating": 5,
+        "comment": "Great field!",
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/users/reviews?sort=CreatedAt:desc&page=1&pageSize=10 \
+  -H "Authorization: Bearer <token>"
+  ```
+
 ## 3. Field Management
 
 ### 3.1. Get Fields
+
 - **Method**: GET
 - **Path**: `/api/fields`
 - **Role**: [Public]
@@ -1008,7 +1067,7 @@ https://api.c4f-isports.com/v2
           "city": "Hà Nội",
           "district": "Đống Đa",
           "latitude": 10.776,
-          "longitude": 106.700,
+          "longitude": 106.7,
           "openTime": "06:00:00",
           "closeTime": "22:00:00",
           "averageRating": 4.5,
@@ -1032,7 +1091,7 @@ https://api.c4f-isports.com/v2
         "city": "Hà Nội",
         "district": "Đống Đa",
         "latitude": 10.776,
-        "longitude": 106.700,
+        "longitude": 106.7,
         "openTime": "06:00:00",
         "closeTime": "22:00:00",
         "averageRating": 4.5,
@@ -1050,6 +1109,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 3.2. Create Field
+
 - **Method**: POST
 - **Path**: `/api/fields`
 - **Role**: [Owner]
@@ -1064,7 +1124,7 @@ https://api.c4f-isports.com/v2
     "city": "string",
     "district": "string",
     "latitude": 10.776,
-    "longitude": 106.700,
+    "longitude": 106.7,
     "openTime": "06:00:00",
     "closeTime": "22:00:00",
     "subFields": [
@@ -1098,6 +1158,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -1127,6 +1188,7 @@ https://api.c4f-isports.com/v2
     "message": "Field created successfully"
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/fields \
@@ -1136,6 +1198,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 3.3. Get Field Details
+
 - **Method**: GET
 - **Path**: `/api/fields/{id}`
 - **Role**: [Public]
@@ -1150,7 +1213,7 @@ https://api.c4f-isports.com/v2
       "city": "Hà Nội",
       "district": "Đống Đa",
       "latitude": 10.776,
-      "longitude": 106.700,
+      "longitude": 106.7,
       "openTime": "06:00:00",
       "closeTime": "22:00:00",
       "averageRating": 4.5,
@@ -1188,7 +1251,7 @@ https://api.c4f-isports.com/v2
     "city": "Hà Nội",
     "district": "Đống Đa",
     "latitude": 10.776,
-    "longitude": 106.700,
+    "longitude": 106.7,
     "openTime": "06:00:00",
     "closeTime": "22:00:00",
     "averageRating": 4.5,
@@ -1215,6 +1278,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 3.4. Update Field
+
 - **Method**: PUT
 - **Path**: `/api/fields/{id}`
 - **Role**: [Owner]
@@ -1243,6 +1307,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -1264,6 +1329,7 @@ https://api.c4f-isports.com/v2
     "fieldId": 1
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X PUT https://api.c4f-isports.com/v2/api/fields/1 \
@@ -1273,6 +1339,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 3.5. Delete Field
+
 - **Method**: DELETE
 - **Path**: `/api/fields/{id}`
 - **Role**: [Owner]
@@ -1312,6 +1379,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 3.6. Check Field Availability
+
 - **Method**: GET
 - **Path**: `/api/fields/availability`
 - **Role**: [Public]
@@ -1360,6 +1428,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 3.7. Upload Field Images
+
 - **Method**: POST
 - **Path**: `/api/fields/{id}/images`
 - **Role**: [Owner]
@@ -1409,6 +1478,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 3.8. Get Field Images
+
 - **Method**: GET
 - **Path**: `/api/fields/{id}/images`
 - **Role**: [Public]
@@ -1452,6 +1522,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 3.9. Get Owner’s Fields
+
 - **Method**: GET
 - **Path**: `/api/fields/owner`
 - **Role**: [Owner]
@@ -1509,6 +1580,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 3.10. Find Nearby Fields
+
 - **Method**: GET
 - **Path**: `/api/fields/nearby`
 - **Role**: [Public]
@@ -1570,6 +1642,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 3.11. Report Field
+
 - **Method**: POST
 - **Path**: `/api/fields/{id}/report`
 - **Role**: [User]
@@ -1595,6 +1668,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -1606,6 +1680,7 @@ https://api.c4f-isports.com/v2
     "message": "Report submitted successfully"
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/fields/1/report \
@@ -1615,6 +1690,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 3.12. Get Suggested Fields
+
 - **Method**: GET
 - **Path**: `/api/fields/suggested`
 - **Role**: [User]
@@ -1670,9 +1746,73 @@ https://api.c4f-isports.com/v2
   -H "Authorization: Bearer <token>"
   ```
 
+### 3.13. Get Field Reviews
+
+- **Method**: GET
+- **Path**: `/api/fields/{id}/reviews`
+- **Role**: [Public]
+- **Description**: Retrieves reviews for a specific field.
+- **Query Parameters**:
+  - `rating`: Filter by rating (e.g., 5).
+  - `sort`: Sort by field (e.g., "CreatedAt:desc").
+  - `page`: Page number (default: 1).
+  - `pageSize`: Items per page (default: 10).
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "data": [
+        {
+          "reviewId": 1,
+          "userName": "Nguyen Van A",
+          "rating": 5,
+          "comment": "Great field!",
+          "createdAt": "2025-06-01T10:00:00Z",
+          "ownerReply": "Thank you!",
+          "replyDate": "2025-06-02T10:00:00Z"
+        }
+      ],
+      "total": 1,
+      "page": 1,
+      "pageSize": 10
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Field does not exist"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "data": [
+      {
+        "reviewId": 1,
+        "userName": "Nguyen Van A",
+        "rating": 5,
+        "comment": "Great field!",
+        "createdAt": "2025-06-01T10:00:00Z",
+        "ownerReply": "Thank you!",
+        "replyDate": "2025-06-02T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/fields/1/reviews?rating=5&sort=CreatedAt:desc&page=1&pageSize=10
+  ```
+
 ## 4. Booking Management
 
 ### 4.1. Create Booking
+
 - **Method**: POST
 - **Path**: `/api/bookings`
 - **Role**: [User]
@@ -1712,6 +1852,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -1737,6 +1878,7 @@ https://api.c4f-isports.com/v2
     "message": "Booking created successfully"
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/bookings \
@@ -1746,6 +1888,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 4.2. Get Bookings
+
 - **Method**: GET
 - **Path**: `/api/bookings`
 - **Role**: [User, Owner]
@@ -1811,6 +1954,7 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 4.3. Get Booking Details
+
 - **Method**: GET
 - **Path**: `/api/bookings/{id}`
 - **Role**: [User, Owner]
@@ -1830,11 +1974,13 @@ https://api.c4f-isports.com/v2
       "services": [
         {
           "fieldServiceId": 1,
-          "serviceName": "Water",
+          "serviceName": "Water Bottle",
           "quantity": 2,
-          "price": 20000
+          "price": 10000
         }
-      ]
+      ],
+      "promotionCode": "SUMMER2025",
+      "promotionDiscount": 50000
     }
     ```
   - **404 Not Found**:
@@ -1842,6 +1988,13 @@ https://api.c4f-isports.com/v2
     {
       "error": "Resource not found",
       "message": "Booking does not exist"
+    }
+    ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to view this booking"
     }
     ```
 - **Example**:
@@ -1859,11 +2012,13 @@ https://api.c4f-isports.com/v2
     "services": [
       {
         "fieldServiceId": 1,
-        "serviceName": "Water",
+        "serviceName": "Water Bottle",
         "quantity": 2,
-        "price": 20000
+        "price": 10000
       }
-    ]
+    ],
+    "promotionCode": "SUMMER2025",
+    "promotionDiscount": 50000
   }
   ```
 - **Example cURL**:
@@ -1873,24 +2028,37 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 4.4. Update Booking
+
 - **Method**: PUT
 - **Path**: `/api/bookings/{id}`
-- **Role**: [User]
-- **Description**: Updates a booking before confirmation or payment.
-- **Request Body**: Same as POST `/api/bookings`.
+- **Role**: [User, Owner]
+- **Description**: Updates a booking's details (e.g., services or promotion code). Users can update their own bookings; Owners can update bookings for their fields.
+- **Request Body**:
+  ```json
+  {
+    "services": [
+      {
+        "fieldServiceId": 1,
+        "quantity": 3
+      }
+    ],
+    "promotionCode": "string"
+  }
+  ```
 - **Response**:
   - **200 OK**:
     ```json
     {
-      "message": "Booking updated successfully",
-      "bookingId": 1
+      "bookingId": 1,
+      "totalPrice": 320000,
+      "message": "Booking updated successfully"
     }
     ```
   - **400 Bad Request**:
     ```json
     {
       "error": "Invalid input",
-      "message": "Time slot is not available"
+      "message": "Invalid promotion code"
     }
     ```
   - **404 Not Found**:
@@ -1900,40 +2068,48 @@ https://api.c4f-isports.com/v2
       "message": "Booking does not exist"
     }
     ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to update this booking"
+    }
+    ```
 - **Example**:
+
   ```json
   // Request
   {
-    "subFieldId": 1,
-    "bookingDate": "2025-06-01",
-    "startTime": "09:00:00",
-    "endTime": "10:00:00",
     "services": [
       {
         "fieldServiceId": 1,
-        "quantity": 1
+        "quantity": 3
       }
-    ]
+    ],
+    "promotionCode": "SUMMER2025"
   }
 
   // Response
   {
-    "message": "Booking updated successfully",
-    "bookingId": 1
+    "bookingId": 1,
+    "totalPrice": 320000,
+    "message": "Booking updated successfully"
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X PUT https://api.c4f-isports.com/v2/api/bookings/1 \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \
-  -d '{"subFieldId":1,"bookingDate":"2025-06-01","startTime":"09:00:00","endTime":"10:00:00","services":[{"fieldServiceId":1,"quantity":1}]}'
+  -d '{"services":[{"fieldServiceId":1,"quantity":3}],"promotionCode":"SUMMER2025"}'
   ```
 
 ### 4.5. Cancel Booking
+
 - **Method**: DELETE
 - **Path**: `/api/bookings/{id}`
-- **Role**: [User]
+- **Role**: [User, Owner]
 - **Description**: Cancels a booking.
 - **Response**:
   - **200 OK**:
@@ -1953,7 +2129,7 @@ https://api.c4f-isports.com/v2
     ```json
     {
       "error": "Forbidden",
-      "message": "Booking cannot be cancelled"
+      "message": "You do not have permission to cancel this booking"
     }
     ```
 - **Example**:
@@ -1969,11 +2145,78 @@ https://api.c4f-isports.com/v2
   -H "Authorization: Bearer <token>"
   ```
 
-### 4.6. Create Simple Booking
+### 4.6. Update Booking Status
+
+- **Method**: PUT
+- **Path**: `/api/bookings/{id}/status`
+- **Role**: [Owner]
+- **Description**: Updates the status of a booking (e.g., "Confirmed", "Cancelled").
+- **Request Body**:
+  ```json
+  {
+    "status": "string" // e.g., "Confirmed", "Cancelled"
+  }
+  ```
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "bookingId": 1,
+      "status": "Confirmed",
+      "message": "Booking status updated successfully"
+    }
+    ```
+  - **400 Bad Request**:
+    ```json
+    {
+      "error": "Invalid input",
+      "message": "Invalid status"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Booking does not exist"
+    }
+    ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to update this booking"
+    }
+    ```
+- **Example**:
+
+  ```json
+  // Request
+  {
+    "status": "Confirmed"
+  }
+
+  // Response
+  {
+    "bookingId": 1,
+    "status": "Confirmed",
+    "message": "Booking status updated successfully"
+  }
+  ```
+
+- **Example cURL**:
+  ```bash
+  curl -X PUT https://api.c4f-isports.com/v2/api/bookings/1/status \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"status":"Confirmed"}'
+  ```
+
+### 4.7. Create Simple Booking
+
 - **Method**: POST
 - **Path**: `/api/bookings/simple`
 - **Role**: [User]
-- **Description**: Creates a simple booking without additional services.
+- **Description**: Creates a booking with minimal input (no services or promotion).
 - **Request Body**:
   ```json
   {
@@ -2002,6 +2245,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -2020,6 +2264,7 @@ https://api.c4f-isports.com/v2
     "message": "Booking created successfully"
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/bookings/simple \
@@ -2028,61 +2273,8 @@ https://api.c4f-isports.com/v2
   -d '{"subFieldId":1,"bookingDate":"2025-06-01","startTime":"08:00:00","endTime":"09:00:00"}'
   ```
 
-### 4.7. Update Booking Status
-- **Method**: PUT
-- **Path**: `/api/bookings/{id}/status`
-- **Role**: [Owner]
-- **Description**: Updates the status of a booking (e.g., "Confirmed", "Cancelled").
-- **Request Body**:
-  ```json
-  {
-    "status": "string" // e.g., "Confirmed", "Cancelled"
-  }
-  ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Booking status updated successfully",
-      "bookingId": 1
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Invalid status"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Booking does not exist"
-    }
-    ```
-- **Example**:
-  ```json
-  // Request
-  {
-    "status": "Confirmed"
-  }
-
-  // Response
-  {
-    "message": "Booking status updated successfully",
-    "bookingId": 1
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/bookings/1/status \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"status":"Confirmed"}'
-  ```
-
 ### 4.8. Get Booking Services
+
 - **Method**: GET
 - **Path**: `/api/bookings/{id}/services`
 - **Role**: [User, Owner]
@@ -2094,9 +2286,9 @@ https://api.c4f-isports.com/v2
       "data": [
         {
           "fieldServiceId": 1,
-          "serviceName": "Water",
+          "serviceName": "Water Bottle",
           "quantity": 2,
-          "price": 20000
+          "price": 10000
         }
       ],
       "total": 1
@@ -2109,6 +2301,13 @@ https://api.c4f-isports.com/v2
       "message": "Booking does not exist"
     }
     ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to view this booking"
+    }
+    ```
 - **Example**:
   ```json
   // Response
@@ -2116,9 +2315,9 @@ https://api.c4f-isports.com/v2
     "data": [
       {
         "fieldServiceId": 1,
-        "serviceName": "Water",
+        "serviceName": "Water Bottle",
         "quantity": 2,
-        "price": 20000
+        "price": 10000
       }
     ],
     "total": 1
@@ -2131,10 +2330,11 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 4.9. Preview Booking
+
 - **Method**: POST
 - **Path**: `/api/bookings/preview`
 - **Role**: [User]
-- **Description**: Previews booking details, including price, services, and discounts.
+- **Description**: Previews the cost and availability of a booking without creating it.
 - **Request Body**:
   ```json
   {
@@ -2142,7 +2342,12 @@ https://api.c4f-isports.com/v2
     "bookingDate": "2025-06-01",
     "startTime": "08:00:00",
     "endTime": "09:00:00",
-    "serviceIds": [1],
+    "services": [
+      {
+        "fieldServiceId": 1,
+        "quantity": 2
+      }
+    ],
     "promotionCode": "string"
   }
   ```
@@ -2151,17 +2356,11 @@ https://api.c4f-isports.com/v2
     ```json
     {
       "subFieldId": 1,
-      "totalPrice": 300000,
-      "discount": 30000,
-      "finalPrice": 270000,
-      "services": [
-        {
-          "fieldServiceId": 1,
-          "serviceName": "Water",
-          "quantity": 1,
-          "price": 20000
-        }
-      ]
+      "available": true,
+      "basePrice": 300000,
+      "servicePrice": 20000,
+      "promotionDiscount": 50000,
+      "totalPrice": 270000
     }
     ```
   - **400 Bad Request**:
@@ -2172,6 +2371,7 @@ https://api.c4f-isports.com/v2
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -2179,38 +2379,39 @@ https://api.c4f-isports.com/v2
     "bookingDate": "2025-06-01",
     "startTime": "08:00:00",
     "endTime": "09:00:00",
-    "serviceIds": [1],
+    "services": [
+      {
+        "fieldServiceId": 1,
+        "quantity": 2
+      }
+    ],
     "promotionCode": "SUMMER2025"
   }
 
   // Response
   {
     "subFieldId": 1,
-    "totalPrice": 300000,
-    "discount": 30000,
-    "finalPrice": 270000,
-    "services": [
-      {
-        "fieldServiceId": 1,
-        "serviceName": "Water",
-        "quantity": 1,
-        "price": 20000
-      }
-    ]
+    "available": true,
+    "basePrice": 300000,
+    "servicePrice": 20000,
+    "promotionDiscount": 50000,
+    "totalPrice": 270000
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/bookings/preview \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \
-  -d '{"subFieldId":1,"bookingDate":"2025-06-01","startTime":"08:00:00","endTime":"09:00:00","serviceIds":[1],"promotionCode":"SUMMER2025"}'
+  -d '{"subFieldId":1,"bookingDate":"2025-06-01","startTime":"08:00:00","endTime":"09:00:00","services":[{"fieldServiceId":1,"quantity":2}],"promotionCode":"SUMMER2025"}'
   ```
 
 ### 4.10. Get Booking Invoice
+
 - **Method**: GET
 - **Path**: `/api/bookings/{id}/invoice`
-- **Role**: [User]
+- **Role**: [User, Owner]
 - **Description**: Retrieves the invoice for a booking.
 - **Response**:
   - **200 OK**:
@@ -2222,14 +2423,18 @@ https://api.c4f-isports.com/v2
       "bookingDate": "2025-06-01",
       "startTime": "08:00:00",
       "endTime": "09:00:00",
-      "totalPrice": 300000,
+      "basePrice": 300000,
       "services": [
         {
-          "serviceName": "Water",
+          "serviceName": "Water Bottle",
           "quantity": 2,
-          "price": 20000
+          "price": 10000
         }
       ],
+      "servicePrice": 20000,
+      "promotionCode": "SUMMER2025",
+      "promotionDiscount": 50000,
+      "totalPrice": 270000,
       "paymentStatus": "Paid"
     }
     ```
@@ -2238,6 +2443,13 @@ https://api.c4f-isports.com/v2
     {
       "error": "Resource not found",
       "message": "Booking does not exist"
+    }
+    ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to view this booking"
     }
     ```
 - **Example**:
@@ -2250,14 +2462,18 @@ https://api.c4f-isports.com/v2
     "bookingDate": "2025-06-01",
     "startTime": "08:00:00",
     "endTime": "09:00:00",
-    "totalPrice": 300000,
+    "basePrice": 300000,
     "services": [
       {
-        "serviceName": "Water",
+        "serviceName": "Water Bottle",
         "quantity": 2,
-        "price": 20000
+        "price": 10000
       }
     ],
+    "servicePrice": 20000,
+    "promotionCode": "SUMMER2025",
+    "promotionDiscount": 50000,
+    "totalPrice": 270000,
     "paymentStatus": "Paid"
   }
   ```
@@ -2268,10 +2484,11 @@ https://api.c4f-isports.com/v2
   ```
 
 ### 4.11. Reschedule Booking
+
 - **Method**: POST
 - **Path**: `/api/bookings/{id}/reschedule`
 - **Role**: [User]
-- **Description**: Requests to reschedule a booking to a new date and time.
+- **Description**: Submits a request to reschedule a booking to a new date and time.
 - **Request Body**:
   ```json
   {
@@ -2281,11 +2498,13 @@ https://api.c4f-isports.com/v2
   }
   ```
 - **Response**:
-  - **200 OK**:
+  - **201 Created**:
     ```json
     {
-      "message": "Reschedule request sent",
-      "bookingId": 1
+      "rescheduleRequestId": 1,
+      "bookingId": 1,
+      "status": "Pending",
+      "message": "Reschedule request submitted successfully"
     }
     ```
   - **400 Bad Request**:
@@ -2302,7 +2521,15 @@ https://api.c4f-isports.com/v2
       "message": "Booking does not exist"
     }
     ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to reschedule this booking"
+    }
+    ```
 - **Example**:
+
   ```json
   // Request
   {
@@ -2313,10 +2540,13 @@ https://api.c4f-isports.com/v2
 
   // Response
   {
-    "message": "Reschedule request sent",
-    "bookingId": 1
+    "rescheduleRequestId": 1,
+    "bookingId": 1,
+    "status": "Pending",
+    "message": "Reschedule request submitted successfully"
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/bookings/1/reschedule \
@@ -2328,23 +2558,28 @@ https://api.c4f-isports.com/v2
 ## 5. Payment Processing
 
 ### 5.1. Create Payment
+
 - **Method**: POST
 - **Path**: `/api/payments`
 - **Role**: [User]
-- **Description**: Initiates a payment transaction for a booking.
+- **Description**: Initiates a payment for a booking.
 - **Request Body**:
   ```json
   {
     "bookingId": 1,
-    "paymentMethod": "string" // e.g., "VNPay"
+    "paymentMethod": "string", // e.g., "CreditCard", "BankTransfer"
+    "amount": 270000
   }
   ```
 - **Response**:
-  - **200 OK**:
+  - **201 Created**:
     ```json
     {
       "paymentId": 1,
-      "paymentUrl": "https://sandbox.vnpayment.vn/...",
+      "bookingId": 1,
+      "amount": 270000,
+      "status": "Pending",
+      "paymentUrl": "https://payment-gateway.com/pay/xyz123",
       "message": "Payment initiated successfully"
     }
     ```
@@ -2352,39 +2587,53 @@ https://api.c4f-isports.com/v2
     ```json
     {
       "error": "Invalid input",
-      "message": "Booking is not eligible for payment"
+      "message": "Invalid booking or amount"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Booking does not exist"
     }
     ```
 - **Example**:
+
   ```json
   // Request
   {
     "bookingId": 1,
-    "paymentMethod": "VNPay"
+    "paymentMethod": "CreditCard",
+    "amount": 270000
   }
 
   // Response
   {
     "paymentId": 1,
-    "paymentUrl": "https://sandbox.vnpayment.vn/...",
+    "bookingId": 1,
+    "amount": 270000,
+    "status": "Pending",
+    "paymentUrl": "https://payment-gateway.com/pay/xyz123",
     "message": "Payment initiated successfully"
   }
   ```
+
 - **Example cURL**:
   ```bash
   curl -X POST https://api.c4f-isports.com/v2/api/payments \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \
-  -d '{"bookingId":1,"paymentMethod":"VNPay"}'
+  -d '{"bookingId":1,"paymentMethod":"CreditCard","amount":270000}'
   ```
 
-### 5.2. Get Payment History
+### 5.2. Get Payments
+
 - **Method**: GET
 - **Path**: `/api/payments`
-- **Role**: [User]
-- **Description**: Retrieves the user’s payment history.
+- **Role**: [User, Owner]
+- **Description**: Retrieves payments (User: own payments; Owner: payments for their fields).
 - **Query Parameters**:
-  - `status`: Filter by status (e.g., "Paid", "Pending").
+  - `status`: Filter by status (e.g., "Paid").
   - `sort`: Sort by field (e.g., "CreatedAt:desc").
   - `page`: Page number (default: 1).
   - `pageSize`: Items per page (default: 10).
@@ -2396,8 +2645,8 @@ https://api.c4f-isports.com/v2
         {
           "paymentId": 1,
           "bookingId": 1,
-          "amount": 300000,
-          "paymentMethod": "VNPay",
+          "amount": 270000,
+          "paymentMethod": "CreditCard",
           "status": "Paid",
           "createdAt": "2025-06-01T10:00:00Z"
         }
@@ -2422,8 +2671,8 @@ https://api.c4f-isports.com/v2
       {
         "paymentId": 1,
         "bookingId": 1,
-        "amount": 300000,
-        "paymentMethod": "VNPay",
+        "amount": 270000,
+        "paymentMethod": "CreditCard",
         "status": "Paid",
         "createdAt": "2025-06-01T10:00:00Z"
       }
@@ -2436,4 +2685,1713 @@ https://api.c4f-isports.com/v2
 - **Example cURL**:
   ```bash
   curl -X GET https://api.c4f-isports.com/v2/api/payments?status=Paid&sort=CreatedAt:desc&page=1&pageSize=10 \
-  -
+  -H "Authorization: Bearer <token>"
+  ```
+
+### 5.3. Get Payment Details
+
+- **Method**: GET
+- **Path**: `/api/payments/{id}`
+- **Role**: [User, Owner]
+- **Description**: Retrieves details of a specific payment.
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "paymentId": 1,
+      "bookingId": 1,
+      "amount": 270000,
+      "paymentMethod": "CreditCard",
+      "status": "Paid",
+      "createdAt": "2025-06-01T10:00:00Z",
+      "transactionId": "xyz123"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Payment does not exist"
+    }
+    ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to view this payment"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "paymentId": 1,
+    "bookingId": 1,
+    "amount": 270000,
+    "paymentMethod": "CreditCard",
+    "status": "Paid",
+    "createdAt": "2025-06-01T10:00:00Z",
+    "transactionId": "xyz123"
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/payments/1 \
+  -H "Authorization: Bearer <token>"
+  ```
+
+### 5.4. Payment Webhook
+
+- **Method**: POST
+- **Path**: `/api/payments/webhook`
+- **Role**: [Public]
+- **Description**: Handles payment status updates from the payment gateway.
+- **Request Body**:
+  ```json
+  {
+    "paymentId": 1,
+    "transactionId": "string",
+    "status": "string", // e.g., "Paid", "Failed"
+    "amount": 270000,
+    "timestamp": "2025-06-01T10:00:00Z"
+  }
+  ```
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "message": "Webhook processed successfully"
+    }
+    ```
+  - **400 Bad Request**:
+    ```json
+    {
+      "error": "Invalid input",
+      "message": "Invalid webhook data"
+    }
+    ```
+- **Example**:
+
+  ```json
+  // Request
+  {
+    "paymentId": 1,
+    "transactionId": "xyz123",
+    "status": "Paid",
+    "amount": 270000,
+    "timestamp": "2025-06-01T10:00:00Z"
+  }
+
+  // Response
+  {
+    "message": "Webhook processed successfully"
+  }
+  ```
+
+- **Example cURL**:
+  ```bash
+  curl -X POST https://api.c4f-isports.com/v2/api/payments/webhook \
+  -H "Content-Type: application/json" \
+  -d '{"paymentId":1,"transactionId":"xyz123","status":"Paid","amount":270000,"timestamp":"2025-06-01T10:00:00Z"}'
+  ```
+
+### 5.5. Request Refund
+
+- **Method**: POST
+- **Path**: `/api/payments/{id}/refund`
+- **Role**: [User]
+- **Description**: Submits a refund request for a payment.
+- **Request Body**:
+  ```json
+  {
+    "amount": 270000,
+    "reason": "string"
+  }
+  ```
+- **Response**:
+  - **201 Created**:
+    ```json
+    {
+      "refundRequestId": 1,
+      "paymentId": 1,
+      "amount": 270000,
+      "status": "Pending",
+      "message": "Refund request submitted successfully"
+    }
+    ```
+  - **400 Bad Request**:
+    ```json
+    {
+      "error": "Invalid input",
+      "message": "Invalid amount or reason"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Payment does not exist"
+    }
+    ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to request a refund for this payment"
+    }
+    ```
+- **Example**:
+
+  ```json
+  // Request
+  {
+    "amount": 270000,
+    "reason": "Booking cancelled due to weather"
+  }
+
+  // Response
+  {
+    "refundRequestId": 1,
+    "paymentId": 1,
+    "amount": 270000,
+    "status": "Pending",
+    "message": "Refund request submitted successfully"
+  }
+  ```
+
+- **Example cURL**:
+  ```bash
+  curl -X POST https://api.c4f-isports.com/v2/api/payments/1/refund \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"amount":270000,"reason":"Booking cancelled due to weather"}'
+  ```
+
+## 6. Review System
+
+### 6.1. Create Review
+
+- **Method**: POST
+- **Path**: `/api/reviews`
+- **Role**: [User]
+- **Description**: Submits a review for a field after a booking.
+- **Request Body**:
+  ```json
+  {
+    "fieldId": 1,
+    "bookingId": 1,
+    "rating": 5,
+    "comment": "string"
+  }
+  ```
+- **Response**:
+  - **201 Created**:
+    ```json
+    {
+      "reviewId": 1,
+      "fieldId": 1,
+      "rating": 5,
+      "message": "Review submitted successfully"
+    }
+    ```
+  - **400 Bad Request**:
+    ```json
+    {
+      "error": "Invalid input",
+      "message": "Invalid rating or booking"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Field or booking does not exist"
+    }
+    ```
+- **Example**:
+
+  ```json
+  // Request
+  {
+    "fieldId": 1,
+    "bookingId": 1,
+    "rating": 5,
+    "comment": "Great field and service!"
+  }
+
+  // Response
+  {
+    "reviewId": 1,
+    "fieldId": 1,
+    "rating": 5,
+    "message": "Review submitted successfully"
+  }
+  ```
+
+- **Example cURL**:
+  ```bash
+  curl -X POST https://api.c4f-isports.com/v2/api/reviews \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"fieldId":1,"bookingId":1,"rating":5,"comment":"Great field and service!"}'
+  ```
+
+### 6.2. Update Review
+
+- **Method**: PUT
+- **Path**: `/api/reviews/{id}`
+- **Role**: [User]
+- **Description**: Updates an existing review.
+- **Request Body**:
+  ```json
+  {
+    "rating": 4,
+    "comment": "string"
+  }
+  ```
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "reviewId": 1,
+      "rating": 4,
+      "message": "Review updated successfully"
+    }
+    ```
+  - **400 Bad Request**:
+    ```json
+    {
+      "error": "Invalid input",
+      "message": "Invalid rating"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Review does not exist"
+    }
+    ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to update this review"
+    }
+    ```
+- **Example**:
+
+  ```json
+  // Request
+  {
+    "rating": 4,
+    "comment": "Good field, but service could be better."
+  }
+
+  // Response
+  {
+    "reviewId": 1,
+    "rating": 4,
+    "message": "Review updated successfully"
+  }
+  ```
+
+- **Example cURL**:
+  ```bash
+  curl -X PUT https://api.c4f-isports.com/v2/api/reviews/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"rating":4,"comment":"Good field, but service could be better."}'
+  ```
+
+### 6.3. Delete Review
+
+- **Method**: DELETE
+- **Path**: `/api/reviews/{id}`
+- **Role**: [User]
+- **Description**: Deletes a review.
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "message": "Review deleted successfully"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Review does not exist"
+    }
+    ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to delete this review"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "message": "Review deleted successfully"
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X DELETE https://api.c4f-isports.com/v2/api/reviews/1 \
+  -H "Authorization: Bearer <token>"
+  ```
+
+### 6.4. Reply to Review
+
+- **Method**: POST
+- **Path**: `/api/reviews/{id}/reply`
+- **Role**: [Owner]
+- **Description**: Allows the field owner to reply to a review.
+- **Request Body**:
+  ```json
+  {
+    "reply": "string"
+  }
+  ```
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "reviewId": 1,
+      "ownerReply": "Thank you for your feedback!",
+      "replyDate": "2025-06-02T10:00:00Z",
+      "message": "Reply submitted successfully"
+    }
+    ```
+  - **400 Bad Request**:
+    ```json
+    {
+      "error": "Invalid input",
+      "message": "Reply is required"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Review does not exist"
+    }
+    ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to reply to this review"
+    }
+    ```
+- **Example**:
+
+  ```json
+  // Request
+  {
+    "reply": "Thank you for your feedback!"
+  }
+
+  // Response
+  {
+    "reviewId": 1,
+    "ownerReply": "Thank you for your feedback!",
+    "replyDate": "2025-06-02T10:00:00Z",
+    "message": "Reply submitted successfully"
+  }
+  ```
+
+- **Example cURL**:
+  ```bash
+  curl -X POST https://api.c4f-isports.com/v2/api/reviews/1/reply \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"reply":"Thank you for your feedback!"}'
+  ```
+
+## 7. Notification System
+
+### 7.1. Get Notifications
+
+- **Method**: GET
+- **Path**: `/api/notifications`
+- **Role**: [User, Owner]
+- **Description**: Retrieves the user's or owner's notifications.
+- **Query Parameters**:
+  - `isRead`: Filter by read status (true/false).
+  - `sort`: Sort by field (e.g., "CreatedAt:desc").
+  - `page`: Page number (default: 1).
+  - `pageSize`: Items per page (default: 10).
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "data": [
+        {
+          "notificationId": 1,
+          "title": "Booking Confirmed",
+          "message": "Your booking on 2025-06-01 is confirmed.",
+          "isRead": false,
+          "createdAt": "2025-06-01T10:00:00Z"
+        }
+      ],
+      "total": 1,
+      "page": 1,
+      "pageSize": 10
+    }
+    ```
+  - **401 Unauthorized**:
+    ```json
+    {
+      "error": "Unauthorized",
+      "message": "Invalid or missing token"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "data": [
+      {
+        "notificationId": 1,
+        "title": "Booking Confirmed",
+        "message": "Your booking on 2025-06-01 is confirmed.",
+        "isRead": false,
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/notifications?isRead=false&sort=CreatedAt:desc&page=1&pageSize=10 \
+  -H "Authorization: Bearer <token>"
+  ```
+
+### 7.2. Mark Notification as Read
+
+- **Method**: PUT
+- **Path**: `/api/notifications/{id}/read`
+- **Role**: [User, Owner]
+- **Description**: Marks a notification as read.
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "notificationId": 1,
+      "isRead": true,
+      "message": "Notification marked as read"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Notification does not exist"
+    }
+    ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to update this notification"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "notificationId": 1,
+    "isRead": true,
+    "message": "Notification marked as read"
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X PUT https://api.c4f-isports.com/v2/api/notifications/1/read \
+  -H "Authorization: Bearer <token>"
+  ```
+
+### 7.3. Delete Notification
+
+- **Method**: DELETE
+- **Path**: `/api/notifications/{id}`
+- **Role**: [User, Owner]
+- **Description**: Deletes a notification.
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "message": "Notification deleted successfully"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Notification does not exist"
+    }
+    ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to delete this notification"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "message": "Notification deleted successfully"
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X DELETE https://api.c4f-isports.com/v2/api/notifications/1 \
+  -H "Authorization: Bearer <token>"
+  ```
+
+### 7.4. Mark All Notifications as Read
+
+- **Method**: PUT
+- **Path**: `/api/notifications/read-all`
+- **Role**: [User, Owner]
+- **Description**: Marks all notifications for the user or owner as read.
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "message": "All notifications marked as read"
+    }
+    ```
+  - **401 Unauthorized**:
+    ```json
+    {
+      "error": "Unauthorized",
+      "message": "Invalid or missing token"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "message": "All notifications marked as read"
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X PUT https://api.c4f-isports.com/v2/api/notifications/read-all \
+  -H "Authorization: Bearer <token>"
+  ```
+
+### 7.5. Get Unread Notification Count
+
+- **Method**: GET
+- **Path**: `/api/notifications/count`
+- **Role**: [User, Owner]
+- **Description**: Retrieves the count of unread notifications.
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "unreadCount": 3
+    }
+    ```
+  - **401 Unauthorized**:
+    ```json
+    {
+      "error": "Unauthorized",
+      "message": "Invalid or missing token"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "unreadCount": 3
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/notifications/count \
+  -H "Authorization: Bearer <token>"
+  ```
+
+## 8. Sport Categories
+
+### 8.1. Get Sports
+
+- **Method**: GET
+- **Path**: `/api/sports`
+- **Role**: [Public]
+- **Description**: Retrieves a list of available sports.
+- **Query Parameters**:
+  - `sort`: Sort by field (e.g., "SportName:asc").
+  - `page`: Page number (default: 1).
+  - `pageSize`: Items per page (default: 10).
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "data": [
+        {
+          "sportId": 1,
+          "sportName": "Football",
+          "description": "5-a-side and 7-a-side fields"
+        }
+      ],
+      "total": 1,
+      "page": 1,
+      "pageSize": 10
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "data": [
+      {
+        "sportId": 1,
+        "sportName": "Football",
+        "description": "5-a-side and 7-a-side fields"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/sports?sort=SportName:asc&page=1&pageSize=10
+  ```
+
+### 8.2. Get Sport Details
+
+- **Method**: GET
+- **Path**: `/api/sports/{id}`
+- **Role**: [Public]
+- **Description**: Retrieves details of a specific sport.
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "sportId": 1,
+      "sportName": "Football",
+      "description": "5-a-side and 7-a-side fields"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Sport does not exist"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "sportId": 1,
+    "sportName": "Football",
+    "description": "5-a-side and 7-a-side fields"
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/sports/1
+  ```
+
+### 8.3. Get Popular Sports
+
+- **Method**: GET
+- **Path**: `/api/sports/popular`
+- **Role**: [Public]
+- **Description**: Retrieves a list of popular sports based on booking frequency.
+- **Query Parameters**:
+  - `limit`: Number of sports to return (default: 5).
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "data": [
+        {
+          "sportId": 1,
+          "sportName": "Football",
+          "bookingCount": 150
+        }
+      ],
+      "total": 1
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "data": [
+      {
+        "sportId": 1,
+        "sportName": "Football",
+        "bookingCount": 150
+      }
+    ],
+    "total": 1
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/sports/popular?limit=5
+  ```
+
+## 9. Promotion Management
+
+### 9.1. Get Promotions
+
+- **Method**: GET
+- **Path**: `/api/promotions`
+- **Role**: [Public]
+- **Description**: Retrieves a list of available promotions.
+- **Query Parameters**:
+  - `fieldId`: Filter by field.
+  - `status`: Filter by status (e.g., "Active").
+  - `sort`: Sort by field (e.g., "StartDate:desc").
+  - `page`: Page number (default: 1).
+  - `pageSize`: Items per page (default: 10).
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "data": [
+        {
+          "promotionId": 1,
+          "promotionCode": "SUMMER2025",
+          "discountType": "Percentage",
+          "discountValue": 20,
+          "startDate": "2025-06-01",
+          "endDate": "2025-08-31",
+          "status": "Active"
+        }
+      ],
+      "total": 1,
+      "page": 1,
+      "pageSize": 10
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "data": [
+      {
+        "promotionId": 1,
+        "promotionCode": "SUMMER2025",
+        "discountType": "Percentage",
+        "discountValue": 20,
+        "startDate": "2025-06-01",
+        "endDate": "2025-08-31",
+        "status": "Active"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/promotions?status=Active&sort=StartDate:desc&page=1&pageSize=10
+  ```
+
+### 9.2. Create Promotion
+
+- **Method**: POST
+- **Path**: `/api/promotions`
+- **Role**: [Owner]
+- **Description**: Creates a new promotion for a field.
+- **Request Body**:
+  ```json
+  {
+    "fieldId": 1,
+    "promotionCode": "string",
+    "discountType": "string", // "Percentage" or "Fixed"
+    "discountValue": 20,
+    "startDate": "2025-06-01",
+    "endDate": "2025-08-31",
+    "maxUsage": 100,
+    "minBookingAmount": 200000
+  }
+  ```
+- **Response**:
+  - **201 Created**:
+    ```json
+    {
+      "promotionId": 1,
+      "promotionCode": "SUMMER2025",
+      "message": "Promotion created successfully"
+    }
+    ```
+  - **400 Bad Request**:
+    ```json
+    {
+      "error": "Invalid input",
+      "message": "Invalid discount value"
+    }
+    ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to create a promotion for this field"
+    }
+    ```
+- **Example**:
+
+  ```json
+  // Request
+  {
+    "fieldId": 1,
+    "promotionCode": "SUMMER2025",
+    "discountType": "Percentage",
+    "discountValue": 20,
+    "startDate": "2025-06-01",
+    "endDate": "2025-08-31",
+    "maxUsage": 100,
+    "minBookingAmount": 200000
+  }
+
+  // Response
+  {
+    "promotionId": 1,
+    "promotionCode": "SUMMER2025",
+    "message": "Promotion created successfully"
+  }
+  ```
+
+- **Example cURL**:
+  ```bash
+  curl -X POST https://api.c4f-isports.com/v2/api/promotions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"fieldId":1,"promotionCode":"SUMMER2025","discountType":"Percentage","discountValue":20,"startDate":"2025-06-01","endDate":"2025-08-31","maxUsage":100,"minBookingAmount":200000}'
+  ```
+
+### 9.3. Update Promotion
+
+- **Method**: PUT
+- **Path**: `/api/promotions/{id}`
+- **Role**: [Owner]
+- **Description**: Updates an existing promotion.
+- **Request Body**:
+  ```json
+  {
+    "promotionCode": "string",
+    "discountType": "string",
+    "discountValue": 25,
+    "startDate": "2025-06-01",
+    "endDate": "2025-09-30",
+    "maxUsage": 150,
+    "minBookingAmount": 250000
+  }
+  ```
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "promotionId": 1,
+      "promotionCode": "SUMMER2025",
+      "message": "Promotion updated successfully"
+    }
+    ```
+  - **400 Bad Request**:
+    ```json
+    {
+      "error": "Invalid input",
+      "message": "Invalid discount value"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Promotion does not exist"
+    }
+    ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to update this promotion"
+    }
+    ```
+- **Example**:
+
+  ```json
+  // Request
+  {
+    "promotionCode": "SUMMER2025",
+    "discountType": "Percentage",
+    "discountValue": 25,
+    "startDate": "2025-06-01",
+    "endDate": "2025-09-30",
+    "maxUsage": 150,
+    "minBookingAmount": 250000
+  }
+
+  // Response
+  {
+    "promotionId": 1,
+    "promotionCode": "SUMMER2025",
+    "message": "Promotion updated successfully"
+  }
+  ```
+
+- **Example cURL**:
+  ```bash
+  curl -X PUT https://api.c4f-isports.com/v2/api/promotions/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"promotionCode":"SUMMER2025","discountType":"Percentage","discountValue":25,"startDate":"2025-06-01","endDate":"2025-09-30","maxUsage":150,"minBookingAmount":250000}'
+  ```
+
+### 9.4. Delete Promotion
+
+- **Method**: DELETE
+- **Path**: `/api/promotions/{id}`
+- **Role**: [Owner]
+- **Description**: Deletes a promotion.
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "message": "Promotion deleted successfully"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Promotion does not exist"
+    }
+    ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to delete this promotion"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "message": "Promotion deleted successfully"
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X DELETE https://api.c4f-isports.com/v2/api/promotions/1 \
+  -H "Authorization: Bearer <token>"
+  ```
+
+### 9.5. Get Suggested Promotions
+
+- **Method**: GET
+- **Path**: `/api/promotions/suggestions`
+- **Role**: [User]
+- **Description**: Retrieves suggested promotions based on user’s booking history or location.
+- **Query Parameters**:
+  - `fieldId`: Filter by field.
+  - `sort`: Sort by field (e.g., "DiscountValue:desc").
+  - `page`: Page number (default: 1).
+  - `pageSize`: Items per page (default: 10).
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "data": [
+        {
+          "promotionId": 1,
+          "promotionCode": "SUMMER2025",
+          "discountType": "Percentage",
+          "discountValue": 20,
+          "startDate": "2025-06-01",
+          "endDate": "2025-08-31",
+          "status": "Active"
+        }
+      ],
+      "total": 1,
+      "page": 1,
+      "pageSize": 10
+    }
+    ```
+  - **401 Unauthorized**:
+    ```json
+    {
+      "error": "Unauthorized",
+      "message": "Invalid or missing token"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "data": [
+      {
+        "promotionId": 1,
+        "promotionCode": "SUMMER2025",
+        "discountType": "Percentage",
+        "discountValue": 20,
+        "startDate": "2025-06-01",
+        "endDate": "2025-08-31",
+        "status": "Active"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/promotions/suggestions?sort=DiscountValue:desc&page=1&pageSize=10 \
+  -H "Authorization: Bearer <token>"
+  ```
+
+## 10. Owner Dashboard
+
+### 10.1. Get Field Statistics
+
+- **Method**: GET
+- **Path**: `/api/owners/fields/{id}/stats`
+- **Role**: [Owner]
+- **Description**: Retrieves statistics for a specific field (e.g., bookings, revenue).
+- **Query Parameters**:
+  - `startDate`: Start date for stats (e.g., "2025-06-01").
+  - `endDate`: End date for stats (e.g., "2025-06-30").
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "fieldId": 1,
+      "fieldName": "ABC Field",
+      "totalBookings": 50,
+      "totalRevenue": 15000000,
+      "averageRating": 4.5,
+      "bookingCompletionRate": 0.95
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Field does not exist"
+    }
+    ```
+  - **403 Forbidden**:
+    ```json
+    {
+      "error": "Forbidden",
+      "message": "You do not have permission to view this field"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "fieldId": 1,
+    "fieldName": "ABC Field",
+    "totalBookings": 50,
+    "totalRevenue": 15000000,
+    "averageRating": 4.5,
+    "bookingCompletionRate": 0.95
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/owners/fields/1/stats?startDate=2025-06-01&endDate=2025-06-30 \
+  -H "Authorization: Bearer <token>"
+  ```
+
+### 10.2. Get Owner Dashboard
+
+- **Method**: GET
+- **Path**: `/api/owners/dashboard`
+- **Role**: [Owner]
+- **Description**: Retrieves an overview of the owner’s fields, bookings, and revenue.
+- **Query Parameters**:
+  - `startDate`: Start date for stats (e.g., "2025-06-01").
+  - `endDate`: End date for stats (e.g., "2025-06-30").
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "totalFields": 3,
+      "totalBookings": 150,
+      "totalRevenue": 45000000,
+      "fields": [
+        {
+          "fieldId": 1,
+          "fieldName": "ABC Field",
+          "bookings": 50,
+          "revenue": 15000000
+        }
+      ]
+    }
+    ```
+  - **401 Unauthorized**:
+    ```json
+    {
+      "error": "Unauthorized",
+      "message": "Invalid or missing token"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "totalFields": 3,
+    "totalBookings": 150,
+    "totalRevenue": 45000000,
+    "fields": [
+      {
+        "fieldId": 1,
+        "fieldName": "ABC Field",
+        "bookings": 50,
+        "revenue": 15000000
+      }
+    ]
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/owners/dashboard?startDate=2025-06-01&endDate=2025-06-30 \
+  -H "Authorization: Bearer <token>"
+  ```
+
+## 11. Admin Management
+
+### 11.1. Get All Users
+
+- **Method**: GET
+- **Path**: `/api/admin/users`
+- **Role**: [Admin]
+- **Description**: Retrieves a list of all users.
+- **Query Parameters**:
+  - `role`: Filter by role (e.g., "User", "Owner").
+  - `sort`: Sort by field (e.g., "CreatedAt:desc").
+  - `page`: Page number (default: 1).
+  - `pageSize`: Items per page (default: 10).
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "data": [
+        {
+          "userId": 1,
+          "fullName": "Nguyen Van A",
+          "email": "user@example.com",
+          "role": "User",
+          "createdAt": "2025-06-01T10:00:00Z"
+        }
+      ],
+      "total": 1,
+      "page": 1,
+      "pageSize": 10
+    }
+    ```
+  - **401 Unauthorized**:
+    ```json
+    {
+      "error": "Unauthorized",
+      "message": "Invalid or missing token"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "data": [
+      {
+        "userId": 1,
+        "fullName": "Nguyen Van A",
+        "email": "user@example.com",
+        "role": "User",
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/admin/users?role=User&sort=CreatedAt:desc&page=1&pageSize=10 \
+  -H "Authorization: Bearer <token>"
+  ```
+
+### 11.2. Ban User
+
+- **Method**: PUT
+- **Path**: `/api/admin/users/{id}/ban`
+- **Role**: [Admin]
+- **Description**: Bans a user account.
+- **Request Body**:
+  ```json
+  {
+    "reason": "string"
+  }
+  ```
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "userId": 1,
+      "message": "User banned successfully"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "User does not exist"
+    }
+    ```
+- **Example**:
+
+  ```json
+  // Request
+  {
+    "reason": "Violated terms of service"
+  }
+
+  // Response
+  {
+    "userId": 1,
+    "message": "User banned successfully"
+  }
+  ```
+
+- **Example cURL**:
+  ```bash
+  curl -X PUT https://api.c4f-isports.com/v2/api/admin/users/1/ban \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"reason":"Violated terms of service"}'
+  ```
+
+### 11.3. Unban User
+
+- **Method**: PUT
+- **Path**: `/api/admin/users/{id}/unban`
+- **Role**: [Admin]
+- **Description**: Unbans a user account.
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "userId": 1,
+      "message": "User unbanned successfully"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "User does not exist"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "userId": 1,
+    "message": "User unbanned successfully"
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X PUT https://api.c4f-isports.com/v2/api/admin/users/1/unban \
+  -H "Authorization: Bearer <token>"
+  ```
+
+### 11.4. Get All Fields
+
+- **Method**: GET
+- **Path**: `/api/admin/fields`
+- **Role**: [Admin]
+- **Description**: Retrieves a list of all fields.
+- **Query Parameters**:
+  - `status`: Filter by status (e.g., "Active").
+  - `sort`: Sort by field (e.g., "CreatedAt:desc").
+  - `page`: Page number (default: 1).
+  - `pageSize`: Items per page (default: 10).
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "data": [
+        {
+          "fieldId": 1,
+          "fieldName": "ABC Field",
+          "ownerId": 2,
+          "status": "Active",
+          "createdAt": "2025-06-01T10:00:00Z"
+        }
+      ],
+      "total": 1,
+      "page": 1,
+      "pageSize": 10
+    }
+    ```
+  - **401 Unauthorized**:
+    ```json
+    {
+      "error": "Unauthorized",
+      "message": "Invalid or missing token"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "data": [
+      {
+        "fieldId": 1,
+        "fieldName": "ABC Field",
+        "ownerId": 2,
+        "status": "Active",
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/admin/fields?status=Active&sort=CreatedAt:desc&page=1&pageSize=10 \
+  -H "Authorization: Bearer <token>"
+  ```
+
+### 11.5. Approve Field
+
+- **Method**: PUT
+- **Path**: `/api/admin/fields/{id}/approve`
+- **Role**: [Admin]
+- **Description**: Approves a field to make it active.
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "fieldId": 1,
+      "message": "Field approved successfully"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Field does not exist"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "fieldId": 1,
+    "message": "Field approved successfully"
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X PUT https://api.c4f-isports.com/v2/api/admin/fields/1/approve \
+  -H "Authorization: Bearer <token>"
+  ```
+
+### 11.6. Reject Field
+
+- **Method**: PUT
+- **Path**: `/api/admin/fields/{id}/reject`
+- **Role**: [Admin]
+- **Description**: Rejects a field with a reason.
+- **Request Body**:
+  ```json
+  {
+    "reason": "string"
+  }
+  ```
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "fieldId": 1,
+      "message": "Field rejected successfully"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Field does not exist"
+    }
+    ```
+- **Example**:
+
+  ```json
+  // Request
+  {
+    "reason": "Incomplete field information"
+  }
+
+  // Response
+  {
+    "fieldId": 1,
+    "message": "Field rejected successfully"
+  }
+  ```
+
+- **Example cURL**:
+  ```bash
+  curl -X PUT https://api.c4f-isports.com/v2/api/admin/fields/1/reject \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"reason":"Incomplete field information"}'
+  ```
+
+### 11.7. Get All Reviews
+
+- **Method**: GET
+- **Path**: `/api/admin/reviews`
+- **Role**: [Admin]
+- **Description**: Retrieves a list of all reviews for moderation.
+- **Query Parameters**:
+  - `fieldId`: Filter by field.
+  - `sort`: Sort by field (e.g., "CreatedAt:desc").
+  - `page`: Page number (default: 1).
+  - `pageSize`: Items per page (default: 10).
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "data": [
+        {
+          "reviewId": 1,
+          "fieldId": 1,
+          "userId": 1,
+          "rating": 5,
+          "comment": "Great field!",
+          "createdAt": "2025-06-01T10:00:00Z"
+        }
+      ],
+      "total": 1,
+      "page": 1,
+      "pageSize": 10
+    }
+    ```
+  - **401 Unauthorized**:
+    ```json
+    {
+      "error": "Unauthorized",
+      "message": "Invalid or missing token"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "data": [
+      {
+        "reviewId": 1,
+        "fieldId": 1,
+        "userId": 1,
+        "rating": 5,
+        "comment": "Great field!",
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/admin/reviews?fieldId=1&sort=CreatedAt:desc&page=1&pageSize=10 \
+  -H "Authorization: Bearer <token>"
+  ```
+
+### 11.8. Moderate Review
+
+- **Method**: PUT
+- **Path**: `/api/admin/reviews/{id}/moderate`
+- **Role**: [Admin]
+- **Description**: Approves or removes a review.
+- **Request Body**:
+  ```json
+  {
+    "status": "string", // "Approved", "Removed"
+    "reason": "string" // Required if status is "Removed"
+  }
+  ```
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "reviewId": 1,
+      "status": "Approved",
+      "message": "Review moderated successfully"
+    }
+    ```
+  - **404 Not Found**:
+    ```json
+    {
+      "error": "Resource not found",
+      "message": "Review does not exist"
+    }
+    ```
+- **Example**:
+
+  ```json
+  // Request
+  {
+    "status": "Approved"
+  }
+
+  // Response
+  {
+    "reviewId": 1,
+    "status": "Approved",
+    "message": "Review moderated successfully"
+  }
+  ```
+
+- **Example cURL**:
+  ```bash
+  curl -X PUT https://api.c4f-isports.com/v2/api/admin/reviews/1/moderate \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"status":"Approved"}'
+  ```
+
+## 12. Statistics & Analytics
+
+### 12.1. Get Platform Statistics
+
+- **Method**: GET
+- **Path**: `/api/statistics`
+- **Role**: [Admin]
+- **Description**: Retrieves overall platform statistics.
+- **Query Parameters**:
+  - `startDate`: Start date for stats (e.g., "2025-06-01").
+  - `endDate`: End date for stats (e.g., "2025-06-30").
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "totalUsers": 1000,
+      "totalFields": 50,
+      "totalBookings": 5000,
+      "totalRevenue": 1500000000,
+      "averageBookingPrice": 300000
+    }
+    ```
+  - **401 Unauthorized**:
+    ```json
+    {
+      "error": "Unauthorized",
+      "message": "Invalid or missing token"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "totalUsers": 1000,
+    "totalFields": 50,
+    "totalBookings": 5000,
+    "totalRevenue": 1500000000,
+    "averageBookingPrice": 300000
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/statistics?startDate=2025-06-01&endDate=2025-06-30 \
+  -H "Authorization: Bearer <token>"
+  ```
+
+### 12.2. Get Trends
+
+- **Method**: GET
+- **Path**: `/api/statistics/trends`
+- **Role**: [Admin]
+- **Description**: Retrieves trending data (e.g., bookings, revenue) over time.
+- **Query Parameters**:
+  - `startDate`: Start date for trends (e.g., "2025-06-01").
+  - `endDate`: End date for trends (e.g., "2025-06-30").
+  - `interval`: Time interval (e.g., "daily", "weekly", "monthly").
+- **Response**:
+  - **200 OK**:
+    ```json
+    {
+      "data": [
+        {
+          "date": "2025-06-01",
+          "bookings": 100,
+          "revenue": 30000000
+        },
+        {
+          "date": "2025-06-02",
+          "bookings": 120,
+          "revenue": 36000000
+        }
+      ],
+      "interval": "daily"
+    }
+    ```
+  - **400 Bad Request**:
+    ```json
+    {
+      "error": "Invalid input",
+      "message": "Invalid date range or interval"
+    }
+    ```
+  - **401 Unauthorized**:
+    ```json
+    {
+      "error": "Unauthorized",
+      "message": "Invalid or missing token"
+    }
+    ```
+- **Example**:
+  ```json
+  // Response
+  {
+    "data": [
+      {
+        "date": "2025-06-01",
+        "bookings": 100,
+        "revenue": 30000000
+      },
+      {
+        "date": "2025-06-02",
+        "bookings": 120,
+        "revenue": 36000000
+      }
+    ],
+    "interval": "daily"
+  }
+  ```
+- **Example cURL**:
+  ```bash
+  curl -X GET https://api.c4f-isports.com/v2/api/statistics/trends?startDate=2025-06-01&endDate=2025-06-30&interval=daily \
+  -H "Authorization: Bearer <token>"
+  ```
