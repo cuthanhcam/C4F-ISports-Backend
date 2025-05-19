@@ -8,16 +8,16 @@ using api.Services;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
-using Microsoft.AspNetCore.Authentication.Google;
 using Serilog;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
+using api.Repositories;
 using api.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Cấu hình Serilog
+// 1. Cấu hình Serilog
 builder.Host.UseSerilog((context, services, configuration) =>
 {
     configuration
@@ -28,34 +28,38 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day);
 });
 
-// Cấu hình các dịch vụ
+// 2. Cấu hình các dịch vụ
 ConfigureServices(builder);
 
-// Xây dựng ứng dụng
+// 3. Xây dựng ứng dụng
 var app = builder.Build();
 
-// Cấu hình pipeline
+// 4. Cấu hình middleware
 ConfigureMiddleware(app);
 
+// 5. Áp dụng migrations và seed dữ liệu
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
-logger.LogInformation("Preparing to run SeedDatabaseAsync...");
+logger.LogInformation("Starting application...");
 
-// Áp dụng migrations và seed dữ liệu
 await SeedDatabaseAsync(app);
 
 logger.LogInformation("Application startup completed.");
 
 app.Run();
 
+// Hàm cấu hình các dịch vụ
 void ConfigureServices(WebApplicationBuilder builder)
 {
-    // 1. Cấu hình DbContext với SQL Server
+    // 2.1. Cấu hình DbContext với SQL Server
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlServer(
             builder.Configuration.GetConnectionString("DefaultConnection"),
-            sqlOptions => sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null)));
+            sqlOptions => sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: null)));
 
-    // 2. Cấu hình Authentication (JWT + Google OAuth2)
+    // 2.2. Cấu hình Authentication (JWT)
     var jwtSettings = builder.Configuration.GetSection("JwtSettings");
     builder.Services.AddAuthentication(options =>
     {
@@ -75,16 +79,9 @@ void ConfigureServices(WebApplicationBuilder builder)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwtSettings["Secret"]))
         };
-    })
-    .AddGoogle(options =>
-    {
-        options.ClientId = builder.Configuration["OAuth:Google:ClientId"];
-        options.ClientSecret = builder.Configuration["OAuth:Google:ClientSecret"];
-        options.Scope.Add("profile");
-        options.Scope.Add("email");
     });
 
-    // 3. Cấu hình Authorization Policies
+    // 2.3. Cấu hình Authorization Policies
     builder.Services.AddAuthorization(options =>
     {
         options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
@@ -92,36 +89,38 @@ void ConfigureServices(WebApplicationBuilder builder)
         options.AddPolicy("UserOnly", policy => policy.RequireRole("User"));
     });
 
-    // 4. Cấu hình CloudinaryService
+    // 2.4. Cấu hình CloudinaryService
     builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
     builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
-    // 5. Đăng ký các service
+    // 2.5. Cấu hình GeocodingService
     builder.Services.AddHttpClient<IGeocodingService, GeocodingService>(client =>
     {
         client.Timeout = TimeSpan.FromSeconds(60);
     });
+
+    // 2.6. Cấu hình SendGridService
     builder.Services.AddScoped<IEmailSender, SendGridEmailSender>();
 
-    // 6. Cấu hình CORS
+    // 2.7. Cấu hình CORS
     builder.Services.AddCors(options =>
     {
-        options.AddPolicy("AllowSpecificOrigins", builder =>
+        options.AddPolicy("AllowSpecificOrigins", corsBuilder =>
         {
-            builder.WithOrigins("http://localhost:5173")
-                   .AllowAnyMethod()
-                   .AllowAnyHeader()
-                   .AllowCredentials();
+            corsBuilder.WithOrigins(builder.Configuration["FEUrl"] ?? "http://localhost:5173")
+                       .AllowAnyMethod()
+                       .AllowAnyHeader()
+                       .AllowCredentials();
         });
     });
 
-    // 7. Cấu hình Rate Limiting
+    // 2.8. Cấu hình Rate Limiting
     builder.Services.AddRateLimiter(options =>
     {
         options.AddPolicy("auth", httpContext =>
             RateLimitPartition.GetSlidingWindowLimiter(
                 httpContext.User.Identity?.Name ?? "anonymous",
-                partition => new SlidingWindowRateLimiterOptions
+                _ => new SlidingWindowRateLimiterOptions
                 {
                     PermitLimit = 10,
                     Window = TimeSpan.FromMinutes(1),
@@ -129,26 +128,29 @@ void ConfigureServices(WebApplicationBuilder builder)
                     QueueLimit = 5,
                     QueueProcessingOrder = QueueProcessingOrder.OldestFirst
                 }));
+
         options.AddPolicy("booking", httpContext =>
             RateLimitPartition.GetSlidingWindowLimiter(
                 httpContext.User.Identity?.Name ?? "anonymous",
-                partition => new SlidingWindowRateLimiterOptions
+                _ => new SlidingWindowRateLimiterOptions
                 {
                     PermitLimit = 5,
                     Window = TimeSpan.FromMinutes(1),
                     SegmentsPerWindow = 2,
                     QueueLimit = 2
                 }));
+
         options.AddPolicy("fields", httpContext =>
             RateLimitPartition.GetSlidingWindowLimiter(
                 httpContext.User.Identity?.Name ?? "anonymous",
-                partition => new SlidingWindowRateLimiterOptions
+                _ => new SlidingWindowRateLimiterOptions
                 {
                     PermitLimit = 20,
                     Window = TimeSpan.FromMinutes(1),
                     SegmentsPerWindow = 2,
                     QueueLimit = 10
                 }));
+
         options.OnRejected = async (context, token) =>
         {
             context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
@@ -160,33 +162,40 @@ void ConfigureServices(WebApplicationBuilder builder)
         };
     });
 
-    // 8. Cấu hình Redis Cache
+    // 2.9. Cấu hình Redis Cache
     builder.Services.AddStackExchangeRedisCache(options =>
     {
         options.Configuration = builder.Configuration.GetConnectionString("Redis");
         options.InstanceName = "C4F-ISports-";
     });
 
-    // 9. Cấu hình Health Checks
+    // 2.10. Cấu hình Health Checks
     builder.Services.AddHealthChecks()
         .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
         .AddRedis(builder.Configuration.GetConnectionString("Redis"));
 
-    // 10. Thêm Controllers với JSON options
+    // 2.11. Cấu hình Controllers
     builder.Services.AddControllers()
         .AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.PropertyNamingPolicy = null;
         });
 
-    // 11. Cấu hình Swagger
+    // 2.12. Cấu hình Swagger
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
     {
-        options.SwaggerDoc("v2", new OpenApiInfo { Title = "C4F ISports API", Version = "v2.0.0" });
+        options.SwaggerDoc("v2", new OpenApiInfo
+        {
+            Title = "C4F ISports API",
+            Version = "v2.0.0",
+            Description = "API for C4F ISports application, supporting field booking, user management, and more."
+        });
+
         var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
         var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-        options.IncludeXmlComments(xmlPath);
+        options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+
         options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
             In = ParameterLocation.Header,
@@ -195,6 +204,7 @@ void ConfigureServices(WebApplicationBuilder builder)
             Type = SecuritySchemeType.ApiKey,
             Scheme = "Bearer"
         });
+
         options.AddSecurityRequirement(new OpenApiSecurityRequirement
         {
             {
@@ -210,16 +220,24 @@ void ConfigureServices(WebApplicationBuilder builder)
             }
         });
     });
+
+    // 2.13. Cấu hình Generic Repository
+    builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 }
 
+// Hàm cấu hình middleware
 void ConfigureMiddleware(WebApplication app)
 {
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UseSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint("/swagger/v2/swagger.json", "C4F ISports API v2");
+        });
     }
 
+    // Logging middleware
     app.Use(async (context, next) =>
     {
         var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
@@ -229,7 +247,6 @@ void ConfigureMiddleware(WebApplication app)
     });
 
     app.UseCors("AllowSpecificOrigins");
-
     app.UseAuthentication();
     app.UseRateLimiter();
     app.UseAuthorization();
@@ -239,36 +256,36 @@ void ConfigureMiddleware(WebApplication app)
     app.MapControllers();
 }
 
+// Hàm áp dụng migrations và seed dữ liệu
 async Task SeedDatabaseAsync(WebApplication app)
 {
-    using (var scope = app.Services.CreateScope())
+    using var scope = app.Services.CreateScope();
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+
+    try
     {
-        var services = scope.ServiceProvider;
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        try
-        {
-            logger.LogInformation("Starting database migration and seeding...");
-            var context = services.GetRequiredService<ApplicationDbContext>();
-            
-            var canConnect = await context.Database.CanConnectAsync();
-            logger.LogInformation("Database connection status: {CanConnect}", canConnect);
+        logger.LogInformation("Starting database migration and seeding...");
+        var context = services.GetRequiredService<ApplicationDbContext>();
 
-            var accountCount = await context.Accounts.CountAsync();
-            logger.LogInformation("Accounts table has {Count} records before seeding.", accountCount);
+        var canConnect = await context.Database.CanConnectAsync();
+        logger.LogInformation("Database connection status: {CanConnect}", canConnect);
 
-            await context.Database.MigrateAsync();
-            logger.LogInformation("Migrations applied successfully.");
+        var accountCount = await context.Accounts.CountAsync();
+        logger.LogInformation("Accounts table has {Count} records before seeding.", accountCount);
 
-            await SeedData.InitializeAsync(services);
-            logger.LogInformation("Database seeding completed successfully.");
+        await context.Database.MigrateAsync();
+        logger.LogInformation("Migrations applied successfully.");
 
-            accountCount = await context.Accounts.CountAsync();
-            logger.LogInformation("Accounts table has {Count} records after seeding.", accountCount);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An error occurred while migrating or seeding the database. StackTrace: {StackTrace}", ex.StackTrace);
-            throw;
-        }
+        await SeedData.InitializeAsync(services);
+        logger.LogInformation("Database seeding completed successfully.");
+
+        accountCount = await context.Accounts.CountAsync();
+        logger.LogInformation("Accounts table has {Count} records after seeding.", accountCount);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while migrating or seeding the database. StackTrace: {StackTrace}", ex.StackTrace);
+        throw;
     }
 }
