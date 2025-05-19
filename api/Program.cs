@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
 using api.Repositories;
 using api.Models;
+using Polly;
+using Polly.Extensions.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,8 +78,8 @@ void ConfigureServices(WebApplicationBuilder builder)
             ValidAudiences = new[] { jwtSettings["Audience"] },
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtSettings["Secret"]))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"])),
+            ClockSkew = TimeSpan.FromSeconds(30) // Thời gian chờ thêm sau khi hết hạn
         };
     });
 
@@ -100,7 +102,14 @@ void ConfigureServices(WebApplicationBuilder builder)
     });
 
     // 2.6. Cấu hình SendGridService
-    builder.Services.AddScoped<IEmailSender, SendGridEmailSender>();
+    var retryPolicy = HttpPolicyExtensions
+    .HandleTransientHttpError()
+    .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+
+    builder.Services.AddHttpClient<IEmailSender, SendGridEmailSender>(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(30);
+    }).AddPolicyHandler(retryPolicy);
 
     // 2.7. Cấu hình CORS
     builder.Services.AddCors(options =>
@@ -176,9 +185,10 @@ void ConfigureServices(WebApplicationBuilder builder)
 
     // 2.11. Cấu hình Controllers
     builder.Services.AddControllers()
-        .AddJsonOptions(options =>
+        .AddNewtonsoftJson(options =>
         {
-            options.JsonSerializerOptions.PropertyNamingPolicy = null;
+            options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
         });
 
     // 2.12. Cấu hình Swagger
@@ -221,8 +231,22 @@ void ConfigureServices(WebApplicationBuilder builder)
         });
     });
 
-    // 2.13. Cấu hình Generic Repository
+    // 2.13. Cấu hình Services và Repositories
+    builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+    builder.Services.AddScoped<IAuthService, AuthService>();
+    builder.Services.AddScoped<IEmailSender, SendGridEmailSender>();
+    builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+
+    // 2.15 Cấu hình Logging
+    builder.Services.AddLogging(logging =>
+    {
+        logging.ClearProviders();
+        logging.AddConsole();
+        logging.AddDebug();
+        logging.AddEventSourceLogger();
+        logging.AddFilter("api.Services.AuthService", LogLevel.Debug);
+    });
 }
 
 // Hàm cấu hình middleware
