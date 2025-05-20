@@ -13,7 +13,7 @@ namespace api.Controllers
     [Route("api/users")]
     [ApiController]
     [Authorize]
-    [EnableRateLimiting("api")]
+    // [EnableRateLimiting("auth")] // Không sử dụng Rate Limiting cho các API trong UserController
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
