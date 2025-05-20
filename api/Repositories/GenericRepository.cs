@@ -35,6 +35,16 @@ namespace api.Repositories
             return await _dbSet.Where(predicate).ToListAsync();
         }
 
+        public async Task<T?> FindSingleAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.Where(predicate).FirstOrDefaultAsync();
+        }
+
+        public IQueryable<T> FindQueryable(Expression<Func<T, bool>> predicate)
+        {
+            return _dbSet.Where(predicate);
+        }
+
         public async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
