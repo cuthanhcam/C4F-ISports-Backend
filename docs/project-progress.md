@@ -29,7 +29,7 @@ Dự án được chia thành 8 giai đoạn, mỗi giai đoạn tập trung và
 
 - **Nhánh**: `feature/authentication`
 - **Thời gian**: 4 ngày
-- **Trạng thái**: Chưa bắt đầu
+- **Trạng thái**: Hoàn thành
 - **Công việc**:
   - Triển khai `AuthService` (JWT login, refresh token).
   - Tạo `AuthController` với các endpoint (`/api/auth/register`, `/api/auth/login`, `/api/auth/refresh-token`, `/api/auth/forgot-password`, `/api/auth/reset-password`, `/api/auth/verify-email`).

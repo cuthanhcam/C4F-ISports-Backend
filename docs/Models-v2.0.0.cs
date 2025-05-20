@@ -82,8 +82,8 @@ namespace api.Models
         public bool IsReminderSent { get; set; } = false;
         public int? PromotionId { get; set; }
 
-        public required User User { get; set; }
-        public required SubField SubField { get; set; }
+        public User User { get; set; }
+        public SubField SubField { get; set; }
         public Booking? MainBooking { get; set; }
         public ICollection<Booking> RelatedBookings { get; set; } = new List<Booking>();
         public Promotion? Promotion { get; set; }
@@ -116,8 +116,8 @@ namespace api.Models
         [StringLength(500)]
         public string? Description { get; set; }
 
-        public required Booking Booking { get; set; }
-        public required FieldService FieldService { get; set; }
+        public Booking Booking { get; set; }
+        public FieldService FieldService { get; set; }
     }
 }
 using System;
@@ -143,7 +143,21 @@ namespace api.Models
         [Required]
         public decimal Price { get; set; }
 
-        public required Booking Booking { get; set; }
+        public Booking Booking { get; set; }
+    }
+}
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace api.Models
+{
+    public class CloudinarySettings
+    {
+        public string CloudName { get; set; } = string.Empty;
+        public string ApiKey { get; set; } = string.Empty;
+        public string ApiSecret { get; set; } = string.Empty;
     }
 }
 using System;
@@ -164,8 +178,8 @@ namespace api.Models
         [Required]
         public DateTime AddedDate { get; set; }
 
-        public required User User { get; set; }
-        public required Field Field { get; set; }
+        public User User { get; set; }
+        public Field Field { get; set; }
     }
 }
 using System;
@@ -218,8 +232,8 @@ namespace api.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        public required Sport Sport { get; set; }
-        public required Owner Owner { get; set; }
+        public Sport Sport { get; set; }
+        public Owner Owner { get; set; }
         public ICollection<SubField> SubFields { get; set; } = new List<SubField>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
         public ICollection<FieldImage> FieldImages { get; set; } = new List<FieldImage>();
@@ -252,7 +266,7 @@ namespace api.Models
         [StringLength(500), Url]
         public string? IconUrl { get; set; }
 
-        public required Field Field { get; set; }
+        public Field Field { get; set; }
     }
 }
 using System;
@@ -272,7 +286,7 @@ namespace api.Models
         [Required, StringLength(2000)]
         public required string Description { get; set; }
 
-        public required Field Field { get; set; }
+        public Field Field { get; set; }
     }
 }
 using System;
@@ -298,7 +312,7 @@ namespace api.Models
         public bool IsPrimary { get; set; }
         public DateTime UploadedAt { get; set; }
 
-        public required Field Field { get; set; }
+        public Field Field { get; set; }
     }
 }
 using System;
@@ -329,7 +343,7 @@ namespace api.Models
 
         public bool IsActive { get; set; } = true;
 
-        public required SubField SubField { get; set; }
+        public SubField SubField { get; set; }
     }
 }
 using System;
@@ -357,7 +371,7 @@ namespace api.Models
 
         public bool IsActive { get; set; } = true;
 
-        public required Field Field { get; set; }
+        public Field Field { get; set; }
         public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
     }
 }
@@ -388,7 +402,7 @@ namespace api.Models
         [StringLength(50)]
         public string? NotificationType { get; set; } // "Booking", "Promotion", "System"
 
-        public required User User { get; set; }
+        public User User { get; set; }
     }
 }
 using System;
@@ -417,7 +431,7 @@ namespace api.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        public required Account Account { get; set; }
+        public Account Account { get; set; }
         public ICollection<Field> Fields { get; set; } = new List<Field>();
     }
 }
@@ -453,7 +467,7 @@ namespace api.Models
         public DateTime CreatedAt { get; set; }
         public DateTime? PaymentDate { get; set; }
 
-        public required Booking Booking { get; set; }
+        public Booking Booking { get; set; }
     }
 }
 using System;
@@ -524,7 +538,7 @@ namespace api.Models
         [StringLength(256)]
         public string? ReplacedByToken { get; set; }
 
-        public required Account Account { get; set; }
+        public Account Account { get; set; }
     }
 }
 using System;
@@ -557,8 +571,8 @@ namespace api.Models
         public DateTime? ReplyDate { get; set; }
         public bool IsVisible { get; set; } = true;
 
-        public required User User { get; set; }
-        public required Field Field { get; set; }
+        public User User { get; set; }
+        public Field Field { get; set; }
     }
 }
 using System;
@@ -585,7 +599,7 @@ namespace api.Models
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
 
-        public required User User { get; set; }
+        public User User { get; set; }
         public Field? Field { get; set; }
     }
 }
@@ -645,7 +659,7 @@ namespace api.Models
         [StringLength(500)]
         public string? Description { get; set; }
 
-        public required Field Field { get; set; }
+        public Field Field { get; set; }
         public ICollection<FieldPricing> FieldPricings { get; set; } = new List<FieldPricing>();
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     }
@@ -688,26 +702,11 @@ namespace api.Models
         [StringLength(100)]
         public string? District { get; set; }
 
-        public required Account Account { get; set; }
+        public Account Account { get; set; }
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
         public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         public ICollection<FavoriteField> FavoriteFields { get; set; } = new List<FavoriteField>();
         public ICollection<SearchHistory> SearchHistories { get; set; } = new List<SearchHistory>();
-    }
-}
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace api.Models
-{
-    public class CloudinarySettings
-    {
-        public string CloudName { get; set; } = string.Empty;
-        public string ApiKey { get; set; } = string.Empty;
-        public string ApiSecret { get; set; } = string.Empty;
     }
 }
