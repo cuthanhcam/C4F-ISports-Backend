@@ -1,6 +1,7 @@
 using api.Dtos.Auth;
 using api.Interfaces;
 using api.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -29,12 +30,15 @@ namespace api.Services
 
         public async Task<(string Token, string RefreshToken)> RegisterAsync(RegisterDto registerDto)
         {
+            _logger.LogInformation("Starting registration for {Email}", registerDto.Email);
+
             if (registerDto.Role == "Admin")
             {
                 _logger.LogWarning("Attempt to register Admin role by {Email}", registerDto.Email);
                 throw new ArgumentException("Không thể đăng ký tài khoản với vai trò Admin.");
             }
 
+            _logger.LogInformation("Checking for existing account: {Email}", registerDto.Email);
             var existingAccount = (await _unitOfWork.Repository<Account>().FindAsync(a => a.Email == registerDto.Email)).FirstOrDefault();
             if (existingAccount != null)
             {
@@ -42,73 +46,88 @@ namespace api.Services
                 throw new ArgumentException("Email đã tồn tại.");
             }
 
-            await _unitOfWork.BeginTransactionAsync();
-            try
+            var account = new Account
             {
-                var account = new Account
-                {
-                    Email = registerDto.Email,
-                    Password = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
-                    Role = registerDto.Role,
-                    IsActive = false,
-                    CreatedAt = DateTime.UtcNow,
-                    VerificationToken = GenerateSecureToken(),
-                    VerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
-                };
+                Email = registerDto.Email,
+                Password = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
+                Role = registerDto.Role,
+                IsActive = false,
+                CreatedAt = DateTime.UtcNow,
+                VerificationToken = GenerateSecureToken(),
+                VerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
+            };
 
-                await _unitOfWork.Repository<Account>().AddAsync(account);
-                await _unitOfWork.SaveChangesAsync();
-
-                if (registerDto.Role == "User")
-                {
-                    var user = new User
-                    {
-                        AccountId = account.AccountId,
-                        FullName = registerDto.FullName,
-                        Phone = registerDto.Phone,
-                        Gender = null,
-                        DateOfBirth = null,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    await _unitOfWork.Repository<User>().AddAsync(user);
-                }
-                else if (registerDto.Role == "Owner")
-                {
-                    var owner = new Owner
-                    {
-                        AccountId = account.AccountId,
-                        FullName = registerDto.FullName,
-                        Phone = registerDto.Phone,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-                    await _unitOfWork.Repository<Owner>().AddAsync(owner);
-                }
-
-                await _unitOfWork.SaveChangesAsync();
-
-                var verificationLink = $"{_configuration["AppUrl"]}/api/auth/verify-email?email={Uri.EscapeDataString(account.Email)}&token={Uri.EscapeDataString(account.VerificationToken)}";
-                var emailSubject = "Xác thực tài khoản C4F ISports";
-                var emailBody = $"<h3>Xin chào {registerDto.FullName},</h3>" +
-                                $"<p>Vui lòng nhấp vào liên kết sau để xác thực email của bạn:</p>" +
-                                $"<a href='{verificationLink}'>Xác thực ngay</a>" +
-                                $"<p>Liên kết này có hiệu lực trong 24 giờ.</p>" +
-                                $"<p>Trân trọng,<br/>Đội ngũ C4F ISports</p>";
-                await _emailSender.SendEmailAsync(account.Email, emailSubject, emailBody);
-                _logger.LogInformation("Verification email sent to {Email}", account.Email);
-
-                var (token, refreshToken) = await GenerateTokensAsync(account);
-
-                await _unitOfWork.CommitTransactionAsync();
-                _logger.LogInformation("User registered successfully: {Email}", registerDto.Email);
-                return (token, refreshToken);
-            }
-            catch (Exception ex)
+            // Sử dụng execution strategy cho giao dịch
+            var strategy = _unitOfWork.Context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
             {
-                await _unitOfWork.RollbackTransactionAsync();
-                _logger.LogError(ex, "Error during registration for {Email}", registerDto.Email);
-                throw;
-            }
+                await using var transaction = await _unitOfWork.BeginTransactionAsync();
+                try
+                {
+                    _logger.LogInformation("Transaction started for {Email}", registerDto.Email);
+
+                    _logger.LogInformation("Adding account for {Email}", registerDto.Email);
+                    await _unitOfWork.Repository<Account>().AddAsync(account);
+                    await _unitOfWork.SaveChangesAsync();
+
+                    if (registerDto.Role == "User")
+                    {
+                        var user = new User
+                        {
+                            AccountId = account.AccountId,
+                            FullName = registerDto.FullName,
+                            Phone = registerDto.Phone,
+                            Gender = null,
+                            DateOfBirth = null,
+                            CreatedAt = DateTime.UtcNow
+                        };
+                        _logger.LogInformation("Adding user for {Email}", registerDto.Email);
+                        await _unitOfWork.Repository<User>().AddAsync(user);
+                    }
+                    else if (registerDto.Role == "Owner")
+                    {
+                        var owner = new Owner
+                        {
+                            AccountId = account.AccountId,
+                            FullName = registerDto.FullName,
+                            Phone = registerDto.Phone,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        };
+                        _logger.LogInformation("Adding owner for {Email}", registerDto.Email);
+                        await _unitOfWork.Repository<Owner>().AddAsync(owner);
+                    }
+
+                    _logger.LogInformation("Saving changes for {Email}", registerDto.Email);
+                    await _unitOfWork.SaveChangesAsync();
+
+                    var verificationLink = $"{_configuration["AppUrl"]}/api/auth/verify-email?email={Uri.EscapeDataString(account.Email)}&token={Uri.EscapeDataString(account.VerificationToken)}";
+                    var emailSubject = "Xác thực tài khoản C4F ISports";
+                    var emailBody = $"<h3>Xin chào {registerDto.FullName},</h3>" +
+                                    $"<p>Vui lòng nhấp vào liên kết sau để xác thực email của bạn:</p>" +
+                                    $"<a href='{verificationLink}'>Xác thực ngay</a>" +
+                                    $"<p>Liên kết này có hiệu lực trong 24 giờ.</p>" +
+                                    $"<p>Trân trọng,<br/>Đội ngũ C4F ISports</p>";
+
+                    _logger.LogInformation("Email sending skipped for {Email}", account.Email);
+                    await _emailSender.SendEmailAsync(account.Email, emailSubject, emailBody);
+
+                    _logger.LogInformation("Generating tokens for {Email}", account.Email);
+                    var (token, refreshToken) = await GenerateTokensAsync(account);
+
+                    _logger.LogInformation("Committing transaction for {Email}", registerDto.Email);
+                    await _unitOfWork.CommitTransactionAsync();
+                    _logger.LogInformation("User registered successfully: {Email}", registerDto.Email);
+
+                    return (token, refreshToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error during registration for {Email}. Rolling back transaction.", registerDto.Email);
+                    await _unitOfWork.RollbackTransactionAsync();
+                    throw;
+                }
+            });
         }
 
         public async Task<(string Token, string RefreshToken)> LoginAsync(LoginDto loginDto)
