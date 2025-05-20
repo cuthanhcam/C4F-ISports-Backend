@@ -101,21 +101,26 @@ void ConfigureServices(WebApplicationBuilder builder)
         client.Timeout = TimeSpan.FromSeconds(60);
     });
 
-    // 2.6. Cấu hình SendGridEmailSender - MailjetEmailSender
+    // 2.6. Cấu hình Email Sender
     var retryPolicy = HttpPolicyExtensions
     .HandleTransientHttpError()
     .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+
+    builder.Services.AddHttpClient<IEmailSender, GmailSmtpEmailSender>(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(30);
+    }).AddPolicyHandler(retryPolicy);
 
     /*
     builder.Services.AddHttpClient<IEmailSender, SendGridEmailSender>(client =>
     {
         client.Timeout = TimeSpan.FromSeconds(30);
     }).AddPolicyHandler(retryPolicy);
-    */
     builder.Services.AddHttpClient<IEmailSender, MailjetEmailSender>(client =>
     {
         client.Timeout = TimeSpan.FromSeconds(30);
     }).AddPolicyHandler(retryPolicy);
+    */
 
     // 2.7. Cấu hình CORS
     builder.Services.AddCors(options =>
@@ -132,18 +137,20 @@ void ConfigureServices(WebApplicationBuilder builder)
     // 2.8. Cấu hình Rate Limiting
     builder.Services.AddRateLimiter(options =>
     {
+        // Rate limit cho auth endpoints
         options.AddPolicy("auth", httpContext =>
             RateLimitPartition.GetSlidingWindowLimiter(
                 httpContext.User.Identity?.Name ?? "anonymous",
                 _ => new SlidingWindowRateLimiterOptions
                 {
-                    PermitLimit = 10,
+                    PermitLimit = 15,
                     Window = TimeSpan.FromMinutes(1),
                     SegmentsPerWindow = 2,
                     QueueLimit = 5,
                     QueueProcessingOrder = QueueProcessingOrder.OldestFirst
                 }));
 
+        // Rate limit cho booking endpoints
         options.AddPolicy("booking", httpContext =>
             RateLimitPartition.GetSlidingWindowLimiter(
                 httpContext.User.Identity?.Name ?? "anonymous",
@@ -155,6 +162,7 @@ void ConfigureServices(WebApplicationBuilder builder)
                     QueueLimit = 2
                 }));
 
+        // Rate limit cho field endpoints
         options.AddPolicy("fields", httpContext =>
             RateLimitPartition.GetSlidingWindowLimiter(
                 httpContext.User.Identity?.Name ?? "anonymous",
@@ -166,6 +174,20 @@ void ConfigureServices(WebApplicationBuilder builder)
                     QueueLimit = 10
                 }));
 
+        // Rate limit chung cho API
+        options.AddPolicy("api", httpContext =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+            httpContext.User.Identity?.Name ?? "anonymous",
+            _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit = 15,
+                Window = TimeSpan.FromMinutes(1),
+                SegmentsPerWindow = 2,
+                QueueLimit = 5,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+            })); 
+
+        // Xử lý khi vượt quá rate limit
         options.OnRejected = async (context, token) =>
         {
             context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
@@ -241,8 +263,7 @@ void ConfigureServices(WebApplicationBuilder builder)
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
     builder.Services.AddScoped<IAuthService, AuthService>();
-    // builder.Services.AddScoped<IEmailSender, SendGridEmailSender>();
-    // builder.Services.AddScoped<IEmailSender, MailjetEmailSender>();
+    builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IEmailSender, GmailSmtpEmailSender>();
     builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
