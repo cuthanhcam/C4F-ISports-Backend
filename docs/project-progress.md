@@ -43,7 +43,7 @@ Dự án được chia thành 8 giai đoạn, mỗi giai đoạn tập trung và
 
 - **Nhánh**: `feature/user-management`
 - **Thời gian**: 4 ngày
-- **Trạng thái**: Chưa bắt đầu
+- **Trạng thái**: Hoàn thành
 - **Công việc**:
   - Tạo `UserService`, `UserController` cho quản lý profile, lịch sử đặt sân, sân yêu thích, điểm thưởng.
   - Triển khai thêm/xóa sân yêu thích (`/api/users/favorites`).
