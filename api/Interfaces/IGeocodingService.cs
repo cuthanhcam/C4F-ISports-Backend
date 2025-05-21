@@ -10,4 +10,4 @@ namespace api.Interfaces
     {
         Task<AddressValidationResultDto> ValidateAddressAsync(ValidateAddressDto addressDto);
     }
-}
+}   
