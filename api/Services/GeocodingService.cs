@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
 using api.Interfaces;
 using Microsoft.Extensions.Logging;
+using api.Dtos.Field;
+using api.Dtos.Field.AddressValidationDtos;
 
 namespace api.Services
 {
@@ -15,35 +17,57 @@ namespace api.Services
 
         public GeocodingService(IConfiguration configuration, HttpClient httpClient, ILogger<GeocodingService> logger)
         {
-            _configuration = configuration;
-            _httpClient = httpClient;
-            _logger = logger;
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<(decimal latitude, decimal longitude)> GetCoordinatesFromAddressAsync(string fieldName, string address)
+        public async Task<AddressValidationResultDto> ValidateAddressAsync(ValidateAddressDto addressDto)
         {
-            var query = NormalizeQuery(fieldName, address);
+            var query = NormalizeQuery(addressDto);
             try
             {
                 return await GetCoordinatesFromOpenCageAsync(query);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning("Failed with full query: {Query}. Retrying with address only: {Address}", query, address);
-                return await GetCoordinatesFromOpenCageAsync(address);
+                _logger.LogWarning("Failed with full query: {Query}. Retrying with address only: {Address}", query, addressDto.Address);
+                try
+                {
+                    return await GetCoordinatesFromOpenCageAsync(addressDto.Address);
+                }
+                catch (Exception innerEx)
+                {
+                    _logger.LogError(innerEx, "Failed to validate address for query: {Query}", addressDto.Address);
+                    return new AddressValidationResultDto
+                    {
+                        IsValid = false,
+                        FormattedAddress = addressDto.Address,
+                        Latitude = 0,
+                        Longitude = 0
+                    };
+                }
             }
         }
 
-        private string NormalizeQuery(string fieldName, string address)
+        private string NormalizeQuery(ValidateAddressDto addressDto)
         {
-            if (string.IsNullOrWhiteSpace(address))
+            if (string.IsNullOrWhiteSpace(addressDto.Address))
             {
                 _logger.LogError("Address is null or empty");
                 throw new ArgumentException("Địa chỉ không được để trống");
             }
 
-            address = address.Trim();
-            var query = string.IsNullOrWhiteSpace(fieldName) ? address : $"{fieldName}, {address}";
+            var queryParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(addressDto.FieldName))
+                queryParts.Add(addressDto.FieldName.Trim());
+            queryParts.Add(addressDto.Address.Trim());
+            if (!string.IsNullOrWhiteSpace(addressDto.District))
+                queryParts.Add(addressDto.District.Trim());
+            if (!string.IsNullOrWhiteSpace(addressDto.City))
+                queryParts.Add(addressDto.City.Trim());
+
+            var query = string.Join(", ", queryParts);
 
             if (!query.EndsWith(", Việt Nam", StringComparison.OrdinalIgnoreCase) &&
                 !query.EndsWith(", Vietnam", StringComparison.OrdinalIgnoreCase))
@@ -55,7 +79,7 @@ namespace api.Services
             return query;
         }
 
-        private async Task<(decimal latitude, decimal longitude)> GetCoordinatesFromOpenCageAsync(string query)
+        private async Task<AddressValidationResultDto> GetCoordinatesFromOpenCageAsync(string query)
         {
             var apiKey = _configuration["Geocoding:OpenCageApiKey"];
             var baseUrl = _configuration["Geocoding:OpenCageGeocodingUrl"];
@@ -63,7 +87,7 @@ namespace api.Services
             if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(baseUrl))
             {
                 _logger.LogError("OpenCage API configuration is missing: ApiKey={ApiKey}, BaseUrl={BaseUrl}", apiKey, baseUrl);
-                throw new Exception("Cấu hình API OpenCage không hợp lệ.");
+                throw new InvalidOperationException("Cấu hình API OpenCage không hợp lệ.");
             }
 
             var encodedQuery = WebUtility.UrlEncode(query);
@@ -83,34 +107,48 @@ namespace api.Services
                 }
 
                 var result = JsonSerializer.Deserialize<OpenCageGeocodingResponse>(content);
-                if (result == null)
-                {
-                    _logger.LogError("Deserialization failed: Result is null for query: {Query}", query);
-                    throw new Exception($"Không thể phân tích phản hồi từ OpenCage cho: {query}");
-                }
-
-                if (result.Results == null || result.Results.Length == 0)
+                if (result == null || result.Results == null || result.Results.Length == 0)
                 {
                     _logger.LogWarning("No geocoding results found for query: {Query}. Full response: {Response}", query, content);
-                    throw new Exception($"Không tìm thấy tọa độ cho: {query}");
+                    return new AddressValidationResultDto
+                    {
+                        IsValid = false,
+                        FormattedAddress = query,
+                        Latitude = 0,
+                        Longitude = 0
+                    };
                 }
 
                 var firstResult = result.Results[0];
                 if (firstResult.Geometry == null)
                 {
                     _logger.LogError("Geometry is null in first result for query: {Query}", query);
-                    throw new Exception($"Không tìm thấy tọa độ trong kết quả cho: {query}");
+                    return new AddressValidationResultDto
+                    {
+                        IsValid = false,
+                        FormattedAddress = query,
+                        Latitude = 0,
+                        Longitude = 0
+                    };
                 }
 
                 var lat = (decimal)Math.Round(firstResult.Geometry.Lat, 6);
                 var lng = (decimal)Math.Round(firstResult.Geometry.Lng, 6);
-                _logger.LogInformation("Coordinates retrieved: Lat={Lat}, Lng={Lng}", lat, lng);
+                var formattedAddress = firstResult.Formatted ?? query;
 
-                return (lat, lng);
+                _logger.LogInformation("Address validated: Lat={Lat}, Lng={Lng}, FormattedAddress={FormattedAddress}", lat, lng, formattedAddress);
+
+                return new AddressValidationResultDto
+                {
+                    IsValid = true,
+                    Latitude = lat,
+                    Longitude = lng,
+                    FormattedAddress = formattedAddress
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get coordinates for query: {Query}", query);
+                _logger.LogError(ex, "Failed to validate address for query: {Query}", query);
                 throw;
             }
         }
@@ -118,22 +156,22 @@ namespace api.Services
         public class OpenCageGeocodingResponse
         {
             [JsonPropertyName("results")]
-            public OpenCageResult[] Results { get; set; }
+            public OpenCageResult[] Results { get; set; } = Array.Empty<OpenCageResult>();
 
             [JsonPropertyName("status")]
-            public OpenCageStatus Status { get; set; }
+            public OpenCageStatus Status { get; set; } = new OpenCageStatus();
         }
 
         public class OpenCageResult
         {
             [JsonPropertyName("geometry")]
-            public OpenCageGeometry Geometry { get; set; }
+            public OpenCageGeometry Geometry { get; set; } = new OpenCageGeometry();
 
             [JsonPropertyName("components")]
-            public Dictionary<string, object> Components { get; set; }
+            public Dictionary<string, object> Components { get; set; } = new Dictionary<string, object>();
 
             [JsonPropertyName("formatted")]
-            public string Formatted { get; set; }
+            public string Formatted { get; set; } = string.Empty;
         }
 
         public class OpenCageGeometry
@@ -151,7 +189,7 @@ namespace api.Services
             public int Code { get; set; }
 
             [JsonPropertyName("message")]
-            public string Message { get; set; }
+            public string Message { get; set; } = string.Empty;
         }
     }
 }
