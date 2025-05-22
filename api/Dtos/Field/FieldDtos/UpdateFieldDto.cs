@@ -8,32 +8,28 @@ namespace api.Dtos.Field
 {
     public class UpdateFieldDto
     {
-        [Required(ErrorMessage = "Tên sân là bắt buộc.")]
-        [StringLength(100, ErrorMessage = "Tên sân không được vượt quá 100 ký tự.")]
+        [Required, StringLength(100)]
         public string FieldName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Địa chỉ là bắt buộc.")]
-        [StringLength(500, ErrorMessage = "Địa chỉ không được vượt quá 500 ký tự.")]
+        [Required, StringLength(20)]
+        public string Phone { get; set; } = string.Empty;
+
+        [Required, StringLength(500)]
         public string Address { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Thành phố là bắt buộc.")]
-        [StringLength(100, ErrorMessage = "Thành phố không được vượt quá 100 ký tự.")]
-        public string City { get; set; } = string.Empty;
+        [StringLength(100)]
+        public string? City { get; set; }
 
-        [Required(ErrorMessage = "Quận là bắt buộc.")]
-        [StringLength(100, ErrorMessage = "Quận không được vượt quá 100 ký tự.")]
-        public string District { get; set; } = string.Empty;
+        [StringLength(100)]
+        public string? District { get; set; }
 
-        [Required(ErrorMessage = "Giờ mở cửa là bắt buộc.")]
-        [RegularExpression(@"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$", ErrorMessage = "Giờ mở cửa phải có định dạng HH:mm.")]
-        public string OpenTime { get; set; } = string.Empty;
+        [Required, StringLength(100), RegularExpression(@"^\d{2}:\d{2}-\d{2}:\d{2}$", ErrorMessage = "OpenHours must be in format HH:mm-HH:mm")]
+        public string OpenHours { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Giờ đóng cửa là bắt buộc.")]
-        [RegularExpression(@"^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$", ErrorMessage = "Giờ đóng cửa phải có định dạng HH:mm.")]
-        public string CloseTime { get; set; } = string.Empty;
+        [Required, StringLength(20), RegularExpression("^(Active|Inactive|Maintenance)$")]
+        public string Status { get; set; } = "Active";
 
-        [Required(ErrorMessage = "ID môn thể thao là bắt buộc.")]
-        [Range(1, int.MaxValue, ErrorMessage = "ID môn thể thao phải là số nguyên dương.")]
+        [Required]
         public int SportId { get; set; }
     }
 }

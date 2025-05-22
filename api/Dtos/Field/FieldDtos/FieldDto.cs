@@ -16,20 +16,23 @@ namespace api.Dtos.Field
     {
         public int FieldId { get; set; }
         public string FieldName { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
-        public string City { get; set; } = string.Empty;
-        public string District { get; set; } = string.Empty;
+        public string? City { get; set; }
+        public string? District { get; set; }
+        public string OpenHours { get; set; } = string.Empty;
+        public string? OpenTime { get; set; }
+        public string? CloseTime { get; set; }
+        public string Status { get; set; } = "Active";
         public decimal Latitude { get; set; }
         public decimal Longitude { get; set; }
-        public string OpenTime { get; set; } = string.Empty;
-        public string CloseTime { get; set; } = string.Empty;
         public decimal? AverageRating { get; set; }
         public int SportId { get; set; }
         public List<SubFieldDto> SubFields { get; set; } = new List<SubFieldDto>();
-        public List<FieldImageDto> Images { get; set; } = new List<FieldImageDto>();
-        public List<FieldServiceDto> Services { get; set; } = new List<FieldServiceDto>();
-        public List<FieldAmenityDto> Amenities { get; set; } = new List<FieldAmenityDto>();
-        public List<FieldDescriptionDto> Descriptions { get; set; } = new List<FieldDescriptionDto>();
-        public List<FieldPricingDto> Pricing { get; set; } = new List<FieldPricingDto>();
+        public List<FieldImageDto> FieldImages { get; set; } = new List<FieldImageDto>();
+        public List<FieldServiceDto> FieldServices { get; set; } = new List<FieldServiceDto>();
+        public List<FieldAmenityDto> FieldAmenities { get; set; } = new List<FieldAmenityDto>();
+        public List<FieldDescriptionDto> FieldDescriptions { get; set; } = new List<FieldDescriptionDto>();
+        public List<FieldPricingDto> FieldPricings { get; set; } = new List<FieldPricingDto>();
     }
 }
