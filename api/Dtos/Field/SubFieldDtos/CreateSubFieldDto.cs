@@ -8,16 +8,19 @@ namespace api.Dtos.Field.SubFieldDtos
 {
     public class CreateSubFieldDto
     {
-        [Required(ErrorMessage = "Tên sân nhỏ là bắt buộc.")]
-        [StringLength(100, ErrorMessage = "Tên sân nhỏ không được vượt quá 100 ký tự.")]
+        [Required, StringLength(100)]
         public string SubFieldName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Loại sân là bắt buộc.")]
-        [StringLength(50, ErrorMessage = "Loại sân không được vượt quá 50 ký tự.")]
+        [Required, StringLength(50)]
         public string FieldType { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Sức chứa là bắt buộc.")]
-        [Range(1, 100, ErrorMessage = "Sức chứa phải từ 1 đến 100 người.")]
+        [StringLength(20), RegularExpression("^(Active|Inactive)$")]
+        public string? Status { get; set; }
+
+        [Required, Range(1, int.MaxValue)]
         public int Capacity { get; set; }
+
+        [StringLength(500)]
+        public string? Description { get; set; }
     }
 }

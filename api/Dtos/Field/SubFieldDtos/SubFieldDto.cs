@@ -10,6 +10,8 @@ namespace api.Dtos.Field.SubFieldDtos
         public int SubFieldId { get; set; }
         public string SubFieldName { get; set; } = string.Empty;
         public string FieldType { get; set; } = string.Empty;
+        public string Status { get; set; } = "Active";
         public int Capacity { get; set; }
+        public string? Description { get; set; }
     }
 }
