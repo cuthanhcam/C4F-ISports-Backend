@@ -15,6 +15,9 @@ namespace api.Models
         [Required, StringLength(500), Url]
         public required string ImageUrl { get; set; }
 
+        [StringLength(500)]
+        public string? PublicId { get; set; } // Added for Cloudinary
+
         [StringLength(500), Url]
         public string? Thumbnail { get; set; }
 
