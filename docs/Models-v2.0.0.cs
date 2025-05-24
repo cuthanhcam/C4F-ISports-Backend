@@ -40,12 +40,6 @@ namespace api.Models
         public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -92,12 +86,6 @@ namespace api.Models
         public ICollection<BookingTimeSlot> TimeSlots { get; set; } = new List<BookingTimeSlot>();
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -120,12 +108,6 @@ namespace api.Models
         public FieldService FieldService { get; set; }
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -146,10 +128,6 @@ namespace api.Models
         public Booking Booking { get; set; }
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace api.Models
 {
@@ -160,12 +138,6 @@ namespace api.Models
         public string ApiSecret { get; set; } = string.Empty;
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -182,12 +154,7 @@ namespace api.Models
         public Field Field { get; set; }
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+
 
 namespace api.Models
 {
@@ -243,12 +210,6 @@ namespace api.Models
         public ICollection<FavoriteField> FavoriteFields { get; set; } = new List<FavoriteField>();
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -269,12 +230,6 @@ namespace api.Models
         public Field Field { get; set; }
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -289,12 +244,6 @@ namespace api.Models
         public Field Field { get; set; }
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -306,6 +255,9 @@ namespace api.Models
         [Required, StringLength(500), Url]
         public required string ImageUrl { get; set; }
 
+        [StringLength(500)]
+        public string? PublicId { get; set; } // Added for Cloudinary
+
         [StringLength(500), Url]
         public string? Thumbnail { get; set; }
 
@@ -315,12 +267,6 @@ namespace api.Models
         public Field Field { get; set; }
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -346,12 +292,6 @@ namespace api.Models
         public SubField SubField { get; set; }
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -375,12 +315,6 @@ namespace api.Models
         public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -405,12 +339,6 @@ namespace api.Models
         public User User { get; set; }
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -435,12 +363,6 @@ namespace api.Models
         public ICollection<Field> Fields { get; set; } = new List<Field>();
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -470,12 +392,6 @@ namespace api.Models
         public Booking Booking { get; set; }
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -510,12 +426,6 @@ namespace api.Models
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -541,12 +451,6 @@ namespace api.Models
         public Account Account { get; set; }
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -575,12 +479,6 @@ namespace api.Models
         public Field Field { get; set; }
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -603,12 +501,6 @@ namespace api.Models
         public Field? Field { get; set; }
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -630,12 +522,6 @@ namespace api.Models
         public ICollection<Field> Fields { get; set; } = new List<Field>();
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
@@ -664,12 +550,6 @@ namespace api.Models
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     }
 }
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace api.Models
 {
