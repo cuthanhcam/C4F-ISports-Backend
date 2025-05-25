@@ -1,60 +1,11 @@
 # API Endpoints - C4F-ISports v2.0.0
 
-## Base URL
-
-```
-https://api.c4f-isports.com/v2
-```
-
 ## Authentication
 
 - Most endpoints require a **JWT Bearer Token** in the `Authorization` header: `Authorization: Bearer <token>`.
 - Endpoints marked with `[Public]` are accessible without authentication.
 - Endpoints marked with `[User]`, `[Owner]`, or `[Admin]` require specific roles.
 - Authentication is handled via JWT Bearer Tokens.
-
-## Error Responses
-
-- **400 Bad Request**: Invalid input or request parameters.
-  ```json
-  {
-    "error": "Invalid input",
-    "details": [
-      {
-        "field": "email",
-        "message": "Email is required"
-      }
-    ]
-  }
-  ```
-- **401 Unauthorized**: Missing or invalid authentication token.
-  ```json
-  {
-    "error": "Unauthorized",
-    "message": "Invalid or missing token"
-  }
-  ```
-- **403 Forbidden**: User lacks permission for the action.
-  ```json
-  {
-    "error": "Forbidden",
-    "message": "You do not have permission to perform this action"
-  }
-  ```
-- **404 Not Found**: Resource not found.
-  ```json
-  {
-    "error": "Resource not found",
-    "message": "The requested resource does not exist"
-  }
-  ```
-- **500 Internal Server Error**: Server-side issue.
-  ```json
-  {
-    "error": "Internal server error",
-    "message": "An unexpected error occurred"
-  }
-  ```
 
 ---
 
@@ -102,37 +53,6 @@ https://api.c4f-isports.com/v2
       ]
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "email": "user@example.com",
-    "password": "Password123!",
-    "fullName": "Nguyen Van A",
-    "phone": "0909123456",
-    "role": "User",
-    "city": "Hà Nội",
-    "district": "Đống Đa"
-  }
-
-  // Response
-  {
-    "accountId": 1,
-    "email": "user@example.com",
-    "role": "User",
-    "message": "Account created. Please verify your email.",
-    "verificationToken": "abc123"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"Password123!","fullName":"Nguyen Van A","phone":"0909123456","role":"User","city":"Hà Nội","district":"Đống Đa"}'
-  ```
-
 ---
 
 ### 1.2. Login
@@ -174,32 +94,6 @@ https://api.c4f-isports.com/v2
       "message": "Account not verified"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "email": "user@example.com",
-    "password": "Password123!"
-  }
-
-  // Response
-  {
-    "accountId": 1,
-    "email": "user@example.com",
-    "role": "User",
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refreshToken": "xyz456",
-    "expiresIn": 3600
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"Password123!"}'
-  ```
 
 ---
 
@@ -231,28 +125,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or expired refresh token"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "refreshToken": "xyz456"
-  }
-
-  // Response
-  {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refreshToken": "new-xyz789",
-    "expiresIn": 3600
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/auth/refresh \
-  -H "Content-Type: application/json" \
-  -d '{"refreshToken":"xyz456"}'
-  ```
 
 ---
 
@@ -282,26 +154,6 @@ https://api.c4f-isports.com/v2
       "message": "Email not registered"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "email": "user@example.com"
-  }
-
-  // Response
-  {
-    "message": "Password reset link sent to your email"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/auth/forgot-password \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com"}'
-  ```
 
 ---
 
@@ -332,27 +184,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or expired reset token"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "resetToken": "abc123",
-    "newPassword": "NewPassword123!"
-  }
-
-  // Response
-  {
-    "message": "Password reset successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/auth/reset-password \
-  -H "Content-Type: application/json" \
-  -d '{"resetToken":"abc123","newPassword":"NewPassword123!"}'
-  ```
 
 ---
 
@@ -382,28 +213,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid refresh token"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "refreshToken": "xyz456"
-  }
-
-  // Response
-  {
-    "message": "Logged out successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/auth/logout \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"refreshToken":"xyz456"}'
-  ```
-
 ---
 
 ### 1.7. Get Current User
@@ -430,22 +239,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "accountId": 1,
-    "userId": 1,
-    "email": "user@example.com",
-    "fullName": "Nguyen Van A",
-    "role": "User"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/auth/me \
-  -H "Authorization: Bearer <token>"
-  ```
 
 ---
 
@@ -476,28 +269,6 @@ https://api.c4f-isports.com/v2
       "message": "Incorrect current password"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "currentPassword": "Password123!",
-    "newPassword": "NewPassword123!"
-  }
-
-  // Response
-  {
-    "message": "Password changed successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/auth/change-password \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"currentPassword":"Password123!","newPassword":"NewPassword123!"}'
-  ```
 
 ---
 
@@ -527,27 +298,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or expired verification token"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "verificationToken": "abc123"
-  }
-
-  // Response
-  {
-    "message": "Email verified successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/auth/verify-email \
-  -H "Content-Type: application/json" \
-  -d '{"verificationToken":"abc123"}'
-  ```
-
 ---
 
 ### 1.10. Resend Verification Email
@@ -576,27 +326,6 @@ https://api.c4f-isports.com/v2
       "message": "Email not registered"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "email": "user@example.com"
-  }
-
-  // Response
-  {
-    "message": "Verification email resent"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/auth/resend-verification \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com"}'
-  ```
-
 ---
 
 ### 1.11. Verify Token
@@ -621,21 +350,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or expired token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "isValid": true,
-    "role": "User",
-    "accountId": 1
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/auth/verify-token \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ## 2. User Management
@@ -666,25 +380,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "userId": 1,
-    "fullName": "Nguyen Van A",
-    "email": "user@example.com",
-    "phone": "0909123456",
-    "city": "Hà Nội",
-    "district": "Đống Đa",
-    "avatarUrl": "https://cloudinary.com/avatar.jpg"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/users/profile \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 2.2. Update Profile
@@ -728,37 +423,6 @@ https://api.c4f-isports.com/v2
       ]
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "fullName": "Nguyen Van B",
-    "phone": "0987654321",
-    "city": "Hà Nội",
-    "district": "Cầu Giấy",
-    "avatarUrl": "https://cloudinary.com/new-avatar.jpg"
-  }
-
-  // Response
-  {
-    "message": "Profile updated successfully",
-    "user": {
-      "userId": 1,
-      "fullName": "Nguyen Van B",
-      "email": "user@example.com",
-      "phone": "0987654321"
-    }
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/users/profile \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"fullName":"Nguyen Van B","phone":"0987654321","city":"Hà Nội","district":"Cầu Giấy","avatarUrl":"https://cloudinary.com/new-avatar.jpg"}'
-  ```
 
 ---
 
@@ -782,19 +446,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "message": "Account deleted successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X DELETE https://api.c4f-isports.com/v2/api/users/profile \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 2.4. Get Booking History
@@ -836,33 +487,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "bookingId": 1,
-        "fieldName": "ABC Field",
-        "subFieldName": "Field A",
-        "bookingDate": "2025-06-01",
-        "startTime": "08:00:00",
-        "endTime": "09:00:00",
-        "totalPrice": 300000,
-        "status": "Confirmed"
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/users/bookings?status=Confirmed&sort=BookingDate:desc&page=1&pageSize=10 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 2.5. Get Favorite Fields
@@ -899,29 +523,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "fieldId": 1,
-        "fieldName": "ABC Field",
-        "address": "123 Lang Street, Hanoi",
-        "averageRating": 4.5
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/users/favorites?sort=FieldName:asc&page=1&pageSize=10 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 2.6. Add Favorite Field
@@ -958,29 +559,6 @@ https://api.c4f-isports.com/v2
       "message": "Field does not exist"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "fieldId": 1
-  }
-
-  // Response
-  {
-    "message": "Field added to favorites",
-    "favoriteId": 1
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/users/favorites \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"fieldId":1}'
-  ```
-
 ---
 
 ### 2.7. Remove Favorite Field
@@ -1003,18 +581,6 @@ https://api.c4f-isports.com/v2
       "message": "Field not in favorites"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "message": "Field removed from favorites"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X DELETE https://api.c4f-isports.com/v2/api/users/favorites/1 \
-  -H "Authorization: Bearer <token>"
-  ```
 
 ---
 
@@ -1053,29 +619,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "reviewId": 1,
-        "fieldName": "ABC Field",
-        "rating": 5,
-        "comment": "Great field!",
-        "createdAt": "2025-06-01T10:00:00Z"
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/users/reviews?sort=CreatedAt:desc&page=1&pageSize=10 \
-  -H "Authorization: Bearer <token>"
-  ```
 
 ---
 
@@ -1119,34 +662,6 @@ https://api.c4f-isports.com/v2
       "pageSize": 10
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "fieldId": 1,
-        "fieldName": "ABC Field",
-        "address": "123 Lang Street, Hanoi",
-        "city": "Hà Nội",
-        "district": "Đống Đa",
-        "latitude": 10.776,
-        "longitude": 106.7,
-        "openTime": "06:00:00",
-        "closeTime": "22:00:00",
-        "averageRating": 4.5,
-        "sportId": 1
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/fields?sportId=1&city=Hà%20Nội&sort=FieldName:asc&page=1&pageSize=10
-  ```
 
 ---
 
@@ -1199,37 +714,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "fieldName": "ABC Field",
-    "address": "123 Lang Street",
-    "city": "Hanoi",
-    "district": "Cau Giay",
-    "openTime": "08:00",
-    "closeTime": "22:00",
-    "sportId": 1
-  }
-
-  // Response
-  {
-    "fieldId": 1,
-    "fieldName": "ABC Field",
-    "latitude": 10.776,
-    "longitude": 106.7,
-    "message": "Field created successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/fields \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer <token>" \
-    -d '{"fieldName":"ABC Field","address":"123 Lang Street","city":"Hanoi","district":"Cau Giay","openTime":"08:00","closeTime":"22:00","sportId":1}'
-  ```
 
 ---
 
@@ -1311,76 +795,6 @@ https://api.c4f-isports.com/v2
       "message": "Field does not exist"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "fieldId": 1,
-    "fieldName": "ABC Field",
-    "address": "123 Lang Street, Hanoi",
-    "city": "Hà Nội",
-    "district": "Đống Đa",
-    "latitude": 10.776,
-    "longitude": 106.7,
-    "openTime": "06:00:00",
-    "closeTime": "22:00:00",
-    "averageRating": 4.5,
-    "sportId": 1,
-    "subFields": [
-      {
-        "subFieldId": 1,
-        "subFieldName": "Field A",
-        "fieldType": "5-a-side",
-        "capacity": 10
-      }
-    ],
-    "images": [
-      {
-        "fieldImageId": 1,
-        "imageUrl": "https://cloudinary.com/field1.jpg"
-      }
-    ],
-    "services": [
-      {
-        "fieldServiceId": 1,
-        "serviceName": "Water Bottle",
-        "price": 10000,
-        "description": "500ml bottled water",
-        "isActive": true
-      }
-    ],
-    "amenities": [
-      {
-        "fieldAmenityId": 1,
-        "amenityName": "Parking",
-        "description": "Free parking for 50 cars",
-        "iconUrl": "https://cloudinary.com/parking-icon.png"
-      }
-    ],
-    "descriptions": [
-      {
-        "fieldDescriptionId": 1,
-        "description": "Modern football field with artificial turf."
-      }
-    ],
-    "pricing": [
-      {
-        "fieldPricingId": 1,
-        "subFieldId": 1,
-        "startTime": "08:00:00",
-        "endTime": "09:00:00",
-        "dayOfWeek": 1,
-        "price": 300000,
-        "isActive": true
-      }
-    ]
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/fields/1
-  ```
-
 ---
 
 ### 3.4 Update Field
@@ -1446,38 +860,6 @@ https://api.c4f-isports.com/v2
       "message": "Field does not exist"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "fieldName": "Updated ABC Field",
-    "address": "123 Lang Street",
-    "city": "Hanoi",
-    "district": "Cau Giay",
-    "openTime": "08:00",
-    "closeTime": "22:00",
-    "sportId": 1
-  }
-
-  // Response
-  {
-    "fieldId": 1,
-    "fieldName": "Updated ABC Field",
-    "latitude": 10.776,
-    "longitude": 106.7,
-    "message": "Field updated successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/fields/1 \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer <token>" \
-    -d '{"fieldName":"Updated ABC Field","address":"123 Lang Street","city":"Hanoi","district":"Cau Giay","openTime":"08:00","closeTime":"22:00","sportId":1}'
-  ```
-
 ---
 
 ### 3.5 Delete Field
@@ -1524,20 +906,6 @@ https://api.c4f-isports.com/v2
       "message": "Field does not exist"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "fieldId": 1,
-    "status": "Inactive",
-    "message": "Field deleted successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X DELETE https://api.c4f-isports.com/v2/api/fields/1 \
-    -H "Authorization: Bearer <token>"
-  ```
 
 ---
 
@@ -1606,39 +974,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "fieldId": 1,
-        "fieldName": "ABC Field",
-        "subFieldId": 1,
-        "subFieldName": "Field A",
-        "date": "2025-05-21",
-        "startTime": "08:00:00",
-        "endTime": "09:00:00",
-        "price": 300000,
-        "promotion": {
-          "promotionId": 1,
-          "promotionCode": "SUMMER2025",
-          "discountValue": 20,
-          "discountType": "Percentage"
-        }
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/fields/availability?fieldId=1&date=2025-05-21&duration=60&page=1&pageSize=10 \
-    -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 3.7. Create SubField
@@ -1683,31 +1018,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not own this field"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "subFieldName": "Field A",
-    "fieldType": "5-a-side",
-    "capacity": 10
-  }
-
-  // Response
-  {
-    "subFieldId": 1,
-    "subFieldName": "Field A",
-    "message": "SubField created successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/fields/1/subfields \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"subFieldName":"Field A","fieldType":"5-a-side","capacity":10}'
-  ```
 
 ---
 
@@ -1760,32 +1070,6 @@ https://api.c4f-isports.com/v2
       "message": "SubField does not exist"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "subFieldName": "Updated Field A",
-    "fieldType": "5-a-side",
-    "capacity": 10
-  }
-
-  // Response
-  {
-    "subFieldId": 1,
-    "subFieldName": "Updated Field A",
-    "message": "SubField updated successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/fields/1/subfields/1 \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"subFieldName":"Updated Field A","fieldType":"5-a-side","capacity":10}'
-  ```
-
 ---
 
 ### 3.9 Delete SubField
@@ -1832,20 +1116,6 @@ https://api.c4f-isports.com/v2
       "message": "Subfield does not exist"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "subFieldId": 1,
-    "status": "Inactive",
-    "message": "Subfield deleted successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X DELETE https://api.c4f-isports.com/v2/api/subfields/1 \
-    -H "Authorization: Bearer <token>"
-  ```
 
 ---
 
@@ -1879,22 +1149,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not own this field"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "fieldImageId": 1,
-    "imageUrl": "https://cloudinary.com/field1.jpg",
-    "message": "Image uploaded successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/fields/1/images \
-  -H "Authorization: Bearer <token>" \
-  -F "image=@/path/to/image.jpg"
-  ```
-
 ---
 
 ### 3.11. Delete Field Image
@@ -1924,19 +1178,6 @@ https://api.c4f-isports.com/v2
       "message": "Image does not exist"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "message": "Image deleted successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X DELETE https://api.c4f-isports.com/v2/api/fields/1/images/1 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 3.12. Get Field Reviews
@@ -1975,30 +1216,6 @@ https://api.c4f-isports.com/v2
       "message": "Field does not exist"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "reviewId": 1,
-        "userId": 1,
-        "username": "John Doe",
-        "rating": 5,
-        "comment": "Great field!",
-        "createdAt": "2025-05-21T10:00:00Z"
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/fields/1/reviews?sort=Rating:desc&page=1&pageSize=10
-  ```
-
 ---
 
 ### 3.13. Get Field Services
@@ -2037,29 +1254,6 @@ https://api.c4f-isports.com/v2
       "message": "Field does not exist"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "fieldServiceId": 1,
-        "serviceName": "Water Bottle",
-        "price": 10000,
-        "description": "500ml bottled water",
-        "isActive": true
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/fields/1/services?isActive=true&sort=ServiceName:asc&page=1&pageSize=10
-  ```
-
 ---
 
 ### 3.14. Create Field Service
@@ -2105,32 +1299,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not own this field"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "serviceName": "Water Bottle",
-    "price": 10000,
-    "description": "500ml bottled water",
-    "isActive": true
-  }
-
-  // Response
-  {
-    "fieldServiceId": 1,
-    "serviceName": "Water Bottle",
-    "message": "Service created successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/fields/1/services \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"serviceName":"Water Bottle","price":10000,"description":"500ml bottled water","isActive":true}'
-  ```
 
 ---
 
@@ -2172,32 +1340,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not own this field"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "serviceName": "Water Bottle",
-    "price": 12000,
-    "description": "500ml bottled water",
-    "isActive": true
-  }
-
-  // Response
-  {
-    "fieldServiceId": 1,
-    "serviceName": "Water Bottle",
-    "message": "Service updated successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/fields/1/services/1 \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"serviceName":"Water Bottle","price":12000,"description":"500ml bottled water","isActive":true}'
-  ```
 
 ---
 
@@ -2228,19 +1370,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not own this field"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "message": "Service deleted successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X DELETE https://api.c4f-isports.com/v2/api/fields/1/services/1 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 3.17. Get Field Amenities
@@ -2277,27 +1406,6 @@ https://api.c4f-isports.com/v2
       "message": "Field does not exist"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "fieldAmenityId": 1,
-        "amenityName": "Parking",
-        "description": "Free parking for 50 cars",
-        "iconUrl": "https://cloudinary.com/parking-icon.png"
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/fields/1/amenities?sort=AmenityName:asc&page=1&pageSize=10
-  ```
 
 ---
 
@@ -2343,32 +1451,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not own this field"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "amenityName": "Parking",
-    "description": "Free parking for 50 cars",
-    "iconUrl": "https://cloudinary.com/parking-icon.png"
-  }
-
-  // Response
-  {
-    "fieldAmenityId": 1,
-    "amenityName": "Parking",
-    "message": "Amenity created successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/fields/1/amenities \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"amenityName":"Parking","description":"Free parking for 50 cars","iconUrl":"https://cloudinary.com/parking-icon.png"}'
-  ```
-
 ---
 
 ### 3.19. Update Field Amenity
@@ -2408,32 +1490,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not own this field"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "amenityName": "Parking",
-    "description": "Free parking for 50 cars",
-    "iconUrl": "https://cloudinary.com/parking-icon.png"
-  }
-
-  // Response
-  {
-    "fieldAmenityId": 1,
-    "amenityName": "Parking",
-    "message": "Amenity updated successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/fields/1/amenities/1 \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"amenityName":"Parking","description":"Free parking for 50 cars","iconUrl":"https://cloudinary.com/parking-icon.png"}'
-  ```
-
 ---
 
 ### 3.20. Delete Field Amenity
@@ -2463,19 +1519,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not own this field"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "message": "Amenity deleted successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X DELETE https://api.c4f-isports.com/v2/api/fields/1/amenities/1 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 3.21. Get Field Descriptions
@@ -2504,23 +1547,6 @@ https://api.c4f-isports.com/v2
       "message": "Field does not exist"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "fieldDescriptionId": 1,
-        "description": "Modern football field with artificial turf."
-      }
-    ],
-    "total": 1
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/fields/1/descriptions
-  ```
 
 ---
 
@@ -2564,30 +1590,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not own this field"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "description": "Modern football field with artificial turf."
-  }
-
-  // Response
-  {
-    "fieldDescriptionId": 1,
-    "description": "Modern football field with artificial turf.",
-    "message": "Description created successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/fields/1/descriptions \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"description":"Modern football field with artificial turf."}'
-  ```
-
 ---
 
 ### 3.23. Update Field Description
@@ -2625,30 +1627,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not own this field"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "description": "Updated football field description."
-  }
-
-  // Response
-  {
-    "fieldDescriptionId": 1,
-    "description": "Updated football field description.",
-    "message": "Description updated successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/fields/1/descriptions/1 \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"description":"Updated football field description."}'
-  ```
-
 ---
 
 ### 3.24. Delete Field Description
@@ -2678,19 +1656,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not own this field"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "message": "Description deleted successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X DELETE https://api.c4f-isports.com/v2/api/fields/1/descriptions/1 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 3.25. Get Field Pricing
@@ -2732,31 +1697,6 @@ https://api.c4f-isports.com/v2
       "message": "Field does not exist"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "fieldPricingId": 1,
-        "subFieldId": 1,
-        "startTime": "08:00:00",
-        "endTime": "09:00:00",
-        "dayOfWeek": 1,
-        "price": 300000,
-        "isActive": true
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/fields/1/pricing?subFieldId=1&isActive=true&sort=Price:asc&page=1&pageSize=10
-  ```
-
 ---
 
 ### 3.26. Create Field Pricing
@@ -2804,35 +1744,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not own this field"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "subFieldId": 1,
-    "startTime": "08:00:00",
-    "endTime": "09:00:00",
-    "dayOfWeek": 1,
-    "price": 300000,
-    "isActive": true
-  }
-
-  // Response
-  {
-    "fieldPricingId": 1,
-    "subFieldId": 1,
-    "message": "Pricing created successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/fields/1/pricing \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"subFieldId":1,"startTime":"08:00:00","endTime":"09:00:00","dayOfWeek":1,"price":300000,"isActive":true}'
-  ```
-
 ---
 
 ### 3.27. Update Field Pricing
@@ -2874,34 +1785,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not own this field"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "startTime": "08:00:00",
-    "endTime": "09:00:00",
-    "dayOfWeek": 1,
-    "price": 350000,
-    "isActive": true
-  }
-
-  // Response
-  {
-    "fieldPricingId": 1,
-    "subFieldId": 1,
-    "message": "Pricing updated successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/fields/1/pricing/1 \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"startTime":"08:00:00","endTime":"09:00:00","dayOfWeek":1,"price":350000,"isActive":true}'
-  ```
-
 ---
 
 ### 3.28. Delete Field Pricing
@@ -2931,19 +1814,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not own this field"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "message": "Pricing deleted successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X DELETE https://api.c4f-isports.com/v2/api/fields/1/pricing/1 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 3.29 Validate Address
@@ -2990,33 +1860,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "address": "123 Lang Street",
-    "city": "Hanoi",
-    "district": "Cau Giay"
-  }
-
-  // Response
-  {
-    "latitude": 10.776,
-    "longitude": 106.7,
-    "formattedAddress": "123 Lang Street, Hanoi",
-    "isValid": true
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/fields/validate-address \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer <token>" \
-    -d '{"address":"123 Lang Street","city":"Hanoi","district":"Cau Giay"}'
-  ```
-
 ---
 
 ## 4. Booking Management
@@ -3061,42 +1904,6 @@ https://api.c4f-isports.com/v2
       "message": "Time slot is not available"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "subFieldId": 1,
-    "bookingDate": "2025-06-01",
-    "startTime": "08:00:00",
-    "endTime": "09:00:00",
-    "services": [
-      {
-        "fieldServiceId": 1,
-        "quantity": 2
-      }
-    ],
-    "promotionCode": "SUMMER2025"
-  }
-
-  // Response
-  {
-    "bookingId": 1,
-    "subFieldId": 1,
-    "totalPrice": 300000,
-    "status": "Pending",
-    "message": "Booking created successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/bookings \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"subFieldId":1,"bookingDate":"2025-06-01","startTime":"08:00:00","endTime":"09:00:00","services":[{"fieldServiceId":1,"quantity":2}],"promotionCode":"SUMMER2025"}'
-  ```
-
 ---
 
 ### 4.2. Get Bookings
@@ -3138,32 +1945,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "bookingId": 1,
-        "fieldName": "ABC Field",
-        "subFieldName": "Field A",
-        "bookingDate": "2025-06-01",
-        "startTime": "08:00:00",
-        "endTime": "09:00:00",
-        "totalPrice": 300000,
-        "status": "Confirmed"
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/bookings?status=Confirmed&sort=BookingDate:desc&page=1&pageSize=10 \
-  -H "Authorization: Bearer <token>"
-  ```
 
 ---
 
@@ -3211,35 +1992,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to view this booking"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "bookingId": 1,
-    "fieldName": "ABC Field",
-    "subFieldName": "Field A",
-    "bookingDate": "2025-06-01",
-    "startTime": "08:00:00",
-    "endTime": "09:00:00",
-    "totalPrice": 300000,
-    "status": "Confirmed",
-    "services": [
-      {
-        "fieldServiceId": 1,
-        "serviceName": "Water Bottle",
-        "quantity": 2,
-        "price": 10000
-      }
-    ],
-    "promotionCode": "SUMMER2025",
-    "promotionDiscount": 50000
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/bookings/1 \
-  -H "Authorization: Bearer <token>"
-  ```
 
 ---
 
@@ -3291,36 +2043,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to update this booking"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "services": [
-      {
-        "fieldServiceId": 1,
-        "quantity": 3
-      }
-    ],
-    "promotionCode": "SUMMER2025"
-  }
-
-  // Response
-  {
-    "bookingId": 1,
-    "totalPrice": 320000,
-    "message": "Booking updated successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/bookings/1 \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"services":[{"fieldServiceId":1,"quantity":3}],"promotionCode":"SUMMER2025"}'
-  ```
-
 ---
 
 ### 4.5. Cancel Booking
@@ -3350,19 +2072,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to cancel this booking"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "message": "Booking cancelled successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X DELETE https://api.c4f-isports.com/v2/api/bookings/1 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 4.6. Update Booking Status
@@ -3407,30 +2116,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to update this booking"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "status": "Confirmed"
-  }
-
-  // Response
-  {
-    "bookingId": 1,
-    "status": "Confirmed",
-    "message": "Booking status updated successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/bookings/1/status \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"status":"Confirmed"}'
-  ```
-
 ---
 
 ### 4.7. Create Simple Booking
@@ -3466,35 +2151,6 @@ https://api.c4f-isports.com/v2
       "message": "Time slot is not available"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "subFieldId": 1,
-    "bookingDate": "2025-06-01",
-    "startTime": "08:00:00",
-    "endTime": "09:00:00"
-  }
-
-  // Response
-  {
-    "bookingId": 1,
-    "subFieldId": 1,
-    "totalPrice": 300000,
-    "status": "Pending",
-    "message": "Booking created successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/bookings/simple \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"subFieldId":1,"bookingDate":"2025-06-01","startTime":"08:00:00","endTime":"09:00:00"}'
-  ```
-
 ---
 
 ### 4.8. Get Booking Services
@@ -3533,28 +2189,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to view this booking"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "bookingServiceId": 1,
-        "fieldServiceId": 1,
-        "serviceName": "Water Bottle",
-        "quantity": 2,
-        "price": 10000
-      }
-    ],
-    "total": 1
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/bookings/1/services \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 4.9. Preview Booking
@@ -3598,43 +2232,6 @@ https://api.c4f-isports.com/v2
       "message": "Time slot is not available"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "subFieldId": 1,
-    "bookingDate": "2025-06-01",
-    "startTime": "08:00:00",
-    "endTime": "09:00:00",
-    "services": [
-      {
-        "fieldServiceId": 1,
-        "quantity": 2
-      }
-    ],
-    "promotionCode": "SUMMER2025"
-  }
-
-  // Response
-  {
-    "subFieldId": 1,
-    "available": true,
-    "basePrice": 300000,
-    "servicePrice": 20000,
-    "promotionDiscount": 50000,
-    "totalPrice": 270000
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/bookings/preview \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"subFieldId":1,"bookingDate":"2025-06-01","startTime":"08:00:00","endTime":"09:00:00","services":[{"fieldServiceId":1,"quantity":2}],"promotionCode":"SUMMER2025"}'
-  ```
-
 ---
 
 ### 4.10. Get Booking Invoice
@@ -3682,37 +2279,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to view this booking"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "bookingId": 1,
-    "fieldName": "ABC Field",
-    "subFieldName": "Field A",
-    "bookingDate": "2025-06-01",
-    "startTime": "08:00:00",
-    "endTime": "09:00:00",
-    "basePrice": 300000,
-    "services": [
-      {
-        "serviceName": "Water Bottle",
-        "quantity": 2,
-        "price": 10000
-      }
-    ],
-    "servicePrice": 20000,
-    "promotionCode": "SUMMER2025",
-    "promotionDiscount": 50000,
-    "totalPrice": 270000,
-    "paymentStatus": "Paid"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/bookings/1/invoice \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 4.11. Reschedule Booking
@@ -3760,33 +2326,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to reschedule this booking"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "newDate": "2025-06-02",
-    "newStartTime": "09:00:00",
-    "newEndTime": "10:00:00"
-  }
-
-  // Response
-  {
-    "rescheduleRequestId": 1,
-    "bookingId": 1,
-    "status": "Pending",
-    "message": "Reschedule request submitted successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/bookings/1/reschedule \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"newDate":"2025-06-02","newStartTime":"09:00:00","newEndTime":"10:00:00"}'
-  ```
-
 ---
 
 ## 5. Payment Processing
@@ -3831,35 +2370,6 @@ https://api.c4f-isports.com/v2
       "message": "Booking does not exist"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "bookingId": 1,
-    "paymentMethod": "CreditCard",
-    "amount": 270000
-  }
-
-  // Response
-  {
-    "paymentId": 1,
-    "bookingId": 1,
-    "amount": 270000,
-    "status": "Pending",
-    "paymentUrl": "https://payment-gateway.com/pay/xyz123",
-    "message": "Payment initiated successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/payments \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"bookingId":1,"paymentMethod":"CreditCard","amount":270000}'
-  ```
-
 ---
 
 ### 5.2. Get Payments
@@ -3899,31 +2409,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "paymentId": 1,
-        "bookingId": 1,
-        "amount": 270000,
-        "paymentMethod": "CreditCard",
-        "status": "Paid",
-        "createdAt": "2025-06-01T10:00:00Z"
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/payments?status=Paid&sort=CreatedAt:desc&page=1&pageSize=10 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 5.3. Get Payment Details
@@ -3959,25 +2444,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to view this payment"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "paymentId": 1,
-    "bookingId": 1,
-    "amount": 270000,
-    "paymentMethod": "CreditCard",
-    "status": "Paid",
-    "createdAt": "2025-06-01T10:00:00Z",
-    "transactionId": "xyz123"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/payments/1 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 5.4. Payment Webhook
@@ -4010,31 +2476,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid webhook data"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "paymentId": 1,
-    "transactionId": "xyz123",
-    "status": "Paid",
-    "amount": 270000,
-    "timestamp": "2025-06-01T10:00:00Z"
-  }
-
-  // Response
-  {
-    "message": "Webhook processed successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/payments/webhook \
-  -H "Content-Type: application/json" \
-  -d '{"paymentId":1,"transactionId":"xyz123","status":"Paid","amount":270000,"timestamp":"2025-06-01T10:00:00Z"}'
-  ```
-
 ---
 
 ### 5.5. Request Refund
@@ -4082,33 +2523,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to request a refund for this payment"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "amount": 270000,
-    "reason": "Booking cancelled due to weather"
-  }
-
-  // Response
-  {
-    "refundRequestId": 1,
-    "paymentId": 1,
-    "amount": 270000,
-    "status": "Pending",
-    "message": "Refund request submitted successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/payments/1/refund \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"amount":270000,"reason":"Booking cancelled due to weather"}'
-  ```
-
 ---
 
 ### 5.6 Get Refund History
@@ -4163,32 +2577,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "refundId": 1,
-        "bookingId": 1,
-        "fieldId": 1,
-        "fieldName": "ABC Field",
-        "amount": 300000,
-        "status": "Completed",
-        "createdAt": "2025-05-21T10:00:00Z"
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/payments/refunds?startDate=2025-05-01&endDate=2025-05-31&page=1&pageSize=10 \
-    -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ## 6. Review System
@@ -4241,14 +2629,6 @@ https://api.c4f-isports.com/v2
       "message": "You must have a confirmed and paid booking to review this field"
     }
     ```
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/reviews \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"fieldId":1,"bookingId":1,"rating":5,"comment":"Great field!"}'
-  ```
-
 ---
 
 ### 6.2. Update Review
@@ -4294,31 +2674,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to update this review"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "rating": 4,
-    "comment": "Good field, but service could be better."
-  }
-
-  // Response
-  {
-    "reviewId": 1,
-    "rating": 4,
-    "message": "Review updated successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/reviews/1 \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"rating":4,"comment":"Good field, but service could be better."}'
-  ```
-
 ---
 
 ### 6.3. Delete Review
@@ -4348,19 +2703,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to delete this review"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "message": "Review deleted successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X DELETE https://api.c4f-isports.com/v2/api/reviews/1 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 6.4. Reply to Review
@@ -4406,31 +2748,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to reply to this review"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "reply": "Thank you for your feedback!"
-  }
-
-  // Response
-  {
-    "reviewId": 1,
-    "ownerReply": "Thank you for your feedback!",
-    "replyDate": "2025-06-02T10:00:00Z",
-    "message": "Reply submitted successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/reviews/1/reply \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"reply":"Thank you for your feedback!"}'
-  ```
-
 ---
 
 ## 7. Notification System
@@ -4471,30 +2788,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "notificationId": 1,
-        "title": "Booking Confirmed",
-        "message": "Your booking on 2025-06-01 is confirmed.",
-        "isRead": false,
-        "createdAt": "2025-06-01T10:00:00Z"
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/notifications?isRead=false&sort=CreatedAt:desc&page=1&pageSize=10 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 7.2. Mark Notification as Read
@@ -4535,12 +2828,6 @@ https://api.c4f-isports.com/v2
     "message": "Notification marked as read"
   }
   ```
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/notifications/1/read \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 7.3. Delete Notification
@@ -4570,19 +2857,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to delete this notification"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "message": "Notification deleted successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X DELETE https://api.c4f-isports.com/v2/api/notifications/1 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 7.4. Mark All Notifications as Read
@@ -4605,19 +2879,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "message": "All notifications marked as read"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/notifications/read-all \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 7.5. Get Unread Notification Count
@@ -4640,19 +2901,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "unreadCount": 3
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/notifications/count \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ## 8. Sport Categories
@@ -4683,27 +2931,6 @@ https://api.c4f-isports.com/v2
       "pageSize": 10
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "sportId": 1,
-        "sportName": "Football",
-        "description": "5-a-side and 7-a-side fields"
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/sports?sort=SportName:asc&page=1&pageSize=10
-  ```
-
 ---
 
 ### 8.2. Get Sport Details
@@ -4728,20 +2955,6 @@ https://api.c4f-isports.com/v2
       "message": "Sport does not exist"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "sportId": 1,
-    "sportName": "Football",
-    "description": "5-a-side and 7-a-side fields"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/sports/1
-  ```
-
 ---
 
 ### 8.3. Get Popular Sports
@@ -4766,25 +2979,6 @@ https://api.c4f-isports.com/v2
       "total": 1
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "sportId": 1,
-        "sportName": "Football",
-        "bookingCount": 150
-      }
-    ],
-    "total": 1
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/sports/popular?limit=5
-  ```
-
 ---
 
 ### 8.4 Create Sport
@@ -4836,31 +3030,6 @@ https://api.c4f-isports.com/v2
       "message": "Admin access required"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "sportName": "Badminton",
-    "description": "A racket sport played with a shuttlecock"
-  }
-
-  // Response
-  {
-    "sportId": 1,
-    "sportName": "Badminton",
-    "message": "Sport created successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/sports \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer <token>" \
-    -d '{"sportName":"Badminton","description":"A racket sport played with a shuttlecock"}'
-  ```
-
 ---
 
 ### 8.5 Update Sport
@@ -4919,31 +3088,6 @@ https://api.c4f-isports.com/v2
       "message": "Sport does not exist"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "sportName": "Badminton",
-    "description": "Updated description for badminton"
-  }
-
-  // Response
-  {
-    "sportId": 1,
-    "sportName": "Badminton",
-    "message": "Sport updated successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/sports/1 \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer <token>" \
-    -d '{"sportName":"Badminton","description":"Updated description for badminton"}'
-  ```
-
 ---
 
 ### 8.6 Delete Sport
@@ -4990,21 +3134,6 @@ https://api.c4f-isports.com/v2
       "message": "Sport does not exist"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "sportId": 1,
-    "status": "Deleted",
-    "message": "Sport deleted successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X DELETE https://api.c4f-isports.com/v2/api/sports/1 \
-    -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ## 9. Promotion Management
@@ -5041,31 +3170,6 @@ https://api.c4f-isports.com/v2
       "pageSize": 10
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "promotionId": 1,
-        "promotionCode": "SUMMER2025",
-        "discountType": "Percentage",
-        "discountValue": 20,
-        "startDate": "2025-06-01",
-        "endDate": "2025-08-31",
-        "status": "Active"
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/promotions?status=Active&sort=StartDate:desc&page=1&pageSize=10
-  ```
-
 ---
 
 ### 9.2. Create Promotion
@@ -5110,37 +3214,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to create a promotion for this field"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "fieldId": 1,
-    "promotionCode": "SUMMER2025",
-    "discountType": "Percentage",
-    "discountValue": 20,
-    "startDate": "2025-06-01",
-    "endDate": "2025-08-31",
-    "maxUsage": 100,
-    "minBookingAmount": 200000
-  }
-
-  // Response
-  {
-    "promotionId": 1,
-    "promotionCode": "SUMMER2025",
-    "message": "Promotion created successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/promotions \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"fieldId":1,"promotionCode":"SUMMER2025","discountType":"Percentage","discountValue":20,"startDate":"2025-06-01","endDate":"2025-08-31","maxUsage":100,"minBookingAmount":200000}'
-  ```
-
 ---
 
 ### 9.3. Update Promotion
@@ -5191,36 +3264,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to update this promotion"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "promotionCode": "SUMMER2025",
-    "discountType": "Percentage",
-    "discountValue": 25,
-    "startDate": "2025-06-01",
-    "endDate": "2025-09-30",
-    "maxUsage": 150,
-    "minBookingAmount": 250000
-  }
-
-  // Response
-  {
-    "promotionId": 1,
-    "promotionCode": "SUMMER2025",
-    "message": "Promotion updated successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/promotions/1 \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"promotionCode":"SUMMER2025","discountType":"Percentage","discountValue":25,"startDate":"2025-06-01","endDate":"2025-09-30","maxUsage":150,"minBookingAmount":250000}'
-  ```
-
 ---
 
 ### 9.4. Delete Promotion
@@ -5250,19 +3293,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to delete this promotion"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "message": "Promotion deleted successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X DELETE https://api.c4f-isports.com/v2/api/promotions/1 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 9.5. Get Suggested Promotions
@@ -5303,32 +3333,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "promotionId": 1,
-        "promotionCode": "SUMMER2025",
-        "discountType": "Percentage",
-        "discountValue": 20,
-        "startDate": "2025-06-01",
-        "endDate": "2025-08-31",
-        "status": "Active"
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/promotions/suggestions?sort=DiscountValue:desc&page=1&pageSize=10 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 9.6 Validate Promotion
@@ -5377,35 +3381,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "promotionCode": "SUMMER2025",
-    "fieldId": 1,
-    "bookingAmount": 300000
-  }
-
-  // Response
-  {
-    "promotionId": 1,
-    "promotionCode": "SUMMER2025",
-    "discountType": "Percentage",
-    "discountValue": 20,
-    "isValid": true,
-    "message": "Promotion code is valid"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X POST https://api.c4f-isports.com/v2/api/promotions/validate \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer <token>" \
-    -d '{"promotionCode":"SUMMER2025","fieldId":1,"bookingAmount":300000}'
-  ```
-
 ---
 
 ## 10. Owner Dashboard
@@ -5445,24 +3420,6 @@ https://api.c4f-isports.com/v2
       "message": "You do not have permission to view this field"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "fieldId": 1,
-    "fieldName": "ABC Field",
-    "totalBookings": 50,
-    "totalRevenue": 15000000,
-    "averageRating": 4.5,
-    "bookingCompletionRate": 0.95
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/owners/fields/1/stats?startDate=2025-06-01&endDate=2025-06-30 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 10.2. Get Owner Dashboard
@@ -5498,29 +3455,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "totalFields": 3,
-    "totalBookings": 150,
-    "totalRevenue": 45000000,
-    "fields": [
-      {
-        "fieldId": 1,
-        "fieldName": "ABC Field",
-        "bookings": 50,
-        "revenue": 15000000
-      }
-    ]
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/owners/dashboard?startDate=2025-06-01&endDate=2025-06-30 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ## 11. Admin Management
@@ -5561,30 +3495,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "userId": 1,
-        "fullName": "Nguyen Van A",
-        "email": "user@example.com",
-        "role": "User",
-        "createdAt": "2025-06-01T10:00:00Z"
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/admin/users?role=User&sort=CreatedAt:desc&page=1&pageSize=10 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 11.2. Ban User
@@ -5614,29 +3524,6 @@ https://api.c4f-isports.com/v2
       "message": "User does not exist"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "reason": "Violated terms of service"
-  }
-
-  // Response
-  {
-    "userId": 1,
-    "message": "User banned successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/admin/users/1/ban \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"reason":"Violated terms of service"}'
-  ```
-
 ---
 
 ### 11.3. Unban User
@@ -5660,20 +3547,6 @@ https://api.c4f-isports.com/v2
       "message": "User does not exist"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "userId": 1,
-    "message": "User unbanned successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/admin/users/1/unban \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 11.4. Get All Fields
@@ -5712,30 +3585,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "fieldId": 1,
-        "fieldName": "ABC Field",
-        "ownerId": 2,
-        "status": "Active",
-        "createdAt": "2025-06-01T10:00:00Z"
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/admin/fields?status=Active&sort=CreatedAt:desc&page=1&pageSize=10 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 11.5. Approve Field
@@ -5759,20 +3608,6 @@ https://api.c4f-isports.com/v2
       "message": "Field does not exist"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "fieldId": 1,
-    "message": "Field approved successfully"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/admin/fields/1/approve \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 11.6. Reject Field
@@ -5802,29 +3637,6 @@ https://api.c4f-isports.com/v2
       "message": "Field does not exist"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "reason": "Incomplete field information"
-  }
-
-  // Response
-  {
-    "fieldId": 1,
-    "message": "Field rejected successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/admin/fields/1/reject \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"reason":"Incomplete field information"}'
-  ```
-
 ---
 
 ### 11.7. Get All Reviews
@@ -5864,31 +3676,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "reviewId": 1,
-        "fieldId": 1,
-        "userId": 1,
-        "rating": 5,
-        "comment": "Great field!",
-        "createdAt": "2025-06-01T10:00:00Z"
-      }
-    ],
-    "total": 1,
-    "page": 1,
-    "pageSize": 10
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/admin/reviews?fieldId=1&sort=CreatedAt:desc&page=1&pageSize=10 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 11.8. Moderate Review
@@ -5920,30 +3707,6 @@ https://api.c4f-isports.com/v2
       "message": "Review does not exist"
     }
     ```
-- **Example**:
-
-  ```json
-  // Request
-  {
-    "status": "Approved"
-  }
-
-  // Response
-  {
-    "reviewId": 1,
-    "status": "Approved",
-    "message": "Review moderated successfully"
-  }
-  ```
-
-- **Example cURL**:
-  ```bash
-  curl -X PUT https://api.c4f-isports.com/v2/api/admin/reviews/1/moderate \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <token>" \
-  -d '{"status":"Approved"}'
-  ```
-
 ---
 
 ## 12. Statistics & Analytics
@@ -5975,23 +3738,6 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "totalUsers": 1000,
-    "totalFields": 50,
-    "totalBookings": 5000,
-    "totalRevenue": 1500000000,
-    "averageBookingPrice": 300000
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/statistics?startDate=2025-06-01&endDate=2025-06-30 \
-  -H "Authorization: Bearer <token>"
-  ```
-
 ---
 
 ### 12.2. Get Trends
@@ -6037,27 +3783,3 @@ https://api.c4f-isports.com/v2
       "message": "Invalid or missing token"
     }
     ```
-- **Example**:
-  ```json
-  // Response
-  {
-    "data": [
-      {
-        "date": "2025-06-01",
-        "bookings": 100,
-        "revenue": 30000000
-      },
-      {
-        "date": "2025-06-02",
-        "bookings": 120,
-        "revenue": 36000000
-      }
-    ],
-    "interval": "daily"
-  }
-  ```
-- **Example cURL**:
-  ```bash
-  curl -X GET https://api.c4f-isports.com/v2/api/statistics/trends?startDate=2025-06-01&endDate=2025-06-30&interval=daily \
-  -H "Authorization: Bearer <token>"
-  ```
