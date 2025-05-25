@@ -1,0 +1,275 @@
+## 6. Review System
+
+### 6.1 Create Review
+
+**Description**: Creates a review for a field after a confirmed booking.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/reviews`  
+**Authorization**: Bearer Token (User)
+
+**Request Body**:
+
+```json
+{
+  "fieldId": 1,
+  "bookingId": 1,
+  "rating": 5,
+  "comment": "Great field!"
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "reviewId": 1,
+    "fieldId": 1,
+    "rating": 5,
+    "comment": "Great field!",
+    "createdAt": "2025-06-01T10:00:00Z",
+    "message": "Review created successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "rating",
+        "message": "Rating must be between 1 and 5"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "User is not authorized to review this field"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Booking or field not found"
+  }
+  ```
+
+**Note**:
+
+- Requires `Booking.Status` to be Confirmed and `Booking.PaymentStatus` to be Paid.
+- `createdAt` reflects `Review.CreatedAt`.
+- Updates `Field.AverageRating`.
+
+### 6.2 Update Review
+
+**Description**: Updates an existing review.
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/reviews/{reviewId}`  
+**Authorization**: Bearer Token (User)
+
+**Path Parameters**:
+
+- `reviewId` (required, integer): The ID of the review.
+
+**Request Body**:
+
+```json
+{
+  "rating": 4,
+  "comment": "Updated: Good field but needs better lighting."
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "reviewId": 1,
+    "fieldId": 1,
+    "rating": 4,
+    "comment": "Updated: Good field but needs better lighting.",
+    "message": "Review updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "rating",
+        "message": "Rating must be between 1 and 5"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the review author can update this review"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Review not found"
+  }
+  ```
+
+**Note**:
+
+- Updates `Review.Rating` and `Review.Comment`.
+- Recalculates `Field.AverageRating`.
+
+### 6.3 Delete Review
+
+**Description**: Deletes a review (User or Admin only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/reviews/{reviewId}`  
+**Authorization**: Bearer Token (User or Admin)
+
+**Path Parameters**:
+
+- `reviewId` (required, integer): The ID of the review.
+
+**Request Example**:
+
+```http
+DELETE /api/reviews/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Review deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the review author or admin can delete this review"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Review not found"
+  }
+  ```
+
+**Note**:
+
+- Soft deletes by setting `Review.DeletedAt`.
+- Recalculates `Field.AverageRating`.
+
+### 6.4 Get Reviews By User
+
+**Description**: Retrieves reviews made by the authenticated user.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/reviews`  
+**Authorization**: Bearer Token (User)
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/reviews?page=1&pageSize=10
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "reviewId": 1,
+        "fieldId": 1,
+        "fieldName": "Sân Bóng Đá ABC",
+        "rating": 5,
+        "comment": "Great field!",
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Returns `Review` records for the authenticated user.

@@ -1,3785 +1,7290 @@
-# API Endpoints - C4F-ISports v2.0.0
+# API Endpoints Specification
 
-## Authentication
+This document outlines the API endpoints for the sports field booking system, aligned with `Models-v2.0.0.cs`. All endpoints use JSON for request/response bodies, require HTTPS, and follow RESTful conventions. Authentication uses JWT Bearer Tokens unless specified otherwise.
 
-- Most endpoints require a **JWT Bearer Token** in the `Authorization` header: `Authorization: Bearer <token>`.
-- Endpoints marked with `[Public]` are accessible without authentication.
-- Endpoints marked with `[User]`, `[Owner]`, or `[Admin]` require specific roles.
-- Authentication is handled via JWT Bearer Tokens.
+## Table of Contents
+
+1. [Authentication](#1-authentication)
+2. [User Management](#2-user-management)
+3. [Field Management](#3-field-management)
+4. [Booking Management](#4-booking-management)
+5. [Payment Processing](#5-payment-processing)
+6. [Review System](#6-review-system)
+7. [Notification System](#7-notification-system)
+8. [Sport Categories](#8-sport-categories)
+9. [Promotion Management](#9-promotion-management)
+10. [Owner Dashboard](#10-owner-dashboard)
+11. [Admin Management](#11-admin-management)
+12. [Statistics & Analytics](#12-statistics--analytics)
 
 ---
 
 ## 1. Authentication
 
-### 1.1. Register
+### 1.1 Register
 
-- **Method**: POST
-- **Path**: `/api/auth/register`
-- **Role**: [Public]
-- **Description**: Registers a new user or owner account. Sends a verification email after successful registration.
-- **Request Body**:
+**Description**: Registers a new user or owner account and sends a verification email.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/auth/register`  
+**Authorization**: None
+
+**Request Body**:
+
+```json
+{
+  "email": "user@example.com",
+  "password": "Password123!",
+  "fullName": "Nguyen Van A",
+  "phone": "0909123456",
+  "role": "User", // or "Owner"
+  "city": "Hà Nội", // Optional for User
+  "district": "Đống Đa", // Optional for User
+  "description": "Field owner" // Optional for Owner
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
   ```json
   {
-    "email": "string",
-    "password": "string",
-    "fullName": "string",
-    "phone": "string",
-    "role": "string", // "User" or "Owner"
-    "city": "string", // Optional (for User)
-    "district": "string", // Optional (for User)
-    "description": "string" // Optional (for Owner)
+    "accountId": 1,
+    "email": "user@example.com",
+    "verificationToken": "abc123",
+    "message": "Registration successful. Please verify your email."
   }
   ```
-- **Response**:
-  - **201 Created**:
-    ```json
-    {
-      "accountId": 1,
-      "email": "user@example.com",
-      "role": "User",
-      "message": "Account created. Please verify your email.",
-      "verificationToken": "abc123"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "email",
-          "message": "Email is already registered"
-        }
-      ]
-    }
-    ```
----
 
-### 1.2. Login
+- **400 Bad Request**:
 
-- **Method**: POST
-- **Path**: `/api/auth/login`
-- **Role**: [Public]
-- **Description**: Authenticates a user or owner and returns a JWT and refresh token.
-- **Request Body**:
   ```json
   {
-    "email": "string",
-    "password": "string"
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "email",
+        "message": "Email is required"
+      }
+    ]
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "accountId": 1,
-      "email": "user@example.com",
-      "role": "User",
-      "token": "jwt-token",
-      "refreshToken": "refresh-token",
-      "expiresIn": 3600
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid email or password"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "Account not verified"
-    }
-    ```
 
----
-
-### 1.3. Refresh Token
-
-- **Method**: POST
-- **Path**: `/api/auth/refresh`
-- **Role**: [Public]
-- **Description**: Refreshes JWT using a valid refresh token.
-- **Request Body**:
+- **409 Conflict**:
   ```json
   {
-    "refreshToken": "string"
+    "error": "Conflict",
+    "message": "Email already registered"
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "token": "new-jwt-token",
-      "refreshToken": "new-refresh-token",
-      "expiresIn": 3600
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or expired refresh token"
-    }
-    ```
 
----
+**Note**:
 
-### 1.4. Forgot Password
+- `role` must be either "User" or "Owner".
+- Sends a verification email with a link containing `verificationToken`.
+- For `User`, `city` and `district` are optional.
+- For `Owner`, `description` is optional.
+- `Account.Email` is unique.
 
-- **Method**: POST
-- **Path**: `/api/auth/forgot-password`
-- **Role**: [Public]
-- **Description**: Sends a password reset link to the user's email.
-- **Request Body**:
+### 1.2 Login
+
+**Description**: Authenticates a user or owner and returns access and refresh tokens.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/auth/login`  
+**Authorization**: None
+
+**Request Body**:
+
+```json
+{
+  "email": "user@example.com",
+  "password": "Password123!"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
   ```json
   {
-    "email": "string"
+    "accessToken": "jwt_token",
+    "refreshToken": "refresh_token",
+    "expiresIn": 3600,
+    "role": "User",
+    "message": "Login successful"
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Password reset link sent to your email"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Email not registered"
-    }
-    ```
 
----
+- **400 Bad Request**:
 
-### 1.5. Reset Password
-
-- **Method**: POST
-- **Path**: `/api/auth/reset-password`
-- **Role**: [Public]
-- **Description**: Resets the password using a reset token.
-- **Request Body**:
   ```json
   {
-    "resetToken": "string",
-    "newPassword": "string"
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "email",
+        "message": "Email is required"
+      }
+    ]
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Password reset successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Invalid or expired reset token"
-    }
-    ```
 
----
-
-### 1.6. Logout
-
-- **Method**: POST
-- **Path**: `/api/auth/logout`
-- **Role**: [User, Owner, Admin]
-- **Description**: Invalidates the refresh token to log out the user.
-- **Request Body**:
+- **401 Unauthorized**:
   ```json
   {
-    "refreshToken": "string"
+    "error": "Unauthorized",
+    "message": "Invalid email or password"
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Logged out successfully"
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid refresh token"
-    }
-    ```
----
 
-### 1.7. Get Current User
+**Note**:
 
-- **Method**: GET
-- **Path**: `/api/auth/me`
-- **Role**: [User, Owner, Admin]
-- **Description**: Retrieves information about the authenticated user.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "accountId": 1,
-      "userId": 1,
-      "email": "user@example.com",
-      "fullName": "Nguyen Van A",
-      "role": "User"
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
+- Updates `Account.LastLogin` on successful login.
+- Returns `Account.Role` in `role`.
 
----
+### 1.3 Refresh Token
 
-### 1.8. Change Password
+**Description**: Refreshes the access token using a refresh token.
 
-- **Method**: POST
-- **Path**: `/api/auth/change-password`
-- **Role**: [User, Owner, Admin]
-- **Description**: Changes the user's password.
-- **Request Body**:
+**HTTP Method**: POST  
+**Endpoint**: `/api/auth/refresh-token`  
+**Authorization**: None
+
+**Request Body**:
+
+```json
+{
+  "refreshToken": "refresh_token"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
   ```json
   {
-    "currentPassword": "string",
-    "newPassword": "string"
+    "accessToken": "new_jwt_token",
+    "refreshToken": "new_refresh_token",
+    "expiresIn": 3600,
+    "message": "Token refreshed successfully"
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Password changed successfully"
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Incorrect current password"
-    }
-    ```
 
----
+- **400 Bad Request**:
 
-### 1.9. Verify Email
-
-- **Method**: POST
-- **Path**: `/api/auth/verify-email`
-- **Role**: [Public]
-- **Description**: Verifies the user's email using a verification token.
-- **Request Body**:
   ```json
   {
-    "verificationToken": "string"
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "refreshToken",
+        "message": "Refresh token is required"
+      }
+    ]
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Email verified successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Invalid or expired verification token"
-    }
-    ```
----
 
-### 1.10. Resend Verification Email
-
-- **Method**: POST
-- **Path**: `/api/auth/resend-verification`
-- **Role**: [Public]
-- **Description**: Resends the email verification link.
-- **Request Body**:
+- **401 Unauthorized**:
   ```json
   {
-    "email": "string"
+    "error": "Unauthorized",
+    "message": "Invalid or expired refresh token"
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Verification email resent"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Email not registered"
-    }
-    ```
----
 
-### 1.11. Verify Token
+### 1.4 Forgot Password
 
-- **Method**: GET
-- **Path**: `/api/auth/verify-token`
-- **Role**: [User, Owner, Admin]
-- **Description**: Checks if the JWT token is valid.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "isValid": true,
-      "role": "User",
-      "accountId": 1
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or expired token"
-    }
-    ```
+**Description**: Sends a password reset email with a reset token.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/auth/forgot-password`  
+**Authorization**: None
+
+**Request Body**:
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Password reset email sent"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "email",
+        "message": "Email is required"
+      }
+    ]
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Email not found"
+  }
+  ```
+
+**Note**:
+
+- Generates `Account.ResetToken` and sends it via email.
+
+### 1.5 Reset Password
+
+**Description**: Resets the password using a reset token.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/auth/reset-password`  
+**Authorization**: None
+
+**Request Body**:
+
+```json
+{
+  "resetToken": "reset_token",
+  "newPassword": "NewPassword123!"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Password reset successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "resetToken",
+        "message": "Invalid or expired reset token"
+      },
+      {
+        "field": "newPassword",
+        "message": "Password must be at least 8 characters"
+      }
+    ]
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "User not found"
+  }
+  ```
+
+**Note**:
+
+- Clears `Account.ResetToken` after successful reset.
+
+### 1.6 Logout
+
+**Description**: Invalidates the refresh token for the authenticated user or owner.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/auth/logout`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Request Body**:
+
+```json
+{
+  "refreshToken": "refresh_token"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Logout successful"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "refreshToken",
+        "message": "Refresh token is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+### 1.7 Get Current User
+
+**Description**: Retrieves information of the authenticated user or owner.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/auth/me`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Request Example**:
+
+```http
+GET /api/auth/me
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "accountId": 1,
+    "userId": 1, // For User role
+    "ownerId": 1, // For Owner role
+    "email": "user@example.com",
+    "fullName": "Nguyen Van A",
+    "role": "User",
+    "phone": "0909123456",
+    "city": "Hà Nội", // For User role
+    "district": "Đống Đa", // For User role
+    "avatarUrl": "https://cloudinary.com/avatar.jpg", // For User role
+    "description": "Field owner" // For Owner role
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Response fields vary based on `Account.Role`:
+  - `User`: Includes `userId`, `city`, `district`, `avatarUrl`.
+  - `Owner`: Includes `ownerId`, `description`.
+
+### 1.8 Change Password
+
+**Description**: Changes the password of the authenticated user or owner.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/auth/change-password`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Request Body**:
+
+```json
+{
+  "currentPassword": "Password123!",
+  "newPassword": "NewPassword123!"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Password changed successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "currentPassword",
+        "message": "Current password is incorrect"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+### 1.9 Verify Email
+
+**Description**: Verifies the email address using a verification token.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/auth/verify-email`  
+**Authorization**: None
+
+**Request Body**:
+
+```json
+{
+  "verificationToken": "abc123"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Email verified successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "verificationToken",
+        "message": "Invalid or expired verification token"
+      }
+    ]
+  }
+  ```
+
+### 1.10 Resend Verification Email
+
+**Description**: Resends the verification email to the user or owner.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/auth/resend-verification`  
+**Authorization**: None
+
+**Request Body**:
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Verification email resent"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "email",
+        "message": "Email is required"
+      }
+    ]
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Email not found"
+  }
+  ```
+
+### 1.11 Verify Token
+
+**Description**: Verifies the validity of an access token.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/auth/verify-token`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Request Body**:
+
+```json
+{
+  "accessToken": "jwt_token"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "isValid": true,
+    "role": "User",
+    "message": "Token is valid"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "accessToken",
+        "message": "Access token is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or expired token"
+  }
+  ```
+
 ---
 
 ## 2. User Management
 
-### 2.1. Get Profile
+### 2.1 Get Profile
 
-- **Method**: GET
-- **Path**: `/api/users/profile`
-- **Role**: [User, Owner]
-- **Description**: Retrieves the current user's profile information.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "userId": 1,
-      "fullName": "Nguyen Van A",
-      "email": "user@example.com",
-      "phone": "0909123456",
-      "city": "Hà Nội",
-      "district": "Đống Đa",
-      "avatarUrl": "https://cloudinary.com/avatar.jpg"
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
----
+**Description**: Retrieves the profile of the authenticated user or owner.
 
-### 2.2. Update Profile
+**HTTP Method**: GET  
+**Endpoint**: `/api/users/profile`  
+**Authorization**: Bearer Token (User or Owner)
 
-- **Method**: PUT
-- **Path**: `/api/users/profile`
-- **Role**: [User, Owner]
-- **Description**: Updates the current user's profile information.
-- **Request Body**:
+**Request Example**:
+
+```http
+GET /api/users/profile
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
   ```json
   {
-    "fullName": "string",
-    "phone": "string",
-    "city": "string",
-    "district": "string",
-    "avatarUrl": "string"
+    "userId": 1, // For User role
+    "ownerId": 1, // For Owner role
+    "fullName": "Nguyen Van A",
+    "email": "user@example.com",
+    "phone": "0909123456",
+    "city": "Hà Nội", // For User role
+    "district": "Đống Đa", // For User role
+    "avatarUrl": "https://cloudinary.com/avatar.jpg", // For User role
+    "description": "Field owner" // For Owner role
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Profile updated successfully",
-      "user": {
-        "userId": 1,
-        "fullName": "Nguyen Van A",
-        "email": "user@example.com",
-        "phone": "0909123456"
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Response fields vary based on `Account.Role`:
+  - `User`: Includes `userId`, `city`, `district`, `avatarUrl`.
+  - `Owner`: Includes `ownerId`, `description`.
+
+### 2.2 Update Profile
+
+**Description**: Updates the profile of the authenticated user or owner.
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/users/profile`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Request Body**:
+
+```json
+{
+  // For User role
+  "fullName": "Nguyen Van A",
+  "phone": "0909123456",
+  "city": "Hà Nội",
+  "district": "Đống Đa",
+  "avatarUrl": "https://cloudinary.com/avatar.jpg",
+  // For Owner role
+  "description": "Field owner"
+}
+```
+
+**Request Example**:
+
+```http
+PUT /api/users/profile
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "fullName": "Nguyen Van A",
+  "phone": "0909123456",
+  "city": "Hà Nội",
+  "district": "Đống Đa"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "userId": 1, // For User role
+    "ownerId": 1, // For Owner role
+    "fullName": "Nguyen Van A",
+    "phone": "0909123456",
+    "city": "Hà Nội", // For User role
+    "district": "Đống Đa", // For User role
+    "avatarUrl": "https://cloudinary.com/avatar.jpg", // For User role
+    "description": "Field owner", // For Owner role
+    "message": "Profile updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "phone",
+        "message": "Invalid phone format"
       }
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "phone",
-          "message": "Invalid phone number"
-        }
-      ]
-    }
-    ```
-
----
-
-### 2.3. Delete Profile
-
-- **Method**: DELETE
-- **Path**: `/api/users/profile`
-- **Role**: [User, Owner]
-- **Description**: Deletes the current user's account.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Account deleted successfully"
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
----
-
-### 2.4. Get Booking History
-
-- **Method**: GET
-- **Path**: `/api/users/bookings`
-- **Role**: [User]
-- **Description**: Retrieves the user's booking history.
-- **Query Parameters**:
-  - `status`: Filter by status (e.g., "Confirmed", "Pending").
-  - `sort`: Sort by field (e.g., "BookingDate:desc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "bookingId": 1,
-          "fieldName": "ABC Field",
-          "subFieldName": "Field A",
-          "bookingDate": "2025-06-01",
-          "startTime": "08:00:00",
-          "endTime": "09:00:00",
-          "totalPrice": 300000,
-          "status": "Confirmed"
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
----
-
-### 2.5. Get Favorite Fields
-
-- **Method**: GET
-- **Path**: `/api/users/favorites`
-- **Role**: [User]
-- **Description**: Retrieves the user's favorite fields.
-- **Query Parameters**:
-  - `sort`: Sort by field (e.g., "FieldName:asc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "fieldId": 1,
-          "fieldName": "ABC Field",
-          "address": "123 Lang Street, Hanoi",
-          "averageRating": 4.5
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
----
-
-### 2.6. Add Favorite Field
-
-- **Method**: POST
-- **Path**: `/api/users/favorites`
-- **Role**: [User]
-- **Description**: Adds a field to the user's favorite list.
-- **Request Body**:
-  ```json
-  {
-    "fieldId": 1
+    ]
   }
   ```
-- **Response**:
-  - **201 Created**:
-    ```json
-    {
-      "message": "Field added to favorites",
-      "favoriteId": 1
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Field already in favorites"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Field does not exist"
-    }
-    ```
----
 
-### 2.7. Remove Favorite Field
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
 
-- **Method**: DELETE
-- **Path**: `/api/users/favorites/{fieldId}`
-- **Role**: [User]
-- **Description**: Removes a field from the user's favorite list.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Field removed from favorites"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Field not in favorites"
-    }
-    ```
+**Note**:
 
----
+- Request fields vary based on `Account.Role`:
+  - `User`: Can update `fullName`, `phone`, `city`, `district`, `avatarUrl`.
+  - `Owner`: Can update `fullName`, `phone`, `description`.
 
-### 2.8. Get User Reviews
+### 2.3 Delete Profile
 
-- **Method**: GET
-- **Path**: `/api/users/reviews`
-- **Role**: [User]
-- **Description**: Retrieves the reviews posted by the current user.
-- **Query Parameters**:
-  - `sort`: Sort by field (e.g., "CreatedAt:desc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
+**Description**: Deletes the profile of the authenticated user or owner (soft delete).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/users/profile`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Request Example**:
+
+```http
+DELETE /api/users/profile
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Profile deleted successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "account",
+        "message": "Cannot delete account with active bookings or fields"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Sets `Account.DeletedAt` for soft delete.
+- Checks for active bookings (`User`) or fields (`Owner`) before deletion.
+
+### 2.4 Get Booking History
+
+**Description**: Retrieves the booking history of the authenticated user.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/users/bookings`  
+**Authorization**: Bearer Token (User)
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `status` (optional, string: Confirmed|Pending|Cancelled)
+- `startDate` (optional, date: YYYY-MM-DD)
+- `endDate` (optional, date: YYYY-MM-DD)
+
+**Request Example**:
+
+```http
+GET /api/users/bookings?page=1&pageSize=10&status=Confirmed
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "bookingId": 1,
+        "fieldName": "Sân Bóng Đá ABC",
+        "subFieldName": "Sân 5A",
+        "bookingDate": "2025-06-01",
+        "startTime": "14:00",
+        "endTime": "15:00",
+        "totalPrice": 500000,
+        "status": "Confirmed",
+        "paymentStatus": "Paid"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "startDate",
+        "message": "Invalid date format"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Filters bookings by `Booking.UserId` and optional parameters.
+- `paymentStatus` reflects `Booking.PaymentStatus` (Paid|Unpaid|Refunded).
+
+### 2.5 Get Favorite Fields
+
+**Description**: Retrieves the favorite fields of the authenticated user.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/users/favorites`  
+**Authorization**: Bearer Token (User)
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/users/favorites?page=1&pageSize=10
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "fieldId": 1,
+        "fieldName": "Sân Bóng Đá ABC",
+        "address": "123 Đường Láng, Đống Đa",
+        "averageRating": 4.5
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+### 2.6 Add Favorite Field
+
+**Description**: Adds a field to the authenticated user's favorites.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/users/favorites`  
+**Authorization**: Bearer Token (User)
+
+**Request Body**:
+
+```json
+{
+  "fieldId": 1
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "fieldId": 1,
+    "message": "Field added to favorites"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "fieldId",
+        "message": "Field is already in favorites"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 2.7 Remove Favorite Field
+
+**Description**: Removes a field from the authenticated user's favorites.
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/users/favorites/{fieldId}`  
+**Authorization**: Bearer Token (User)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field to remove.
+
+**Request Example**:
+
+```http
+DELETE /api/users/favorites/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Favorite field removed successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "fieldId",
+        "message": "Field is not in favorites"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 2.8 Get User Reviews
+
+**Description**: Retrieves reviews made by the authenticated user.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/users/reviews`  
+**Authorization**: Bearer Token (User)
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/users/reviews?page=1&pageSize=10
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "reviewId": 1,
+        "fieldId": 1,
+        "fieldName": "Sân Bóng Đá ABC",
+        "rating": 5,
+        "comment": "Great field!",
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+### 2.9 Get Loyalty Points
+
+**Description**: Retrieves the total loyalty points of the authenticated user.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/users/loyalty-points`  
+**Authorization**: Bearer Token (User)
+
+**Request Example**:
+
+```http
+GET /api/users/loyalty-points
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "userId": 1,
+    "loyaltyPoints": 150
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Returns the total loyalty points stored in `User.LoyaltyPoints`.
+- No pagination is required as this endpoint returns a single value.
+
+### 2.10 Get User Search History
+
+**Description**: Retrieves the search history of the authenticated user. Supports pagination and filtering by date range. Search history includes keywords and optional metadata like field ID or location coordinates.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/users/search-history`  
+**Authorization**: Bearer Token (User)
+
+**Query Parameters**:
+
+- `startDate` (optional, date: YYYY-MM-DD): Filter history from this date.
+- `endDate` (optional, date: YYYY-MM-DD): Filter history up to this date.
+- `page` (optional, integer, default: 1): Page number.
+- `pageSize` (optional, integer, default: 10): Number of entries per page.
+
+**Request Example**:
+
+```http
+GET /api/users/search-history?page=1&pageSize=10&startDate=2025-05-01&endDate=2025-05-31
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+```json
+{
+  "data": [
     {
-      "data": [
-        {
-          "reviewId": 1,
-          "fieldName": "ABC Field",
-          "rating": 5,
-          "comment": "Great field!",
-          "createdAt": "2025-06-01T10:00:00Z"
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
+      "searchId": "1",
+      "userId": "1",
+      "keyword": "football field Hanoi",
+      "searchDateTime": "2025-05-25T10:00:00Z",
+      "fieldId": "1",
+      "latitude": 21.0001,
+      "longitude": 105.0001
+    },
     {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
+      "searchId": "2",
+      "userId": "1",
+      "keyword": "tennis court near me",
+      "searchDateTime": "2025-05-24T15:30:00Z",
+      "fieldId": null,
+      "latitude": null,
+      "longitude": null
     }
-    ```
+  ],
+  "totalCount": 2,
+  "page": 1,
+  "pageSize": 10,
+  "message": "Search history retrieved successfully"
+}
+```
+
+- **400 Bad Request**:
+
+```json
+{
+  "error": "Invalid input",
+  "details": [
+    {
+      "field": "startDate",
+      "message": "Invalid date format"
+    }
+  ]
+}
+```
+
+- **401 Unauthorized**:
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing token"
+}
+```
+
+- **403 Forbidden**:
+
+```json
+{
+  "error": "Forbidden",
+  "message": "User is not authorized to access this resource"
+}
+```
+
+**Note**:
+
+- Returns `SearchHistory` records for the authenticated user.
+- `userId` maps to `SearchHistory.UserId`.
+- `searchId` maps to `SearchHistory.SearchId`.
+- Supports filtering by `startDate` and `endDate` for `SearchHistory.SearchDateTime`.
+- `fieldId`, `latitude`, and `longitude` are optional and may be null.
 
 ---
 
 ## 3. Field Management
 
-### 3.1. Get Fields
+### 3.1 Get Fields
 
-- **Method**: GET
-- **Path**: `/api/fields`
-- **Role**: [Public]
-- **Description**: Retrieves all fields with pagination, filtering, and sorting.
-- **Query Parameters**:
-  - `sportId`: Filter by sport.
-  - `city`: Filter by city.
-  - `district`: Filter by district.
-  - `search`: Search by field name.
-  - `sort`: Sort by field (e.g., "FieldName:asc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "fieldId": 1,
-          "fieldName": "ABC Field",
-          "address": "123 Lang Street, Hanoi",
-          "city": "Hà Nội",
-          "district": "Đống Đa",
-          "latitude": 10.776,
-          "longitude": 106.7,
-          "openTime": "06:00:00",
-          "closeTime": "22:00:00",
-          "averageRating": 4.5,
-          "sportId": 1
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
+**Description**: Retrieves a list of fields with optional filters.
 
----
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields`  
+**Authorization**: None
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `city` (optional, string)
+- `district` (optional, string)
+- `sportId` (optional, integer)
+- `search` (optional, string: field name or address)
+
+**Request Example**:
+
+```http
+GET /api/fields?page=1&pageSize=10&city=Hà Nội&sportId=1
+```
+
+**Response**:
+
+- **200 OK**:
+  ```json
+  {
+    "data": [
+      {
+        "fieldId": 1,
+        "fieldName": "Sân Bóng Đá ABC",
+        "address": "123 Đường Láng, Đống Đa",
+        "city": "Hà Nội",
+        "district": "Đống Đa",
+        "latitude": 21.0123,
+        "longitude": 105.8234,
+        "openTime": "06:00",
+        "closeTime": "22:00",
+        "averageRating": 4.5,
+        "sportId": 1
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
 
 ### 3.2 Create Field
 
-- **Method**: POST
-- **Path**: `/api/fields`
-- **Role**: [Owner]
-- **Description**: Creates a new field for the owner. The `latitude` and `longitude` are automatically determined using a geocoding service (e.g., Google Maps API) based on the provided `address`, `city`, and `district`.  
-  _Note_: Backend must integrate a geocoding service to convert address to coordinates. Ensure error handling for invalid addresses. Response includes coordinates for owner confirmation.
-- **Request Body**:
+**Description**: Creates a new field for the authenticated owner.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields`  
+**Authorization**: Bearer Token (Owner)
+
+**Request Body**:
+
+```json
+{
+  "fieldName": "Sân Bóng Đá ABC",
+  "address": "123 Đường Láng, Đống Đa",
+  "city": "Hà Nội",
+  "district": "Đống Đa",
+  "openTime": "06:00",
+  "closeTime": "22:00",
+  "sportId": 1
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
   ```json
   {
-    "fieldName": "string",
-    "address": "string",
-    "city": "string",
-    "district": "string",
-    "openTime": "string",
-    "closeTime": "string",
-    "sportId": 0
+    "fieldId": 1,
+    "fieldName": "Sân Bóng Đá ABC",
+    "address": "123 Đường Láng, Đống Đa",
+    "city": "Hà Nội",
+    "district": "Đống Đa",
+    "openTime": "06:00",
+    "closeTime": "22:00",
+    "sportId": 1,
+    "latitude": 21.0123,
+    "longitude": 105.8234,
+    "message": "Field created successfully"
   }
   ```
-- **Response**:
-  - **201 Created**:
-    ```json
-    {
-      "fieldId": 1,
-      "fieldName": "ABC Field",
-      "latitude": 10.776,
-      "longitude": 106.7,
-      "message": "Field created successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "address",
-          "message": "Could not determine coordinates for the provided address"
-        }
-      ]
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
 
----
+- **400 Bad Request**:
 
-### 3.3. Get Field Details
-
-- **Method**: GET
-- **Path**: `/api/fields/{id}`
-- **Role**: [Public]
-- **Description**: Retrieves details of a specific field, including subfields, images, services, amenities, descriptions, and pricing.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "fieldId": 1,
-      "fieldName": "ABC Field",
-      "address": "123 Lang Street, Hanoi",
-      "city": "Hà Nội",
-      "district": "Đống Đa",
-      "latitude": 10.776,
-      "longitude": 106.7,
-      "openTime": "06:00:00",
-      "closeTime": "22:00:00",
-      "averageRating": 4.5,
-      "sportId": 1,
-      "subFields": [
-        {
-          "subFieldId": 1,
-          "subFieldName": "Field A",
-          "fieldType": "5-a-side",
-          "capacity": 10
-        }
-      ],
-      "images": [
-        {
-          "fieldImageId": 1,
-          "imageUrl": "https://cloudinary.com/field1.jpg"
-        }
-      ],
-      "services": [
-        {
-          "fieldServiceId": 1,
-          "serviceName": "Water Bottle",
-          "price": 10000,
-          "description": "500ml bottled water",
-          "isActive": true
-        }
-      ],
-      "amenities": [
-        {
-          "fieldAmenityId": 1,
-          "amenityName": "Parking",
-          "description": "Free parking for 50 cars",
-          "iconUrl": "https://cloudinary.com/parking-icon.png"
-        }
-      ],
-      "descriptions": [
-        {
-          "fieldDescriptionId": 1,
-          "description": "Modern football field with artificial turf."
-        }
-      ],
-      "pricing": [
-        {
-          "fieldPricingId": 1,
-          "subFieldId": 1,
-          "startTime": "08:00:00",
-          "endTime": "09:00:00",
-          "dayOfWeek": 1,
-          "price": 300000,
-          "isActive": true
-        }
-      ]
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Field does not exist"
-    }
-    ```
----
-
-### 3.4 Update Field
-
-- **Method**: PUT
-- **Path**: `/api/fields/{id}`
-- **Role**: [Owner]
-- **Description**: Updates an existing field. The `latitude` and `longitude` are automatically updated using a geocoding service if the `address`, `city`, or `district` is changed.  
-  _Note_: Backend should check if address fields are modified before calling geocoding API to optimize performance. Response includes updated coordinates for confirmation.
-- **Request Body**:
   ```json
   {
-    "fieldName": "string",
-    "address": "string",
-    "city": "string",
-    "district": "string",
-    "openTime": "string",
-    "closeTime": "string",
-    "sportId": 0
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "fieldName",
+        "message": "Field name is required"
+      }
+    ]
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "fieldId": 1,
-      "fieldName": "Updated ABC Field",
-      "latitude": 10.776,
-      "longitude": 106.7,
-      "message": "Field updated successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "address",
-          "message": "Could not determine coordinates for the provided address"
-        }
-      ]
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to update this field"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Field does not exist"
-    }
-    ```
----
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- `latitude` and `longitude` are derived via geocoding from `address`, `city`, and `district`.
+- `OwnerId` is automatically set to the authenticated owner's ID.
+- `sportId` must correspond to an existing `Sport`.
+
+### 3.3 Update Field
+
+**Description**: Updates an existing field (Owner only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/fields/{fieldId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field to update.
+
+**Request Body**:
+
+```json
+{
+  "fieldName": "Sân Bóng Đá ABC",
+  "address": "123 Đường Láng, Đống Đa",
+  "city": "Hà Nội",
+  "district": "Đống Đa",
+  "openTime": "06:00",
+  "closeTime": "22:00",
+  "sportId": 1
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "fieldId": 1,
+    "fieldName": "Sân Bóng Đá ABC",
+    "address": "123 Đường Láng, Đống Đa",
+    "city": "Hà Nội",
+    "district": "Đống Đa",
+    "openTime": "06:00",
+    "closeTime": "22:00",
+    "sportId": 1,
+    "latitude": 21.0123,
+    "longitude": 105.8234,
+    "message": "Field updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "fieldName",
+        "message": "Field name is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can update this field"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+**Note**:
+
+- Updates `latitude` and `longitude` via geocoding if `address`, `city`, or `district` changes.
+- Checks if the authenticated owner owns the field.
+
+### 3.4 Get Field By ID
+
+**Description**: Retrieves details of a specific field.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Request Example**:
+
+```http
+GET /api/fields/1
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "fieldId": 1,
+    "fieldName": "Sân Bóng Đá ABC",
+    "address": "123 Đường Láng, Đống Đa",
+    "city": "Hà Nội",
+    "district": "Đống Đa",
+    "latitude": 21.0123,
+    "longitude": 105.8234,
+    "openTime": "06:00",
+    "closeTime": "22:00",
+    "averageRating": 4.5,
+    "sportId": 1
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
 
 ### 3.5 Delete Field
 
-- **Method**: DELETE
-- **Path**: `/api/fields/{id}`
-- **Role**: [Owner]
-- **Description**: Marks a field as deleted (soft delete). The field will no longer be visible to users but remains in the database for historical purposes. Checks for active bookings before deletion.  
-  _Note_: Backend must add `Status` field to `Field` model for soft delete. Ensure no confirmed or pending bookings exist before deletion. The `status` field in response indicates the field’s new state.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "fieldId": 1,
-      "status": "Inactive",
-      "message": "Field deleted successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Cannot delete field with active bookings"
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to delete this field"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Field does not exist"
-    }
-    ```
+**Description**: Soft deletes a field by setting its status to `Deleted` (Owner only).
 
----
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/fields/{fieldId}`  
+**Authorization**: Bearer Token (Owner)
 
-### 3.6 Get Field Availability
+**Path Parameters**:
 
-- **Method**: GET
-- **Path**: `/api/fields/availability`
-- **Role**: [User]
-- **Description**: Retrieves available time slots for fields based on filters. Includes promotion information if applicable.  
-  _Note_: Backend should filter slots with duration ≥ specified `duration`. Include `promotion` in response for accurate pricing.
-- **Query Parameters**:
-  - `fieldId`: Filter by field ID (optional).
-  - `subFieldId`: Filter by subfield ID (optional).
-  - `sportId`: Filter by sport ID (optional).
-  - `city`: Filter by city (optional).
-  - `district`: Filter by district (optional).
-  - `date`: Filter by date (format: YYYY-MM-DD, optional).
-  - `startTime`: Filter by start time (format: HH:MM:SS, optional).
-  - `endTime`: Filter by end time (format: HH:MM:SS, optional).
-  - `duration`: Minimum duration of available slots in minutes (e.g., 60, optional).
-  - `page`: Page number for pagination (default: 1).
-  - `pageSize`: Number of items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
+- `fieldId` (required, integer): The ID of the field to delete.
+
+**Request Example**:
+
+```http
+DELETE /api/fields/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "fieldId": 1,
+    "status": "Deleted",
+    "message": "Field deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can delete this field"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+**Note**:
+
+- Sets `Field.Status` to `Deleted` for soft delete.
+- Checks if the authenticated owner owns the field.
+
+### 3.6 Create Full Field
+
+**Description**: Creates a new field with all associated components (subfields, services, amenities, images, pricing rules) in a single request (Owner only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields/full`  
+**Authorization**: Bearer Token (Owner)
+
+**Request Body**:
+
+```json
+{
+  "fieldName": "Sân Bóng Đá ABC",
+  "address": "123 Đường Láng, Đống Đa",
+  "city": "Hà Nội",
+  "district": "Đống Đa",
+  "openTime": "06:00",
+  "closeTime": "22:00",
+  "sportId": 1,
+  "subFields": [
     {
-      "data": [
+      "subFieldName": "Sân 5A",
+      "fieldType": "5-a-side",
+      "status": "Active",
+      "capacity": 10,
+      "description": "Sân cỏ nhân tạo",
+      "pricingRules": [
         {
-          "fieldId": 1,
-          "fieldName": "ABC Field",
-          "subFieldId": 1,
-          "subFieldName": "Field A",
-          "date": "2025-05-21",
-          "startTime": "08:00:00",
-          "endTime": "09:00:00",
-          "price": 300000,
-          "promotion": {
-            "promotionId": 1,
-            "promotionCode": "SUMMER2025",
-            "discountValue": 20,
-            "discountType": "Percentage"
+          "dayOfWeek": "Monday",
+          "startTime": "14:00",
+          "endTime": "15:00",
+          "pricePerHour": 600000
+        }
+      ]
+    }
+  ],
+  "services": [
+    {
+      "serviceName": "Water Bottle",
+      "price": 10000,
+      "description": "500ml water bottle"
+    }
+  ],
+  "amenities": [
+    {
+      "amenityName": "Parking",
+      "description": "Free parking for 50 cars"
+    }
+  ],
+  "images": [
+    {
+      "imageUrl": "https://cloudinary.com/field-image.jpg",
+      "isPrimary": true
+    }
+  ]
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "fieldId": 1,
+    "fieldName": "Sân Bóng Đá ABC",
+    "address": "123 Đường Láng, Đống Đa",
+    "city": "Hà Nội",
+    "district": "Đống Đa",
+    "openTime": "06:00",
+    "closeTime": "22:00",
+    "sportId": 1,
+    "latitude": 21.0123,
+    "longitude": 105.8234,
+    "subFields": [
+      {
+        "subFieldId": 1,
+        "subFieldName": "Sân 5A",
+        "fieldType": "5-a-side",
+        "status": "Active",
+        "capacity": 10,
+        "description": "Sân cỏ nhân tạo",
+        "pricingRules": [
+          {
+            "pricingRuleId": 1,
+            "dayOfWeek": "Monday",
+            "startTime": "14:00",
+            "endTime": "15:00",
+            "pricePerHour": 600000
           }
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "date",
-          "message": "Invalid date or time format"
-        }
-      ]
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
----
-
-### 3.7. Create SubField
-
-- **Method**: POST
-- **Path**: `/api/fields/{id}/subfields`
-- **Role**: [Owner]
-- **Description**: Creates a new subfield for a field.
-- **Request Body**:
-  ```json
-  {
-    "subFieldName": "string",
-    "fieldType": "string",
-    "capacity": 0
+        ]
+      }
+    ],
+    "services": [
+      {
+        "fieldServiceId": 1,
+        "serviceName": "Water Bottle",
+        "price": 10000,
+        "description": "500ml water bottle"
+      }
+    ],
+    "amenities": [
+      {
+        "fieldAmenityId": 1,
+        "amenityName": "Parking",
+        "description": "Free parking for 50 cars"
+      }
+    ],
+    "images": [
+      {
+        "imageId": 1,
+        "imageUrl": "https://cloudinary.com/field-image.jpg",
+        "isPrimary": true
+      }
+    ],
+    "message": "Field and components created successfully"
   }
   ```
-- **Response**:
-  - **201 Created**:
-    ```json
-    {
-      "subFieldId": 1,
-      "subFieldName": "Field A",
-      "message": "SubField created successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "subFieldName",
-          "message": "SubField name is required"
-        }
-      ]
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not own this field"
-    }
-    ```
 
----
+- **400 Bad Request**:
 
-### 3.8. Update SubField
-
-- **Method**: PUT
-- **Path**: `/api/fields/{id}/subfields/{subFieldId}`
-- **Role**: [Owner]
-- **Description**: Updates an existing subfield.
-- **Request Body**:
   ```json
   {
-    "subFieldName": "string",
-    "fieldType": "string",
-    "capacity": 0
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "fieldName",
+        "message": "Field name is required"
+      },
+      {
+        "field": "subFields[0].subFieldName",
+        "message": "Subfield name is required"
+      }
+    ]
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "subFieldId": 1,
-      "subFieldName": "Updated Field A",
-      "message": "SubField updated successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "subFieldName",
-          "message": "SubField name is required"
-        }
-      ]
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not own this field"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "SubField does not exist"
-    }
-    ```
----
 
-### 3.9 Delete SubField
-
-- **Method**: DELETE
-- **Path**: `/api/subfields/{id}`
-- **Role**: [Owner]
-- **Description**: Marks a subfield as deleted (soft delete). The subfield will no longer be available for bookings. Checks for active bookings before deletion.  
-  _Note_: Backend must add `Status` field to `SubField` model for soft delete. Ensure no confirmed or pending bookings exist before deletion. The `status` field in response indicates the subfield’s new state.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "subFieldId": 1,
-      "status": "Inactive",
-      "message": "Subfield deleted successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Cannot delete subfield with active bookings"
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to delete this subfield"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Subfield does not exist"
-    }
-    ```
-
----
-
-### 3.10. Upload Field Image
-
-- **Method**: POST
-- **Path**: `/api/fields/{id}/images`
-- **Role**: [Owner]
-- **Description**: Uploads an image for a field.
-- **Request Body**: Form-data with file (image).
-- **Response**:
-  - **201 Created**:
-    ```json
-    {
-      "fieldImageId": 1,
-      "imageUrl": "https://cloudinary.com/field1.jpg",
-      "message": "Image uploaded successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Image file is required"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not own this field"
-    }
-    ```
----
-
-### 3.11. Delete Field Image
-
-- **Method**: DELETE
-- **Path**: `/api/fields/{id}/images/{imageId}`
-- **Role**: [Owner]
-- **Description**: Deletes a field image.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Image deleted successfully"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not own this field"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Image does not exist"
-    }
-    ```
----
-
-### 3.12. Get Field Reviews
-
-- **Method**: GET
-- **Path**: `/api/fields/{id}/reviews`
-- **Role**: [Public]
-- **Description**: Retrieves reviews for a specific field with pagination.
-- **Query Parameters**:
-  - `sort`: Sort by field (e.g., "Rating:desc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "reviewId": 1,
-          "userId": 1,
-          "username": "John Doe",
-          "rating": 5,
-          "comment": "Great field!",
-          "createdAt": "2025-05-21T10:00:00Z"
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Field does not exist"
-    }
-    ```
----
-
-### 3.13. Get Field Services
-
-- **Method**: GET
-- **Path**: `/api/fields/{id}/services`
-- **Role**: [Public]
-- **Description**: Retrieves all services of a specific field.
-- **Query Parameters**:
-  - `isActive`: Filter by active status (true/false).
-  - `sort`: Sort by field (e.g., "ServiceName:asc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "fieldServiceId": 1,
-          "serviceName": "Water Bottle",
-          "price": 10000,
-          "description": "500ml bottled water",
-          "isActive": true
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Field does not exist"
-    }
-    ```
----
-
-### 3.14. Create Field Service
-
-- **Method**: POST
-- **Path**: `/api/fields/{id}/services`
-- **Role**: [Owner]
-- **Description**: Creates a new service for a field.
-- **Request Body**:
+- **401 Unauthorized**:
   ```json
   {
-    "serviceName": "string",
-    "price": 10000,
-    "description": "string",
-    "isActive": true
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
   }
   ```
-- **Response**:
-  - **201 Created**:
-    ```json
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only owners can create fields"
+  }
+  ```
+
+**Note**:
+
+- `latitude` and `longitude` are derived via geocoding from `address`, `city`, and `district`.
+- `OwnerId` is automatically set to the authenticated owner's ID.
+- `sportId` must correspond to an existing `Sport`.
+- All components (`subFields`, `services`, `amenities`, `images`, `pricingRules`) are optional but validated if provided.
+- The operation is atomic: if any component fails validation, no data is saved.
+- Maximum limits: 10 subfields, 50 services, 50 amenities, 50 images per request.
+
+### 3.7 Update Full Field
+
+**Description**: Updates an existing field and its associated components (subfields, services, amenities, images, pricing rules) in a single request (Owner only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/fields/{fieldId}/full`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field to update.
+
+**Request Body**:
+
+```json
+{
+  "fieldName": "Sân Bóng Đá ABC",
+  "address": "123 Đường Láng, Đống Đa",
+  "city": "Hà Nội",
+  "district": "Đống Đa",
+  "openTime": "06:00",
+  "closeTime": "22:00",
+  "sportId": 1,
+  "subFields": [
     {
-      "fieldServiceId": 1,
+      "subFieldId": 1, // Existing subfield
+      "subFieldName": "Sân 5A Updated",
+      "fieldType": "5-a-side",
+      "status": "Active",
+      "capacity": 10,
+      "description": "Sân cỏ nhân tạo",
+      "pricingRules": [
+        {
+          "pricingRuleId": 1, // Existing pricing rule
+          "dayOfWeek": "Monday",
+          "startTime": "14:00",
+          "endTime": "15:00",
+          "pricePerHour": 650000
+        },
+        {
+          // New pricing rule
+          "dayOfWeek": "Tuesday",
+          "startTime": "14:00",
+          "endTime": "15:00",
+          "pricePerHour": 600000
+        }
+      ]
+    },
+    {
+      // New subfield
+      "subFieldName": "Sân 7B",
+      "fieldType": "7-a-side",
+      "status": "Active",
+      "capacity": 14,
+      "description": "Sân cỏ tự nhiên"
+    }
+  ],
+  "services": [
+    {
+      "fieldServiceId": 1, // Existing service
       "serviceName": "Water Bottle",
-      "message": "Service created successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
+      "price": 12000,
+      "description": "500ml water bottle"
+    },
     {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "serviceName",
-          "message": "Service name is required"
-        }
-      ]
+      // New service
+      "serviceName": "Towel",
+      "price": 15000,
+      "description": "Clean towel"
     }
-    ```
-  - **403 Forbidden**:
-    ```json
+  ],
+  "amenities": [
     {
-      "error": "Forbidden",
-      "message": "You do not own this field"
-    }
-    ```
-
----
-
-### 3.15. Update Field Service
-
-- **Method**: PUT
-- **Path**: `/api/fields/{id}/services/{serviceId}`
-- **Role**: [Owner]
-- **Description**: Updates an existing field service.
-- **Request Body**:
-  ```json
-  {
-    "serviceName": "string",
-    "price": 12000,
-    "description": "string",
-    "isActive": true
-  }
-  ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "fieldServiceId": 1,
-      "serviceName": "Water Bottle",
-      "message": "Service updated successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Service does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not own this field"
-    }
-    ```
-
----
-
-### 3.16. Delete Field Service
-
-- **Method**: DELETE
-- **Path**: `/api/fields/{id}/services/{serviceId}`
-- **Role**: [Owner]
-- **Description**: Deletes a field service.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Service deleted successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Service does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not own this field"
-    }
-    ```
----
-
-### 3.17. Get Field Amenities
-
-- **Method**: GET
-- **Path**: `/api/fields/{id}/amenities`
-- **Role**: [Public]
-- **Description**: Retrieves all amenities of a specific field.
-- **Query Parameters**:
-  - `sort`: Sort by field (e.g., "AmenityName:asc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "fieldAmenityId": 1,
-          "amenityName": "Parking",
-          "description": "Free parking for 50 cars",
-          "iconUrl": "https://cloudinary.com/parking-icon.png"
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Field does not exist"
-    }
-    ```
-
----
-
-### 3.18. Create Field Amenity
-
-- **Method**: POST
-- **Path**: `/api/fields/{id}/amenities`
-- **Role**: [Owner]
-- **Description**: Creates a new amenity for a field.
-- **Request Body**:
-  ```json
-  {
-    "amenityName": "string",
-    "description": "string",
-    "iconUrl": "string"
-  }
-  ```
-- **Response**:
-  - **201 Created**:
-    ```json
-    {
-      "fieldAmenityId": 1,
+      "fieldAmenityId": 1, // Existing amenity
       "amenityName": "Parking",
-      "message": "Amenity created successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
+      "description": "Free parking for 50 cars"
+    },
     {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "amenityName",
-          "message": "Amenity name is required"
-        }
-      ]
+      // New amenity
+      "amenityName": "Shower",
+      "description": "Hot water showers"
     }
-    ```
-  - **403 Forbidden**:
-    ```json
+  ],
+  "images": [
     {
-      "error": "Forbidden",
-      "message": "You do not own this field"
+      "imageId": 1, // Existing image
+      "imageUrl": "https://cloudinary.com/field-image-updated.jpg",
+      "isPrimary": true
+    },
+    {
+      // New image
+      "imageUrl": "https://cloudinary.com/field-image-new.jpg",
+      "isPrimary": false
     }
-    ```
----
+  ]
+}
+```
 
-### 3.19. Update Field Amenity
+**Response**:
 
-- **Method**: PUT
-- **Path**: `/api/fields/{id}/amenities/{amenityId}`
-- **Role**: [Owner]
-- **Description**: Updates an existing field amenity.
-- **Request Body**:
+- **200 OK**:
+
   ```json
   {
-    "amenityName": "string",
-    "description": "string",
-    "iconUrl": "string"
+    "fieldId": 1,
+    "fieldName": "Sân Bóng Đá ABC",
+    "address": "123 Đường Láng, Đống Đa",
+    "city": "Hà Nội",
+    "district": "Đống Đa",
+    "openTime": "06:00",
+    "closeTime": "22:00",
+    "sportId": 1,
+    "latitude": 21.0123,
+    "longitude": 105.8234,
+    "subFields": [
+      {
+        "subFieldId": 1,
+        "subFieldName": "Sân 5A Updated",
+        "fieldType": "5-a-side",
+        "status": "Active",
+        "capacity": 10,
+        "description": "Sân cỏ nhân tạo",
+        "pricingRules": [
+          {
+            "pricingRuleId": 1,
+            "dayOfWeek": "Monday",
+            "startTime": "14:00",
+            "endTime": "15:00",
+            "pricePerHour": 650000
+          },
+          {
+            "pricingRuleId": 2,
+            "dayOfWeek": "Tuesday",
+            "startTime": "14:00",
+            "endTime": "15:00",
+            "pricePerHour": 600000
+          }
+        ]
+      },
+      {
+        "subFieldId": 2,
+        "subFieldName": "Sân 7B",
+        "fieldType": "7-a-side",
+        "status": "Active",
+        "capacity": 14,
+        "description": "Sân cỏ tự nhiên"
+      }
+    ],
+    "services": [
+      {
+        "fieldServiceId": 1,
+        "serviceName": "Water Bottle",
+        "price": 12000,
+        "description": "500ml water bottle"
+      },
+      {
+        "fieldServiceId": 2,
+        "serviceName": "Towel",
+        "price": 15000,
+        "description": "Clean towel"
+      }
+    ],
+    "amenities": [
+      {
+        "fieldAmenityId": 1,
+        "amenityName": "Parking",
+        "description": "Free parking for 50 cars"
+      },
+      {
+        "fieldAmenityId": 2,
+        "amenityName": "Shower",
+        "description": "Hot water showers"
+      }
+    ],
+    "images": [
+      {
+        "imageId": 1,
+        "imageUrl": "https://cloudinary.com/field-image-updated.jpg",
+        "isPrimary": true
+      },
+      {
+        "imageId": 2,
+        "imageUrl": "https://cloudinary.com/field-image-new.jpg",
+        "isPrimary": false
+      }
+    ],
+    "message": "Field and components updated successfully"
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "fieldAmenityId": 1,
-      "amenityName": "Parking",
-      "message": "Amenity updated successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Amenity does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not own this field"
-    }
-    ```
----
 
-### 3.20. Delete Field Amenity
+- **400 Bad Request**:
 
-- **Method**: DELETE
-- **Path**: `/api/fields/{id}/amenities/{amenityId}`
-- **Role**: [Owner]
-- **Description**: Deletes a field amenity.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Amenity deleted successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Amenity does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not own this field"
-    }
-    ```
----
-
-### 3.21. Get Field Descriptions
-
-- **Method**: GET
-- **Path**: `/api/fields/{id}/descriptions`
-- **Role**: [Public]
-- **Description**: Retrieves all descriptions of a specific field.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "fieldDescriptionId": 1,
-          "description": "Modern football field with artificial turf."
-        }
-      ],
-      "total": 1
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Field does not exist"
-    }
-    ```
-
----
-
-### 3.22. Create Field Description
-
-- **Method**: POST
-- **Path**: `/api/fields/{id}/descriptions`
-- **Role**: [Owner]
-- **Description**: Creates a new description for a field.
-- **Request Body**:
   ```json
   {
-    "description": "string"
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "fieldName",
+        "message": "Field name is required"
+      },
+      {
+        "field": "subFields[0].subFieldId",
+        "message": "Subfield ID does not exist"
+      }
+    ]
   }
   ```
-- **Response**:
-  - **201 Created**:
-    ```json
-    {
-      "fieldDescriptionId": 1,
-      "description": "Modern football field with artificial turf.",
-      "message": "Description created successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "description",
-          "message": "Description is required"
-        }
-      ]
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not own this field"
-    }
-    ```
----
 
-### 3.23. Update Field Description
-
-- **Method**: PUT
-- **Path**: `/api/fields/{id}/descriptions/{descriptionId}`
-- **Role**: [Owner]
-- **Description**: Updates an existing field description.
-- **Request Body**:
+- **401 Unauthorized**:
   ```json
   {
-    "description": "string"
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "fieldDescriptionId": 1,
-      "description": "Updated football field description.",
-      "message": "Description updated successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Description does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not own this field"
-    }
-    ```
----
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can update this field"
+  }
+  ```
+- **404 Not Found**:
 
-### 3.24. Delete Field Description
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
 
-- **Method**: DELETE
-- **Path**: `/api/fields/{id}/descriptions/{descriptionId}`
-- **Role**: [Owner]
-- **Description**: Deletes a field description.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Description deleted successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Description does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not own this field"
-    }
-    ```
----
+  **Note**:
 
-### 3.25. Get Field Pricing
+- Updates `latitude` and `longitude` via geocoding if `address`, `city`, or `district` changes.
+- Checks if the authenticated owner owns the field.
+- Components (`subFields`, `services`, `amenities`, `images`, `pricingRules`) are optional:
+  - If `subFieldId`, `fieldServiceId`, `fieldAmenityId`, or `imageId` is provided, updates the existing record.
+  - If not provided, creates a new record.
+- The operation is atomic: if any component fails validation, no changes are applied.
+- Maximum limits: 10 subfields, 50 services, 50 amenities, 50 images per request.
+- Existing components not included in the request remain unchanged.
 
-- **Method**: GET
-- **Path**: `/api/fields/{id}/pricing`
-- **Role**: [Public]
-- **Description**: Retrieves all pricing rules for a field’s subfields.
-- **Query Parameters**:
-  - `subFieldId`: Filter by subfield.
-  - `isActive`: Filter by active status (true/false).
-  - `sort`: Sort by field (e.g., "Price:asc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "fieldPricingId": 1,
-          "subFieldId": 1,
-          "startTime": "08:00:00",
-          "endTime": "09:00:00",
-          "dayOfWeek": 1,
-          "price": 300000,
-          "isActive": true
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Field does not exist"
-    }
-    ```
----
+### 3.8 Get Field Availability
 
-### 3.26. Create Field Pricing
+**Description**: Retrieves available time slots for a field or subfield.
 
-- **Method**: POST
-- **Path**: `/api/fields/{id}/pricing`
-- **Role**: [Owner]
-- **Description**: Creates a new pricing rule for a subfield.
-- **Request Body**:
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/availability`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `subFieldId` (optional, integer)
+- `date` (required, date: YYYY-MM-DD)
+- `sportId` (optional, integer)
+
+**Request Example**:
+
+```http
+GET /api/fields/1/availability?date=2025-06-01&subFieldId=1
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "subFieldId": 1,
+        "subFieldName": "Sân 5A",
+        "availableSlots": [
+          {
+            "startTime": "14:00",
+            "endTime": "15:00"
+          }
+        ]
+      },
+      {
+        "subFieldId": 2,
+        "subFieldName": "Sân 7B",
+        "availableSlots": [
+          {
+            "startTime": "15:00",
+            "endTime": "16:00"
+          }
+        ]
+      }
+    ]
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "date",
+        "message": "Invalid date format"
+      }
+    ]
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "No fields found matching the criteria"
+  }
+  ```
+
+**Note**:
+
+- Checks `SubField` availability based on `Booking` records.
+
+### 3.9 Create SubField
+
+**Description**: Creates a new subfield for a field (Owner only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields/{fieldId}/subfields`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Request Body**:
+
+```json
+{
+  "subFieldName": "Sân 5A",
+  "pricePerHour": 500000
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
   ```json
   {
     "subFieldId": 1,
-    "startTime": "08:00:00",
-    "endTime": "09:00:00",
-    "dayOfWeek": 1,
-    "price": 300000,
-    "isActive": true
+    "fieldId": 1,
+    "subFieldName": "Sân 5A",
+    "pricePerHour": 500000,
+    "message": "Subfield created successfully"
   }
   ```
-- **Response**:
-  - **201 Created**:
-    ```json
-    {
-      "fieldPricingId": 1,
-      "subFieldId": 1,
-      "message": "Pricing created successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "price",
-          "message": "Price must be greater than 0"
-        }
-      ]
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not own this field"
-    }
-    ```
----
 
-### 3.27. Update Field Pricing
+- **400 Bad Request**:
 
-- **Method**: PUT
-- **Path**: `/api/fields/{id}/pricing/{pricingId}`
-- **Role**: [Owner]
-- **Description**: Updates an existing pricing rule.
-- **Request Body**:
   ```json
   {
-    "startTime": "08:00:00",
-    "endTime": "09:00:00",
-    "dayOfWeek": 1,
-    "price": 350000,
-    "isActive": true
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "subFieldName",
+        "message": "Subfield name is required"
+      }
+    ]
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "fieldPricingId": 1,
-      "subFieldId": 1,
-      "message": "Pricing updated successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Pricing rule does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not own this field"
-    }
-    ```
----
 
-### 3.28. Delete Field Pricing
+- **401 Unauthorized**:
 
-- **Method**: DELETE
-- **Path**: `/api/fields/{id}/pricing/{pricingId}`
-- **Role**: [Owner]
-- **Description**: Deletes a pricing rule.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Pricing deleted successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Pricing rule does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not own this field"
-    }
-    ```
----
-
-### 3.29 Validate Address
-
-- **Method**: POST
-- **Path**: `/api/fields/validate-address`
-- **Role**: [Owner]
-- **Description**: Validates an address and returns its coordinates using a geocoding service.  
-  _Note_: Backend must integrate a geocoding service (e.g., Google Maps API) to validate address and return formatted address and coordinates. Useful for owners before creating/updating fields.
-- **Request Body**:
   ```json
   {
-    "address": "string",
-    "city": "string",
-    "district": "string"
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can create subfields"
+  }
+  ```
+
+### 3.10 Update SubField
+
+**Description**: Updates an existing subfield (Owner only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/subfields/{subFieldId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `subFieldId` (required, integer): The ID of the subfield.
+
+**Request Body**:
+
+```json
+{
+  "subFieldName": "Sân 5A",
+  "pricePerHour": 550000
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "subFieldId": 1,
+    "fieldId": 1,
+    "subFieldName": "Sân 5A",
+    "pricePerHour": 550000,
+    "message": "Subfield updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "subFieldName",
+        "message": "Subfield name is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can update this subfield"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Subfield not found"
+  }
+  ```
+
+### 3.11 Delete SubField
+
+**Description**: Soft deletes a subfield by setting its `DeletedAt` timestamp (Owner only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/subfields/{subFieldId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `subFieldId` (required, integer): The ID of the subfield to delete.
+
+**Request Example**:
+
+```http
+DELETE /api/subfields/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "subFieldId": 1,
+    "message": "Subfield deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can delete this subfield"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Subfield not found"
+  }
+  ```
+
+**Note**:
+
+- Sets `SubField.DeletedAt` to the current timestamp for soft delete.
+- Checks if the authenticated owner owns the parent field.
+
+### 3.12 Upload Field Image
+
+**Description**: Uploads an image for a field (Owner only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields/{fieldId}/images`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Request Body**: Form-data with key `image` (file)
+
+**Request Example**:
+
+```http
+POST /api/fields/1/images
+Authorization: Bearer {token}
+Content-Type: multipart/form-data
+
+[image: field_image.jpg]
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "imageId": 1,
+    "imageUrl": "https://cloudinary.com/field-image.jpg",
+    "message": "Image uploaded successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "image",
+        "message": "Image file is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can upload images"
+  }
+  ```
+
+- **413 Payload Too Large**:
+  ```json
+  {
+    "error": "Payload too large",
+    "message": "Image file exceeds maximum size"
+  }
+  ```
+
+### 3.13 Delete Field Image
+
+**Description**: Deletes an image from a field (Owner only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/fields/{fieldId}/images/{imageId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+- `imageId` (required, integer): The ID of the image.
+
+**Request Example**:
+
+```http
+DELETE /api/fields/1/images/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Image deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can delete images"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Image not found"
+  }
+  ```
+
+### 3.14 Get Field Images
+
+**Description**: Retrieves images of a field.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/images`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/fields/1/images?page=1&pageSize=10
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "imageId": 1,
+        "imageUrl": "https://cloudinary.com/field-image.jpg"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 3.15 Create Field Service
+
+**Description**: Creates a service for a field (Owner only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields/{fieldId}/services`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Request Body**:
+
+```json
+{
+  "serviceName": "Water Bottle",
+  "price": 10000
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "fieldServiceId": 1,
+    "fieldId": 1,
+    "serviceName": "Water Bottle",
+    "price": 10000,
+    "message": "Service created successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "serviceName",
+        "message": "Service name is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can create services"
+  }
+  ```
+
+### 3.16 Update Field Service
+
+**Description**: Updates an existing field service (Owner only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/fields/services/{fieldServiceId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldServiceId` (required, integer): The ID of the service.
+
+**Request Body**:
+
+```json
+{
+  "serviceName": "Water Bottle",
+  "price": 12000
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "fieldServiceId": 1,
+    "fieldId": 1,
+    "serviceName": "Water Bottle",
+    "price": 12000,
+    "message": "Service updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "serviceName",
+        "message": "Service name is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can update services"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Service not found"
+  }
+  ```
+
+### 3.17 Delete Field Service
+
+**Description**: Deletes a field service (Owner only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/fields/services/{fieldServiceId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldServiceId` (required, integer): The ID of the service.
+
+**Request Example**:
+
+```http
+DELETE /api/fields/services/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Service deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can delete services"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Service not found"
+  }
+  ```
+
+### 3.18 Get Field Services
+
+**Description**: Retrieves services of a field.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/services`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/fields/1/services?page=1&pageSize=10
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "fieldServiceId": 1,
+        "serviceName": "Water Bottle",
+        "price": 10000
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 3.19 Create Pricing Rule
+
+**Description**: Creates a pricing rule for a subfield (Owner only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/subfields/{subFieldId}/pricing`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `subFieldId` (required, integer): The ID of the subfield.
+
+**Request Body**:
+
+```json
+{
+  "dayOfWeek": "Monday",
+  "startTime": "14:00",
+  "endTime": "15:00",
+  "pricePerHour": 600000
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "pricingRuleId": 1,
+    "subFieldId": 1,
+    "dayOfWeek": "Monday",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "pricePerHour": 600000,
+    "message": "Pricing rule created successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "dayOfWeek",
+        "message": "Invalid day of week"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can create pricing rules"
+  }
+  ```
+
+### 3.20 Update Pricing Rule
+
+**Description**: Updates an existing pricing rule (Owner only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/subfields/pricing/{pricingRuleId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `pricingRuleId` (required, integer): The ID of the pricing rule.
+
+**Request Body**:
+
+```json
+{
+  "dayOfWeek": "Monday",
+  "startTime": "14:00",
+  "endTime": "15:00",
+  "pricePerHour": 650000
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "pricingRuleId": 1,
+    "subFieldId": 1,
+    "dayOfWeek": "Monday",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "pricePerHour": 650000,
+    "message": "Pricing rule updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "dayOfWeek",
+        "message": "Invalid day of week"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can update pricing rules"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Pricing rule not found"
+  }
+  ```
+
+### 3.21 Delete Pricing Rule
+
+**Description**: Deletes a pricing rule (Owner only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/subfields/pricing/{pricingRuleId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `pricingRuleId` (required, integer): The ID of the pricing rule.
+
+**Request Example**:
+
+```http
+DELETE /api/subfields/pricing/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Pricing rule deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can delete pricing rules"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Pricing rule not found"
+  }
+  ```
+
+### 3.22 Get Pricing Rules
+
+**Description**: Retrieves pricing rules for a subfield.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/subfields/{subFieldId}/pricing`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `subFieldId` (required, integer): The ID of the subfield.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/subfields/1/pricing?page=1&pageSize=10
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "pricingRuleId": 1,
+        "dayOfWeek": "Monday",
+        "startTime": "14:00",
+        "endTime": "15:00",
+        "pricePerHour": 600000
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Subfield not found"
+  }
+  ```
+
+### 3.23 Get Field Descriptions
+
+**Description**: Retrieves descriptions of a field.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/descriptions`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/fields/1/descriptions?page=1&pageSize=10
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "fieldDescriptionId": 1,
+        "description": "Modern football field with artificial turf."
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 3.24 Add Field Description
+
+**Description**: Adds a description to a field (Owner only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields/{fieldId}/descriptions`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Request Body**:
+
+```json
+{
+  "description": "Modern football field with artificial turf."
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "fieldDescriptionId": 1,
+    "fieldId": 1,
+    "description": "Modern football field with artificial turf.",
+    "message": "Description added successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "description",
+        "message": "Description is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can add descriptions"
+  }
+  ```
+
+### 3.25 Update Field Description
+
+**Description**: Updates an existing field description (Owner only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/fields/descriptions/{fieldDescriptionId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldDescriptionId` (required, integer): The ID of the description.
+
+**Request Body**:
+
+```json
+{
+  "description": "Updated modern football field description."
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "fieldDescriptionId": 1,
+    "fieldId": 1,
+    "description": "Updated modern football field description.",
+    "message": "Description updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "description",
+        "message": "Description is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can update descriptions"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Description not found"
+  }
+  ```
+
+### 3.26 Delete Field Description
+
+**Description**: Deletes a field description (Owner only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/fields/descriptions/{fieldDescriptionId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldDescriptionId` (required, integer): The ID of the description.
+
+**Request Example**:
+
+```http
+DELETE /api/fields/descriptions/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Description deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can delete descriptions"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Description not found"
+  }
+  ```
+
+### 3.27 Get SubFields
+
+**Description**: Retrieves subfields of a field.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/subfields`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/fields/1/subfields?page=1&pageSize=10
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "subFieldId": 1,
+        "subFieldName": "Sân 5A",
+        "pricePerHour": 500000
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 3.28 Get Field Reviews
+
+**Description**: Retrieves reviews for a field.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/reviews`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `minRating` (optional, integer: 1-5)
+
+**Request Example**:
+
+```http
+GET /api/fields/1/reviews?page=1&pageSize=10&minRating=4
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "reviewId": 1,
+        "userId": 1,
+        "fullName": "Nguyen Van A",
+        "rating": 5,
+        "comment": "Great field!",
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 3.29 Get Field Bookings
+
+**Description**: Retrieves bookings for a field (Owner only).
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/bookings`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `status` (optional, string: Confirmed|Pending|Cancelled)
+- `startDate` (optional, date: YYYY-MM-DD)
+- `endDate` (optional, date: YYYY-MM-DD)
+
+**Request Example**:
+
+```http
+GET /api/fields/1/bookings?page=1&pageSize=10&status=Confirmed
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "bookingId": 1,
+        "userId": 1,
+        "subFieldId": 1,
+        "bookingDate": "2025-06-01",
+        "startTime": "14:00",
+        "endTime": "15:00",
+        "totalPrice": 500000,
+        "status": "Confirmed"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can view bookings"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 3.30 Get SubField By ID
+
+**Description**: Retrieves details of a specific subfield.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/subfields/{subFieldId}`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `subFieldId` (required, integer): The ID of the subfield.
+
+**Request Example**:
+
+```http
+GET /api/subfields/1
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "subFieldId": 1,
+    "fieldId": 1,
+    "subFieldName": "Sân 5A",
+    "pricePerHour": 500000
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Subfield not found"
+  }
+  ```
+
+### 3.31 Validate Address
+
+**Description**: Validates an address and returns geocoding information.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields/validate-address`  
+**Authorization**: None
+
+**Request Body**:
+
+```json
+{
+  "address": "123 Đường Láng, Đống Đa",
+  "city": "Hà Nội",
+  "district": "Đống Đa"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "isValid": true,
+    "formattedAddress": "123 Đường Láng, Đống Đa, Hà Nội",
+    "latitude": 21.0123,
+    "longitude": 105.8234
+  }
+  ```
+
+- **400 Bad Request**:
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "address",
+        "message": "Address is required"
+      }
+    ]
+  }
+  ```
+
+**Note**:
+
+- Uses a geocoding service to validate and derive `latitude` and `longitude`.
+
+### 3.32 Get Field Amenities
+
+**Description**: Retrieves a list of amenities for a specific field. Supports pagination and status filtering. Amenities are publicly accessible for viewing.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/amenities`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `status` (optional, enum: Active|Inactive): Filter amenities by status.
+- `page` (optional, integer, default: 1): Page number.
+- `pageSize` (optional, integer, default: 10): Number of entries per page.
+
+**Request Example**:
+
+```http
+GET /api/fields/1/amenities?page=1&pageSize=10&status=Active
+```
+
+**Response**:
+
+- **200 OK**:
+
+```json
+{
+  "data": [
     {
-      "latitude": 10.776,
-      "longitude": 106.7,
-      "formattedAddress": "123 Lang Street, Hanoi",
-      "isValid": true
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
+      "fieldAmenityId": "1",
+      "fieldId": "1",
+      "amenityName": "Wi-Fi",
+      "description": "Free high-speed Wi-Fi",
+      "iconUrl": "https://example.com/icons/wifi.png",
+      "status": "Active"
+    },
     {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "address",
-          "message": "Could not validate the provided address"
-        }
-      ]
+      "fieldAmenityId": "2",
+      "fieldId": "1",
+      "amenityName": "Parking",
+      "description": "Free parking for 50 cars",
+      "iconUrl": "https://example.com/icons/parking.png",
+      "status": "Active"
     }
-    ```
-  - **401 Unauthorized**:
-    ```json
+  ],
+  "totalCount": 2,
+  "page": 1,
+  "pageSize": 10,
+  "message": "Amenities retrieved successfully"
+}
+```
+
+- **400 Bad Request**:
+
+```json
+{
+  "error": "Invalid input",
+  "details": [
     {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
+      "field": "page",
+      "message": "Page number must be greater than or equal to 1"
     }
-    ```
+  ]
+}
+```
+
+- **404 Not Found**:
+
+```json
+{
+  "error": "Resource not found",
+  "message": "Field not found"
+}
+```
+
+**Note**:
+
+- Returns `FieldAmenity` records for the specified `fieldId`.
+- `fieldAmenityId` and `fieldId` are returned as strings for consistency.
+- `status` defaults to Active if not specified.
+- `iconUrl` is optional and maps to `FieldAmenity.IconUrl`.
+
+### 3.33 Create Field Amenity
+
+**Description**: Creates a new amenity for a specific field. Only the field owner or admin can create amenities.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields/{fieldId}/amenities`  
+**Authorization**: Bearer Token (Owner or Admin)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Request Body**:
+
+```json
+{
+  "amenityName": "Shower",
+  "description": "Hot and cold shower facilities",
+  "iconUrl": "https://example.com/icons/shower.png"
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+```json
+{
+  "fieldAmenityId": "3",
+  "fieldId": "1",
+  "amenityName": "Shower",
+  "description": "Hot and cold shower facilities",
+  "iconUrl": "https://example.com/icons/shower.png",
+  "status": "Active",
+  "message": "Amenity created successfully"
+}
+```
+
+- **400 Bad Request**:
+
+```json
+{
+  "error": "Invalid input",
+  "details": [
+    {
+      "field": "amenityName",
+      "message": "Amenity name is required"
+    }
+  ]
+}
+```
+
+- **401 Unauthorized**:
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing token"
+}
+```
+
+- **403 Forbidden**:
+
+```json
+{
+  "error": "Forbidden",
+  "message": "Only the field owner or admin can create amenities"
+}
+```
+
+- **404 Not Found**:
+
+```json
+{
+  "error": "Resource not found",
+  "message": "Field not found"
+}
+```
+
+**Note**:
+
+- Creates a `FieldAmenity` record with `status` set to Active by default.
+- `amenityName`, `description`, and `iconUrl` map to `FieldAmenity.AmenityName`, `FieldAmenity.Description`, and `FieldAmenity.IconUrl`.
+
+### 3.34 Update Field Amenity
+
+**Description**: Updates an existing amenity for a specific field. Only the field owner or admin can update amenities.
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/fields/{fieldId}/amenities/{fieldAmenityId}`  
+**Authorization**: Bearer Token (Owner or Admin)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+- `fieldAmenityId` (required, integer): The ID of the amenity.
+
+**Request Body**:
+
+```json
+{
+  "amenityName": "Shower",
+  "description": "Updated shower facilities with hot water",
+  "iconUrl": "https://example.com/icons/shower-updated.png",
+  "status": "Active"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+```json
+{
+  "fieldAmenityId": "3",
+  "fieldId": "1",
+  "amenityName": "Shower",
+  "description": "Updated shower facilities with hot water",
+  "iconUrl": "https://example.com/icons/shower-updated.png",
+  "status": "Active",
+  "message": "Amenity updated successfully"
+}
+```
+
+- **400 Bad Request**:
+
+```json
+{
+  "error": "Invalid input",
+  "details": [
+    {
+      "field": "amenityName",
+      "message": "Amenity name is required"
+    }
+  ]
+}
+```
+
+- **401 Unauthorized**:
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing token"
+}
+```
+
+- **403 Forbidden**:
+
+```json
+{
+  "error": "Forbidden",
+  "message": "Only the field owner or admin can update amenities"
+}
+```
+
+- **404 Not Found**:
+
+```json
+{
+  "error": "Resource not found",
+  "message": "Field or amenity not found"
+}
+```
+
+**Note**:
+
+- Updates `FieldAmenity.AmenityName`, `FieldAmenity.Description`, `FieldAmenity.IconUrl`, and `FieldAmenity.Status`.
+- `status` can be Active or Inactive.
+
+### 3.35 Delete Field Amenity
+
+**Description**: Soft deletes an amenity by setting its `DeletedAt` timestamp. Only the field owner or admin can delete amenities.
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/fields/{fieldId}/amenities/{fieldAmenityId}`  
+**Authorization**: Bearer Token (Owner or Admin)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+- `fieldAmenityId` (required, integer): The ID of the amenity.
+
+**Request Example**:
+
+```http
+DELETE /api/fields/1/amenities/3
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+```json
+{
+  "message": "Amenity deleted successfully"
+}
+```
+
+- **401 Unauthorized**:
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing token"
+}
+```
+
+- **403 Forbidden**:
+
+```json
+{
+  "error": "Forbidden",
+  "message": "Only the field owner or admin can delete amenities"
+}
+```
+
+- **404 Not Found**:
+
+```json
+{
+  "error": "Resource not found",
+  "message": "Field or amenity not found"
+}
+```
+
+**Note**:
+
+- Sets `FieldAmenity.DeletedAt` for soft delete.
+- Does not physically remove the record from the database.
+
 ---
 
 ## 4. Booking Management
 
-### 4.1. Create Booking
+### 4.1 Create Booking
 
-- **Method**: POST
-- **Path**: `/api/bookings`
-- **Role**: [User]
-- **Description**: Creates a new booking for a subfield.
-- **Request Body**:
-  ```json
-  {
-    "subFieldId": 1,
-    "bookingDate": "2025-06-01",
-    "startTime": "08:00:00",
-    "endTime": "09:00:00",
-    "services": [
-      {
-        "fieldServiceId": 1,
-        "quantity": 2
-      }
-    ],
-    "promotionCode": "string"
-  }
-  ```
-- **Response**:
-  - **201 Created**:
-    ```json
+**Description**: Creates one or more bookings for multiple subfields with multiple time slots (including 30-minute increments like 16:30, 17:00), optional services, and an optional promotion code. Bookings are linked by a `mainBookingId` for unified payment processing.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/bookings`  
+**Authorization**: Bearer Token (User)
+
+**Request Body**:
+
+```json
+{
+  "bookings": [
     {
-      "bookingId": 1,
       "subFieldId": 1,
-      "totalPrice": 300000,
-      "status": "Pending",
-      "message": "Booking created successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Time slot is not available"
-    }
-    ```
----
-
-### 4.2. Get Bookings
-
-- **Method**: GET
-- **Path**: `/api/bookings`
-- **Role**: [User, Owner]
-- **Description**: Retrieves bookings (User: own bookings; Owner: bookings for their fields).
-- **Query Parameters**:
-  - `status`: Filter by status (e.g., "Confirmed").
-  - `sort`: Sort by field (e.g., "BookingDate:desc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
+      "bookingDate": "2025-06-01",
+      "timeSlots": [
         {
-          "bookingId": 1,
-          "fieldName": "ABC Field",
-          "subFieldName": "Field A",
-          "bookingDate": "2025-06-01",
-          "startTime": "08:00:00",
-          "endTime": "09:00:00",
-          "totalPrice": 300000,
-          "status": "Confirmed"
+          "startTime": "16:30",
+          "endTime": "17:00"
+        },
+        {
+          "startTime": "17:30",
+          "endTime": "18:00"
         }
       ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
-
----
-
-### 4.3. Get Booking Details
-
-- **Method**: GET
-- **Path**: `/api/bookings/{id}`
-- **Role**: [User, Owner]
-- **Description**: Retrieves details of a specific booking.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "bookingId": 1,
-      "fieldName": "ABC Field",
-      "subFieldName": "Field A",
-      "bookingDate": "2025-06-01",
-      "startTime": "08:00:00",
-      "endTime": "09:00:00",
-      "totalPrice": 300000,
-      "status": "Confirmed",
       "services": [
         {
           "fieldServiceId": 1,
-          "serviceName": "Water Bottle",
-          "quantity": 2,
-          "price": 10000
+          "quantity": 2
         }
-      ],
-      "promotionCode": "SUMMER2025",
-      "promotionDiscount": 50000
-    }
-    ```
-  - **404 Not Found**:
-    ```json
+      ]
+    },
     {
-      "error": "Resource not found",
-      "message": "Booking does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to view this booking"
-    }
-    ```
-
----
-
-### 4.4. Update Booking
-
-- **Method**: PUT
-- **Path**: `/api/bookings/{id}`
-- **Role**: [User, Owner]
-- **Description**: Updates a booking's details (e.g., services or promotion code). Users can update their own bookings; Owners can update bookings for their fields.
-- **Request Body**:
-  ```json
-  {
-    "services": [
-      {
-        "fieldServiceId": 1,
-        "quantity": 3
-      }
-    ],
-    "promotionCode": "string"
-  }
-  ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "bookingId": 1,
-      "totalPrice": 320000,
-      "message": "Booking updated successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Invalid promotion code"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Booking does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to update this booking"
-    }
-    ```
----
-
-### 4.5. Cancel Booking
-
-- **Method**: DELETE
-- **Path**: `/api/bookings/{id}`
-- **Role**: [User, Owner]
-- **Description**: Cancels a booking.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Booking cancelled successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Booking does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to cancel this booking"
-    }
-    ```
----
-
-### 4.6. Update Booking Status
-
-- **Method**: PUT
-- **Path**: `/api/bookings/{id}/status`
-- **Role**: [Owner]
-- **Description**: Updates the status of a booking (e.g., "Confirmed", "Cancelled").
-- **Request Body**:
-  ```json
-  {
-    "status": "string" // e.g., "Confirmed", "Cancelled"
-  }
-  ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "bookingId": 1,
-      "status": "Confirmed",
-      "message": "Booking status updated successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Invalid status"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Booking does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to update this booking"
-    }
-    ```
----
-
-### 4.7. Create Simple Booking
-
-- **Method**: POST
-- **Path**: `/api/bookings/simple`
-- **Role**: [User]
-- **Description**: Creates a booking with minimal input (no services or promotion).
-- **Request Body**:
-  ```json
-  {
-    "subFieldId": 1,
-    "bookingDate": "2025-06-01",
-    "startTime": "08:00:00",
-    "endTime": "09:00:00"
-  }
-  ```
-- **Response**:
-  - **201 Created**:
-    ```json
-    {
-      "bookingId": 1,
-      "subFieldId": 1,
-      "totalPrice": 300000,
-      "status": "Pending",
-      "message": "Booking created successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Time slot is not available"
-    }
-    ```
----
-
-### 4.8. Get Booking Services
-
-- **Method**: GET
-- **Path**: `/api/bookings/{id}/services`
-- **Role**: [User, Owner]
-- **Description**: Retrieves all services booked for a specific booking.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "bookingServiceId": 1,
-          "fieldServiceId": 1,
-          "serviceName": "Water Bottle",
-          "quantity": 2,
-          "price": 10000
-        }
-      ],
-      "total": 1
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Booking does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to view this booking"
-    }
-    ```
----
-
-### 4.9. Preview Booking
-
-- **Method**: POST
-- **Path**: `/api/bookings/preview`
-- **Role**: [User]
-- **Description**: Previews the cost and availability of a booking without creating it.
-- **Request Body**:
-  ```json
-  {
-    "subFieldId": 1,
-    "bookingDate": "2025-06-01",
-    "startTime": "08:00:00",
-    "endTime": "09:00:00",
-    "services": [
-      {
-        "fieldServiceId": 1,
-        "quantity": 2
-      }
-    ],
-    "promotionCode": "string"
-  }
-  ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "subFieldId": 1,
-      "available": true,
-      "basePrice": 300000,
-      "servicePrice": 20000,
-      "promotionDiscount": 50000,
-      "totalPrice": 270000
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Time slot is not available"
-    }
-    ```
----
-
-### 4.10. Get Booking Invoice
-
-- **Method**: GET
-- **Path**: `/api/bookings/{id}/invoice`
-- **Role**: [User, Owner]
-- **Description**: Retrieves the invoice for a booking.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "bookingId": 1,
-      "fieldName": "ABC Field",
-      "subFieldName": "Field A",
+      "subFieldId": 2,
       "bookingDate": "2025-06-01",
-      "startTime": "08:00:00",
-      "endTime": "09:00:00",
-      "basePrice": 300000,
+      "timeSlots": [
+        {
+          "startTime": "17:00",
+          "endTime": "18:00"
+        }
+      ],
+      "services": []
+    }
+  ],
+  "promotionCode": "SUMMER2025"
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+```json
+{
+  "mainBookingId": "1",
+  "bookings": [
+    {
+      "bookingId": "1",
+      "subFieldId": "1",
+      "subFieldName": "Sân 5A",
+      "fieldName": "ABC Football Field",
+      "bookingDate": "2025-06-01",
+      "timeSlots": [
+        {
+          "startTime": "16:30",
+          "endTime": "17:00",
+          "price": 250000.0
+        },
+        {
+          "startTime": "17:30",
+          "endTime": "18:00",
+          "price": 250000.0
+        }
+      ],
       "services": [
         {
-          "serviceName": "Water Bottle",
+          "fieldServiceId": "1",
+          "serviceName": "Water",
           "quantity": 2,
-          "price": 10000
+          "price": 20000.0
         }
       ],
-      "servicePrice": 20000,
-      "promotionCode": "SUMMER2025",
-      "promotionDiscount": 50000,
-      "totalPrice": 270000,
-      "paymentStatus": "Paid"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
+      "subTotal": 540000.0,
+      "status": "Pending",
+      "paymentStatus": "Pending"
+    },
     {
-      "error": "Resource not found",
-      "message": "Booking does not exist"
+      "bookingId": "2",
+      "subFieldId": "2",
+      "subFieldName": "Sân 5B",
+      "fieldName": "ABC Football Field",
+      "bookingDate": "2025-06-01",
+      "timeSlots": [
+        {
+          "startTime": "17:00",
+          "endTime": "18:00",
+          "price": 300000.0
+        }
+      ],
+      "services": [],
+      "subTotal": 300000.0,
+      "status": "Pending",
+      "paymentStatus": "Pending"
     }
-    ```
-  - **403 Forbidden**:
-    ```json
+  ],
+  "totalPrice": 840000.0,
+  "discount": 100000.0,
+  "finalPrice": 740000.0,
+  "paymentUrl": "https://payment-gateway.com/pay/123",
+  "message": "Bookings created successfully"
+}
+```
+
+- **400 Bad Request**:
+
+```json
+{
+  "error": "Invalid input",
+  "errorCode": "INVALID_INPUT",
+  "details": [
     {
-      "error": "Forbidden",
-      "message": "You do not have permission to view this booking"
+      "field": "bookings[0].timeSlots[0]",
+      "message": "Time slot must be in 30-minute increments"
+    },
+    {
+      "field": "bookings[1].subFieldId",
+      "message": "Subfield is inactive"
     }
-    ```
----
+  ]
+}
+```
 
-### 4.11. Reschedule Booking
+- **401 Unauthorized**:
 
-- **Method**: POST
-- **Path**: `/api/bookings/{id}/reschedule`
-- **Role**: [User]
-- **Description**: Submits a request to reschedule a booking to a new date and time.
-- **Request Body**:
+```json
+{
+  "error": "Unauthorized",
+  "errorCode": "UNAUTHORIZED",
+  "message": "Invalid or missing token"
+}
+```
+
+- **404 Not Found**:
+
+```json
+{
+  "error": "Resource not found",
+  "errorCode": "NOT_FOUND",
+  "message": "Subfield or service not found"
+}
+```
+
+- **409 Conflict**:
+
+```json
+{
+  "error": "Conflict",
+  "errorCode": "TIME_SLOT_UNAVAILABLE",
+  "message": "One or more time slots are already booked",
+  "details": [
+    {
+      "subFieldId": 1,
+      "timeSlot": {
+        "startTime": "16:30",
+        "endTime": "17:00"
+      },
+      "message": "Time slot is already booked"
+    }
+  ]
+}
+```
+
+**Note**:
+
+- Creates multiple `Booking` records linked by `Booking.MainBookingId`.
+- `timeSlots` are stored in `BookingTimeSlot` and support 30-minute increments.
+- `services` are stored in `BookingService`.
+- `promotionCode` applies a discount to the `totalPrice`, stored in `Promotion.Code`.
+- Prices are calculated based on `FieldPricing.PricePerHour` and `FieldService.Price`.
+- Returns a `paymentUrl` for unified payment processing, valid until `validUntil`.
+- Validates:
+  - Time slot availability against existing `Booking` and `BookingTimeSlot` records.
+  - `timeSlots` within `Field.OpenTime` and `Field.CloseTime`.
+  - `subFieldId` belongs to an active `SubField`.
+  - `promotionCode` is valid and applicable.
+- Maximum limits:
+  - 5 bookings per request.
+  - 10 time slots per booking.
+  - 20 services per booking.
+- Operation is atomic: if any booking fails validation, no bookings are created.
+
+### 4.2 Get Booking By Id
+
+**Description**: Retrieves details of a specific booking.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/bookings/{bookingId}`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Path Parameters**:
+
+- `bookingId` (required, integer): The ID of the booking.
+
+**Request Example**:
+
+```http
+GET /api/bookings/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+```json
+{
+  "bookingId": "1",
+  "userId": "1",
+  "subFieldId": "1",
+  "subFieldName": "Sân 5A",
+  "fieldName": "ABC Football Field",
+  "bookingDate": "2025-06-01",
+  "timeSlots": [
+    {
+      "startTime": "16:30",
+      "endTime": "17:00",
+      "price": 250000.0
+    }
+  ],
+  "services": [
+    {
+      "fieldServiceId": "1",
+      "serviceName": "Water",
+      "quantity": 2,
+      "price": 20000.0
+    }
+  ],
+  "totalPrice": 290000.0,
+  "status": "Pending",
+  "paymentStatus": "Pending",
+  "message": "Booking details retrieved successfully"
+}
+```
+
+- **401 Unauthorized**:
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing token"
+}
+```
+
+- **403 Forbidden**:
+
+```json
+{
+  "error": "Forbidden",
+  "message": "User is not authorized to view this booking"
+}
+```
+
+- **404 Not Found**:
+
+```json
+{
+  "error": "Resource not found",
+  "message": "Booking not found"
+}
+```
+
+**Note**:
+
+- Returns `Booking`, `BookingTimeSlot`, and `BookingService` records.
+- Only the booking user or field owner can access.
+
+### 4.3 Update Booking
+
+**Description**: Updates an existing booking (Owner only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/bookings/{bookingId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `bookingId` (required, integer): The ID of the booking.
+
+**Request Body**:
+
+```json
+{
+  "status": "Confirmed"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
   ```json
   {
-    "newDate": "2025-06-02",
-    "newStartTime": "09:00:00",
-    "newEndTime": "10:00:00"
+    "bookingId": 1,
+    "status": "Confirmed",
+    "message": "Booking updated successfully"
   }
   ```
-- **Response**:
-  - **201 Created**:
-    ```json
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "status",
+        "message": "Invalid status"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can update this booking"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Booking not found"
+  }
+  ```
+
+### 4.4 Confirm Booking
+
+**Description**: Confirms a pending booking (Owner only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/bookings/{bookingId}/confirm`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `bookingId` (required, integer): The ID of the booking.
+
+**Request Example**:
+
+```http
+POST /api/bookings/1/confirm
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "bookingId": 1,
+    "status": "Confirmed",
+    "message": "Booking confirmed successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "bookingId",
+        "message": "Booking is not pending"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can confirm this booking"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Booking not found"
+  }
+  ```
+
+### 4.5 Cancel Booking
+
+**Description**: Cancels a booking (User or Owner).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/bookings/{bookingId}/cancel`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Path Parameters**:
+
+- `bookingId` (required, integer): The ID of the booking.
+
+**Request Example**:
+
+```http
+POST /api/bookings/1/cancel
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "bookingId": 1,
+    "status": "Cancelled",
+    "message": "Booking cancelled successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "bookingId",
+        "message": "Cannot cancel past or already cancelled booking"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the booking user or field owner can cancel"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Booking not found"
+  }
+  ```
+
+### 4.6 Get User Bookings
+
+**Description**: Retrieves bookings of the authenticated user.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/bookings`  
+**Authorization**: Bearer Token (User)
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `status` (optional, string: Confirmed|Pending|Cancelled)
+- `startDate` (optional, date: YYYY-MM-DD)
+- `endDate` (optional, date: YYYY-MM-DD)
+
+**Request Example**:
+
+```http
+GET /api/bookings?page=1&pageSize=10&status=Confirmed
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "bookingId": 1,
+        "fieldName": "Sân Bóng Đá ABC",
+        "subFieldName": "Sân 5A",
+        "bookingDate": "2025-06-01",
+        "startTime": "14:00",
+        "endTime": "15:00",
+        "totalPrice": 500000,
+        "status": "Confirmed",
+        "paymentStatus": "Paid"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "startDate",
+        "message": "Invalid date format"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Filters bookings by `Booking.UserId` and optional parameters.
+- `fieldName` and `subFieldName` are derived from `Booking.SubField.Field.FieldName` and `Booking.SubField.SubFieldName`.
+- `paymentStatus` reflects `Booking.PaymentStatus` (Paid|Unpaid|Refunded).
+
+### 4.7 Create Simple Booking
+
+**Description**: Creates a simple booking without services or promotion.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/bookings/simple`  
+**Authorization**: Bearer Token (User)
+
+**Request Body**:
+
+```json
+{
+  "subFieldId": 1,
+  "bookingDate": "2025-06-01",
+  "startTime": "14:00",
+  "endTime": "15:00"
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "bookingId": 1,
+    "subFieldId": 1,
+    "bookingDate": "2025-06-01",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "totalPrice": 500000,
+    "status": "Pending",
+    "paymentStatus": "Unpaid",
+    "createdAt": "2025-06-01T10:00:00Z",
+    "message": "Booking created successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "subFieldId",
+        "message": "Subfield is not available"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Validates `SubField` availability.
+- Sets `Booking.UserId` to the authenticated user’s ID.
+- `createdAt` reflects `Booking.CreatedAt`.
+
+### 4.8 Get Booking Services
+
+**Description**: Retrieves services associated with a booking.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/bookings/{bookingId}/services`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Path Parameters**:
+
+- `bookingId` (required, integer): The ID of the booking.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/bookings/1/services?page=1&pageSize=10
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "bookingServiceId": 1,
+        "fieldServiceId": 1,
+        "serviceName": "Water Bottle",
+        "quantity": 2,
+        "price": 10000
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the booking user or field owner can view services"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Booking not found"
+  }
+  ```
+
+**Note**:
+
+- Returns `BookingService` records for the specified `Booking`.
+- Accessible by the booking’s user or the field’s owner.
+- Pagination added for consistency with other list endpoints.
+
+### 4.9 Preview Booking
+
+**Description**: Previews a booking with pricing and availability details.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/bookings/preview`  
+**Authorization**: Bearer Token (User)
+
+**Request Body**:
+
+```json
+{
+  "subFieldId": 1,
+  "bookingDate": "2025-06-01",
+  "startTime": "14:00",
+  "endTime": "15:00",
+  "promotionCode": "SUMMER2025",
+  "services": [
     {
-      "rescheduleRequestId": 1,
-      "bookingId": 1,
-      "status": "Pending",
-      "message": "Reschedule request submitted successfully"
+      "fieldServiceId": 1,
+      "quantity": 2
     }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "New time slot is not available"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Booking does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to reschedule this booking"
-    }
-    ```
+  ]
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "subFieldId": 1,
+    "bookingDate": "2025-06-01",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "basePrice": 500000,
+    "servicePrice": 20000,
+    "discount": 100000,
+    "totalPrice": 420000,
+    "isAvailable": true
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "subFieldId",
+        "message": "Subfield is not available"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Validates `SubField` availability and `Promotion.Code`.
+- `services` and `promotionCode` are optional.
+- Does not create a `Booking` record.
+
+### 4.10 Add Booking Service
+
+**Description**: Adds a service to an existing booking.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/bookings/{bookingId}/services`  
+**Authorization**: Bearer Token (User)
+
+**Path Parameters**:
+
+- `bookingId` (required, integer): The ID of the booking.
+
+**Request Body**:
+
+```json
+{
+  "fieldServiceId": 1,
+  "quantity": 2
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "bookingServiceId": 1,
+    "bookingId": 1,
+    "fieldServiceId": 1,
+    "serviceName": "Water Bottle",
+    "quantity": 2,
+    "price": 10000,
+    "message": "Service added successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "fieldServiceId",
+        "message": "Service is not available for this field"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the booking user can add services"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Booking not found"
+  }
+  ```
+
+**Note**:
+
+- Updates `Booking.TotalPrice` after adding the service.
+- Validates `FieldService` availability for the booking’s `SubField`.
+
+### 4.11 Reschedule Booking
+
+**Description**: Reschedules an existing booking.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/bookings/{bookingId}/reschedule`  
+**Authorization**: Bearer Token (User)
+
+**Path Parameters**:
+
+- `bookingId` (required, integer): The ID of the booking.
+
+**Request Body**:
+
+```json
+{
+  "newDate": "2025-06-02",
+  "newStartTime": "15:00",
+  "newEndTime": "16:00"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "bookingId": 1,
+    "bookingDate": "2025-06-02",
+    "startTime": "15:00",
+    "endTime": "16:00",
+    "message": "Booking rescheduled successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "newDate",
+        "message": "New time slot is not available"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the booking user can reschedule"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Booking not found"
+  }
+  ```
+
+**Note**:
+
+- Validates `SubField` availability for the new time slot.
+- Updates `Booking.BookingDate`, `Booking.StartTime`, and `Booking.EndTime`.
+
 ---
 
 ## 5. Payment Processing
 
-### 5.1. Create Payment
+### 5.1 Create Payment
 
-- **Method**: POST
-- **Path**: `/api/payments`
-- **Role**: [User]
-- **Description**: Initiates a payment for a booking.
-- **Request Body**:
-  ```json
-  {
-    "bookingId": 1,
-    "paymentMethod": "string", // e.g., "CreditCard", "BankTransfer"
-    "amount": 270000
-  }
-  ```
-- **Response**:
-  - **201 Created**:
-    ```json
-    {
-      "paymentId": 1,
-      "bookingId": 1,
-      "amount": 270000,
-      "status": "Pending",
-      "paymentUrl": "https://payment-gateway.com/pay/xyz123",
-      "message": "Payment initiated successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Invalid booking or amount"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Booking does not exist"
-    }
-    ```
----
+**Description**: Initiates a payment for one or more bookings linked by `mainBookingId`. Returns a payment URL for the user to complete the transaction.
 
-### 5.2. Get Payments
+**HTTP Method**: POST  
+**Endpoint**: `/api/payments`  
+**Authorization**: Bearer Token (User)
 
-- **Method**: GET
-- **Path**: `/api/payments`
-- **Role**: [User, Owner]
-- **Description**: Retrieves payments (User: own payments; Owner: payments for their fields).
-- **Query Parameters**:
-  - `status`: Filter by status (e.g., "Paid").
-  - `sort`: Sort by field (e.g., "CreatedAt:desc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "paymentId": 1,
-          "bookingId": 1,
-          "amount": 270000,
-          "paymentMethod": "CreditCard",
-          "status": "Paid",
-          "createdAt": "2025-06-01T10:00:00Z"
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
----
+**Request Body**:
 
-### 5.3. Get Payment Details
+```json
+{
+  "mainBookingId": "1",
+  "amount": 740000.0,
+  "paymentMethod": "CreditCard"
+}
+```
 
-- **Method**: GET
-- **Path**: `/api/payments/{id}`
-- **Role**: [User, Owner]
-- **Description**: Retrieves details of a specific payment.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "paymentId": 1,
-      "bookingId": 1,
-      "amount": 270000,
-      "paymentMethod": "CreditCard",
-      "status": "Paid",
-      "createdAt": "2025-06-01T10:00:00Z",
-      "transactionId": "xyz123"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Payment does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to view this payment"
-    }
-    ```
----
+**Response**:
 
-### 5.4. Payment Webhook
+- **201 Created**:
 
-- **Method**: POST
-- **Path**: `/api/payments/webhook`
-- **Role**: [Public]
-- **Description**: Handles payment status updates from the payment gateway.
-- **Request Body**:
+```json
+{
+  "paymentId": "1",
+  "mainBookingId": "1",
+  "amount": 740000.0,
+  "status": "Pending",
+  "paymentUrl": "https://payment-gateway.com/pay/123",
+  "message": "Payment initiated successfully"
+}
+```
+
+- **400 Bad Request**:
+
+```json
+{
+  "error": "Invalid input",
+  "details": [
+    {
+      "field": "amount",
+      "message": "Amount must match booking total"
+    }
+  ]
+}
+```
+
+- **401 Unauthorized**:
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing token"
+}
+```
+
+- **403 Forbidden**:
+
+```json
+{
+  "error": "Forbidden",
+  "message": "Only the booking user can initiate payment"
+}
+```
+
+- **404 Not Found**:
+
+```json
+{
+  "error": "Resource not found",
+  "message": "Booking not found"
+}
+```
+
+**Note**:
+
+- Creates a `Payment` record linked to `Booking.MainBookingId`.
+- Validates `amount` against the total of all bookings with the same `mainBookingId`.
+- `paymentUrl` is generated by the payment gateway.
+
+### 5.2 Get Payment Status
+
+**Description**: Retrieves the status of a payment.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/payments/{paymentId}`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Path Parameters**:
+
+- `paymentId` (required, integer): The ID of the payment.
+
+**Request Example**:
+
+```http
+GET /api/payments/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
   ```json
   {
     "paymentId": 1,
-    "transactionId": "string",
-    "status": "string", // e.g., "Paid", "Failed"
-    "amount": 270000,
-    "timestamp": "2025-06-01T10:00:00Z"
+    "bookingId": 1,
+    "amount": 500000,
+    "status": "Completed",
+    "createdAt": "2025-06-01T10:00:00Z"
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Webhook processed successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Invalid webhook data"
-    }
-    ```
----
 
-### 5.5. Request Refund
+- **401 Unauthorized**:
 
-- **Method**: POST
-- **Path**: `/api/payments/{id}/refund`
-- **Role**: [User]
-- **Description**: Submits a refund request for a payment.
-- **Request Body**:
   ```json
   {
-    "amount": 270000,
-    "reason": "string"
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
   }
   ```
-- **Response**:
-  - **201 Created**:
-    ```json
-    {
-      "refundRequestId": 1,
-      "paymentId": 1,
-      "amount": 270000,
-      "status": "Pending",
-      "message": "Refund request submitted successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Invalid amount or reason"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Payment does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to request a refund for this payment"
-    }
-    ```
----
 
-### 5.6 Get Refund History
+- **403 Forbidden**:
 
-- **Method**: GET
-- **Path**: `/api/payments/refunds`
-- **Role**: [User, Owner]
-- **Description**: Retrieves refund history for the user or owner.  
-  _Note_: Backend should filter refunds by `UserId` (for User role) or `OwnerId` (for Owner role, via associated fields). Support pagination for large datasets.
-- **Query Parameters**:
-  - `startDate`: Filter by start date (format: YYYY-MM-DD, optional).
-  - `endDate`: Filter by end date (format: YYYY-MM-DD, optional).
-  - `status`: Filter by refund status (e.g., Pending, Completed, optional).
-  - `page`: Page number for pagination (default: 1).
-  - `pageSize`: Number of items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "refundId": 1,
-          "bookingId": 1,
-          "fieldId": 1,
-          "fieldName": "ABC Field",
-          "amount": 300000,
-          "status": "Completed",
-          "createdAt": "2025-05-21T10:00:00Z"
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "startDate",
-          "message": "Invalid date format"
-        }
-      ]
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the booking user or field owner can view payment"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Payment not found"
+  }
+  ```
+
+**Note**:
+
+- `status` reflects `Payment.Status` (Pending|Completed|Failed).
+
+### 5.3 Get Payment History
+
+**Description**: Retrieves payment history of the authenticated user or owner.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/payments`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `status` (optional, string: Pending|Completed|Failed)
+- `startDate` (optional, date: YYYY-MM-DD)
+- `endDate` (optional, date: YYYY-MM-DD)
+
+**Request Example**:
+
+```http
+GET /api/payments?page=1&pageSize=10&status=Completed
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "paymentId": 1,
+        "bookingId": 1,
+        "amount": 500000,
+        "status": "Completed",
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "startDate",
+        "message": "Invalid date format"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- For `User`, returns payments linked to their bookings.
+- For `Owner`, returns payments linked to their fields’ bookings.
+
+### 5.4 Payment Webhook
+
+**Description**: Handles payment updates from the payment gateway.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/payments/webhook`  
+**Authorization**: None (secured by webhook signature)
+
+**Request Body**:
+
+```json
+{
+  "paymentId": 1,
+  "status": "Completed",
+  "transactionId": "txn_123",
+  "amount": 500000,
+  "timestamp": "2025-06-01T10:00:00Z"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Webhook processed successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "paymentId",
+        "message": "Payment ID is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid webhook signature"
+  }
+  ```
+
+**Note**:
+
+- Updates `Payment.Status` and `Booking.PaymentStatus`.
+- Secured by a signature verified by the payment gateway.
+
+### 5.5 Request Refund
+
+**Description**: Requests a refund for a booking.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/payments/{paymentId}/refund`  
+**Authorization**: Bearer Token (User)
+
+**Path Parameters**:
+
+- `paymentId` (required, integer): The ID of the payment.
+
+**Request Body**:
+
+```json
+{
+  "amount": 500000,
+  "reason": "Booking cancelled"
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "refundId": 1,
+    "paymentId": 1,
+    "amount": 500000,
+    "status": "Pending",
+    "message": "Refund requested successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "amount",
+        "message": "Refund amount exceeds payment amount"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the booking user can request a refund"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Payment not found"
+  }
+  ```
+
+**Note**:
+
+- Creates a `RefundRequest` record.
+- Validates `Payment.Status` is Completed and refund eligibility.
+
+### 5.6 Process Refund
+
+**Description**: Processes a refund request (Owner or Admin only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/payments/refunds/{refundId}/process`  
+**Authorization**: Bearer Token (Owner or Admin)
+
+**Path Parameters**:
+
+- `refundId` (required, integer): The ID of the refund request.
+
+**Request Body**:
+
+```json
+{
+  "status": "Approved",
+  "note": "Refund approved due to cancellation"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "refundId": 1,
+    "status": "Approved",
+    "message": "Refund processed successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "status",
+        "message": "Invalid status"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner or admin can process refunds"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Refund request not found"
+  }
+  ```
+
+**Note**:
+
+- Updates `RefundRequest.Status` (Approved|Rejected).
+- If approved, updates `Payment.Status` and `Booking.PaymentStatus` to Refunded.
+
 ---
 
 ## 6. Review System
 
 ### 6.1 Create Review
 
-- **Method**: POST
-- **Path**: `/api/reviews`
-- **Role**: [User]
-- **Description**: Submits a review for a field after a booking. Only users with a confirmed and paid booking for the specified field can submit a review. Prevents duplicate reviews for the same booking.  
-  _Note_: Backend must verify `Booking` has `UserId` matching the current user, `FieldId` matching `fieldId` (via `SubField.FieldId`), `Status = Confirmed`, and `PaymentStatus = Paid`. Check for existing reviews by `bookingId` to prevent duplicates.
-- **Request Body**:
+**Description**: Creates a review for a field after a confirmed booking.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/reviews`  
+**Authorization**: Bearer Token (User)
+
+**Request Body**:
+
+```json
+{
+  "fieldId": 1,
+  "bookingId": 1,
+  "rating": 5,
+  "comment": "Great field!"
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
   ```json
   {
+    "reviewId": 1,
     "fieldId": 1,
-    "bookingId": 1,
     "rating": 5,
-    "comment": "string"
+    "comment": "Great field!",
+    "createdAt": "2025-06-01T10:00:00Z",
+    "message": "Review created successfully"
   }
   ```
-- **Response**:
-  - **201 Created**:
-    ```json
-    {
-      "reviewId": 1,
-      "fieldId": 1,
-      "bookingId": 1,
-      "rating": 5,
-      "message": "Review submitted successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "A review for this booking already exists"
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You must have a confirmed and paid booking to review this field"
-    }
-    ```
----
 
-### 6.2. Update Review
+- **400 Bad Request**:
 
-- **Method**: PUT
-- **Path**: `/api/reviews/{id}`
-- **Role**: [User]
-- **Description**: Updates an existing review.
-- **Request Body**:
   ```json
   {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "rating",
+        "message": "Rating must be between 1 and 5"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "User is not authorized to review this field"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Booking or field not found"
+  }
+  ```
+
+**Note**:
+
+- Requires `Booking.Status` to be Confirmed and `Booking.PaymentStatus` to be Paid.
+- `createdAt` reflects `Review.CreatedAt`.
+- Updates `Field.AverageRating`.
+
+### 6.2 Update Review
+
+**Description**: Updates an existing review.
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/reviews/{reviewId}`  
+**Authorization**: Bearer Token (User)
+
+**Path Parameters**:
+
+- `reviewId` (required, integer): The ID of the review.
+
+**Request Body**:
+
+```json
+{
+  "rating": 4,
+  "comment": "Updated: Good field but needs better lighting."
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "reviewId": 1,
+    "fieldId": 1,
     "rating": 4,
-    "comment": "string"
+    "comment": "Updated: Good field but needs better lighting.",
+    "message": "Review updated successfully"
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "reviewId": 1,
-      "rating": 4,
-      "message": "Review updated successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Invalid rating"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Review does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to update this review"
-    }
-    ```
----
 
-### 6.3. Delete Review
+- **400 Bad Request**:
 
-- **Method**: DELETE
-- **Path**: `/api/reviews/{id}`
-- **Role**: [User]
-- **Description**: Deletes a review.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Review deleted successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Review does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to delete this review"
-    }
-    ```
----
-
-### 6.4. Reply to Review
-
-- **Method**: POST
-- **Path**: `/api/reviews/{id}/reply`
-- **Role**: [Owner]
-- **Description**: Allows the field owner to reply to a review.
-- **Request Body**:
   ```json
   {
-    "reply": "string"
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "rating",
+        "message": "Rating must be between 1 and 5"
+      }
+    ]
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "reviewId": 1,
-      "ownerReply": "Thank you for your feedback!",
-      "replyDate": "2025-06-02T10:00:00Z",
-      "message": "Reply submitted successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Reply is required"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Review does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to reply to this review"
-    }
-    ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the review author can update this review"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Review not found"
+  }
+  ```
+
+**Note**:
+
+- Updates `Review.Rating` and `Review.Comment`.
+- Recalculates `Field.AverageRating`.
+
+### 6.3 Delete Review
+
+**Description**: Deletes a review (User or Admin only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/reviews/{reviewId}`  
+**Authorization**: Bearer Token (User or Admin)
+
+**Path Parameters**:
+
+- `reviewId` (required, integer): The ID of the review.
+
+**Request Example**:
+
+```http
+DELETE /api/reviews/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Review deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the review author or admin can delete this review"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Review not found"
+  }
+  ```
+
+**Note**:
+
+- Soft deletes by setting `Review.DeletedAt`.
+- Recalculates `Field.AverageRating`.
+
+### 6.4 Get Reviews By User
+
+**Description**: Retrieves reviews made by the authenticated user.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/reviews`  
+**Authorization**: Bearer Token (User)
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/reviews?page=1&pageSize=10
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "reviewId": 1,
+        "fieldId": 1,
+        "fieldName": "Sân Bóng Đá ABC",
+        "rating": 5,
+        "comment": "Great field!",
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Returns `Review` records for the authenticated user.
+
 ---
 
 ## 7. Notification System
 
-### 7.1. Get Notifications
+### 7.1 Get Notifications
 
-- **Method**: GET
-- **Path**: `/api/notifications`
-- **Role**: [User, Owner]
-- **Description**: Retrieves the user's or owner's notifications.
-- **Query Parameters**:
-  - `isRead`: Filter by read status (true/false).
-  - `sort`: Sort by field (e.g., "CreatedAt:desc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "notificationId": 1,
-          "title": "Booking Confirmed",
-          "message": "Your booking on 2025-06-01 is confirmed.",
-          "isRead": false,
-          "createdAt": "2025-06-01T10:00:00Z"
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
----
+**Description**: Retrieves notifications for the authenticated user.
 
-### 7.2. Mark Notification as Read
+**HTTP Method**: GET  
+**Endpoint**: `/api/notifications`  
+**Authorization**: Bearer Token (User)
 
-- **Method**: PUT
-- **Path**: `/api/notifications/{id}/read`
-- **Role**: [User, Owner]
-- **Description**: Marks a notification as read.
-- **Response**:
-  - **200 OK**:
-    ```json
+**Query Parameters**:
+
+- `isRead` (optional, boolean): Filter by read/unread status.
+- `page` (optional, integer, default: 1): Page number.
+- `pageSize` (optional, integer, default: 10): Number of entries per page.
+
+**Request Example**:
+
+```http
+GET /api/notifications?page=1&pageSize=10&isRead=false
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+```json
+{
+  "data": [
     {
-      "notificationId": 1,
-      "isRead": true,
-      "message": "Notification marked as read"
+      "notificationId": "1",
+      "title": "Booking Confirmed",
+      "content": "Your booking for Sân 5A on 2025-06-01 is confirmed.",
+      "isRead": false,
+      "createdAt": "2025-05-25T10:00:00Z",
+      "notificationType": "Booking"
     }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Notification does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to update this notification"
-    }
-    ```
-- **Example**:
+  ],
+  "totalCount": 1,
+  "page": 1,
+  "pageSize": 10,
+  "message": "Notifications retrieved successfully"
+}
+```
+
+- **401 Unauthorized**:
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing token"
+}
+```
+
+**Note**:
+
+- Returns `Notification` records for the authenticated user.
+- `notificationType` maps to `Notification.NotificationType`.
+
+### 7.2 Mark Notification As Read
+
+**Description**: Marks a notification as read.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/notifications/{notificationId}/read`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Path Parameters**:
+
+- `notificationId` (required, integer): The ID of the notification.
+
+**Request Example**:
+
+```http
+POST /api/notifications/1/read
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
   ```json
-  // Response
   {
     "notificationId": 1,
     "isRead": true,
     "message": "Notification marked as read"
   }
   ```
----
 
-### 7.3. Delete Notification
+- **401 Unauthorized**:
 
-- **Method**: DELETE
-- **Path**: `/api/notifications/{id}`
-- **Role**: [User, Owner]
-- **Description**: Deletes a notification.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Notification deleted successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Notification does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to delete this notification"
-    }
-    ```
----
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
 
-### 7.4. Mark All Notifications as Read
+- **403 Forbidden**:
 
-- **Method**: PUT
-- **Path**: `/api/notifications/read-all`
-- **Role**: [User, Owner]
-- **Description**: Marks all notifications for the user or owner as read.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "All notifications marked as read"
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
----
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the notification recipient can mark it as read"
+  }
+  ```
 
-### 7.5. Get Unread Notification Count
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Notification not found"
+  }
+  ```
 
-- **Method**: GET
-- **Path**: `/api/notifications/count`
-- **Role**: [User, Owner]
-- **Description**: Retrieves the count of unread notifications.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "unreadCount": 3
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
+**Note**:
+
+- Sets `Notification.IsRead` to true.
+
+### 7.3 Mark All Notifications As Read
+
+**Description**: Marks all notifications for the authenticated user or owner as read.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/notifications/read-all`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Request Example**:
+
+```http
+POST /api/notifications/read-all
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "All notifications marked as read"
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Sets `Notification.IsRead` to true for all notifications of the authenticated user or owner.
+
+### 7.4 Delete Notification
+
+**Description**: Deletes a notification.
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/notifications/{notificationId}`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Path Parameters**:
+
+- `notificationId` (required, integer): The ID of the notification.
+
+**Request Example**:
+
+```http
+DELETE /api/notifications/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Notification deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the notification recipient can delete it"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Notification not found"
+  }
+  ```
+
+**Note**:
+
+- Soft deletes by setting `Notification.DeletedAt`.
+
+### 7.5 Get Unread Notification Count
+
+**Description**: Retrieves the count of unread notifications for the authenticated user or owner.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/notifications/unread-count`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Request Example**:
+
+```http
+GET /api/notifications/unread-count
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "unreadCount": 5
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Counts `Notification` records where `IsRead` is false.
+
 ---
 
 ## 8. Sport Categories
 
-### 8.1. Get Sports
+### 8.1 Get Sports
 
-- **Method**: GET
-- **Path**: `/api/sports`
-- **Role**: [Public]
-- **Description**: Retrieves a list of available sports.
-- **Query Parameters**:
-  - `sort`: Sort by field (e.g., "SportName:asc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "sportId": 1,
-          "sportName": "Football",
-          "description": "5-a-side and 7-a-side fields"
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
----
+**Description**: Retrieves a list of sport categories.
 
-### 8.2. Get Sport Details
+**HTTP Method**: GET  
+**Endpoint**: `/api/sports`  
+**Authorization**: None
 
-- **Method**: GET
-- **Path**: `/api/sports/{id}`
-- **Role**: [Public]
-- **Description**: Retrieves details of a specific sport.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "sportId": 1,
-      "sportName": "Football",
-      "description": "5-a-side and 7-a-side fields"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Sport does not exist"
-    }
-    ```
----
+**Query Parameters**:
 
-### 8.3. Get Popular Sports
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
 
-- **Method**: GET
-- **Path**: `/api/sports/popular`
-- **Role**: [Public]
-- **Description**: Retrieves a list of popular sports based on booking frequency.
-- **Query Parameters**:
-  - `limit`: Number of sports to return (default: 5).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "sportId": 1,
-          "sportName": "Football",
-          "bookingCount": 150
-        }
-      ],
-      "total": 1
-    }
-    ```
----
+**Request Example**:
+
+```http
+GET /api/sports?page=1&pageSize=10
+```
+
+**Response**:
+
+- **200 OK**:
+  ```json
+  {
+    "data": [
+      {
+        "sportId": 1,
+        "sportName": "Football",
+        "description": "Soccer fields for 5-a-side or 11-a-side",
+        "isActive": true
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+### 8.2 Get Sport By ID
+
+**Description**: Retrieves details of a specific sport.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/sports/{sportId}`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `sportId` (required, integer): The ID of the sport.
+
+**Request Example**:
+
+```http
+GET /api/sports/1
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "sportId": 1,
+    "sportName": "Football",
+    "description": "Soccer fields for 5-a-side or 11-a-side",
+    "isActive": true
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Sport not found"
+  }
+  ```
+
+### 8.3 Update Sport
+
+**Description**: Updates an existing sport (Admin only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/sports/{sportId}`  
+**Authorization**: Bearer Token (Admin)
+
+**Path Parameters**:
+
+- `sportId` (required, integer): The ID of the sport.
+
+**Request Body**:
+
+```json
+{
+  "sportName": "Football",
+  "description": "Updated description",
+  "isActive": true
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "sportId": 1,
+    "sportName": "Football",
+    "description": "Updated description",
+    "isActive": true,
+    "message": "Sport updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "sportName",
+        "message": "Sport name is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Sport not found"
+  }
+  ```
 
 ### 8.4 Create Sport
 
-- **Method**: POST
-- **Path**: `/api/sports`
-- **Role**: [Admin]
-- **Description**: Creates a new sport category.  
-  _Note_: Backend should validate `sportName` for uniqueness and ensure `description` is optional. Add to `Sport` model if not already present.
-- **Request Body**:
+**Description**: Creates a new sport category (Admin only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/sports`  
+**Authorization**: Bearer Token (Admin)
+
+**Request Body**:
+
+```json
+{
+  "sportName": "Basketball",
+  "description": "Basketball courts",
+  "isActive": true
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
   ```json
   {
-    "sportName": "string",
-    "description": "string"
+    "sportId": 2,
+    "sportName": "Basketball",
+    "description": "Basketball courts",
+    "isActive": true,
+    "message": "Sport created successfully"
   }
   ```
-- **Response**:
-  - **201 Created**:
-    ```json
-    {
-      "sportId": 1,
-      "sportName": "Badminton",
-      "message": "Sport created successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "sportName",
-          "message": "Sport name is required or already exists"
-        }
-      ]
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "Admin access required"
-    }
-    ```
----
 
-### 8.5 Update Sport
+- **400 Bad Request**:
 
-- **Method**: PUT
-- **Path**: `/api/sports/{id}`
-- **Role**: [Admin]
-- **Description**: Updates an existing sport category.  
-  _Note_: Backend should validate `sportName` for uniqueness (excluding current sport). Ensure `description` is optional.
-- **Request Body**:
   ```json
   {
-    "sportName": "string",
-    "description": "string"
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "sportName",
+        "message": "Sport name is required"
+      }
+    ]
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "sportId": 1,
-      "sportName": "Badminton",
-      "message": "Sport updated successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "sportName",
-          "message": "Sport name is required or already exists"
-        }
-      ]
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "Admin access required"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Sport does not exist"
-    }
-    ```
----
 
-### 8.6 Delete Sport
+- **401 Unauthorized**:
 
-- **Method**: DELETE
-- **Path**: `/api/sports/{id}`
-- **Role**: [Admin]
-- **Description**: Marks a sport category as deleted (soft delete). Checks for associated fields before deletion.  
-  _Note_: Backend must add `Status` field to `Sport` model for soft delete. Ensure no fields are linked to this sport before deletion. The `status` field in response indicates the sport’s new state.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "sportId": 1,
-      "isActive": false,
-      "message": "Sport deleted successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Cannot delete sport with associated fields"
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "Admin access required"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Sport does not exist"
-    }
-    ```
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+**Note**:
+
+- `isActive` defaults to true if not specified.
+
+### 8.5 Delete Sport
+
+**Description**: Deactivates a sport category (Admin only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/sports/{sportId}`  
+**Authorization**: Bearer Token (Admin)
+
+**Path Parameters**:
+
+- `sportId` (required, integer): The ID of the sport.
+
+**Request Example**:
+
+```http
+DELETE /api/sports/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "sportId": 1,
+    "isActive": false,
+    "message": "Sport deactivated successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Sport not found"
+  }
+  ```
+
+**Note**:
+
+- Sets `Sport.IsActive` to false instead of deleting.
+
+### 8.6 Get Fields By Sport
+
+**Description**: Retrieves fields associated with a sport.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/sports/{sportId}/fields`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `sportId` (required, integer): The ID of the sport.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `city` (optional, string)
+- `district` (optional, string)
+
+**Request Example**:
+
+```http
+GET /api/sports/1/fields?page=1&pageSize=10&city=Hà Nội
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "fieldId": 1,
+        "fieldName": "Sân Bóng Đá ABC",
+        "address": "123 Đường Láng, Đống Đa",
+        "city": "Hà Nội",
+        "district": "Đống Đa",
+        "averageRating": 4.5
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Sport not found"
+  }
+  ```
+
+**Note**:
+
+- Filters `Field` records by `Field.SportId` and optional parameters.
+
 ---
 
 ## 9. Promotion Management
 
-### 9.1. Get Promotions
+### 9.1 Get Promotions
 
-- **Method**: GET
-- **Path**: `/api/promotions`
-- **Role**: [Public]
-- **Description**: Retrieves a list of available promotions.
-- **Query Parameters**:
-  - `fieldId`: Filter by field.
-  - `status`: Filter by status (e.g., "Active").
-  - `sort`: Sort by field (e.g., "StartDate:desc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
+**Description**: Retrieves active promotions for a field or all fields.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/promotions`  
+**Authorization**: None
+
+**Query Parameters**:
+
+- `fieldId` (optional, integer): Filter by field.
+- `code` (optional, string): Filter by promotion code.
+
+**Request Example**:
+
+```http
+GET /api/promotions?fieldId=1
+```
+
+**Response**:
+
+- **200 OK**:
+
+```json
+{
+  "data": [
     {
-      "data": [
-        {
-          "promotionId": 1,
-          "promotionCode": "SUMMER2025",
-          "discountType": "Percentage",
-          "discountValue": 20,
-          "startDate": "2025-06-01",
-          "endDate": "2025-08-31",
-          "status": "Active"
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
+      "promotionId": "1",
+      "code": "SUMMER2025",
+      "description": "Summer discount",
+      "discountType": "Percentage",
+      "discountValue": 10.0,
+      "startDate": "2025-06-01",
+      "endDate": "2025-08-31",
+      "minBookingValue": 500000.0,
+      "maxDiscountAmount": 100000.0,
+      "isActive": true
     }
-    ```
----
+  ],
+  "message": "Promotions retrieved successfully"
+}
+```
 
-### 9.2. Create Promotion
+- **400 Bad Request**:
 
-- **Method**: POST
-- **Path**: `/api/promotions`
-- **Role**: [Owner]
-- **Description**: Creates a new promotion for a field.
-- **Request Body**:
+```json
+{
+  "error": "Invalid input",
+  "details": [
+    {
+      "field": "fieldId",
+      "message": "Invalid field ID"
+    }
+  ]
+}
+```
+
+**Note**:
+
+- Returns `Promotion` records where `Promotion.IsActive` is true and within `StartDate` and `EndDate`.
+
+### 9.2 Create Promotion
+
+**Description**: Creates a new promotion for a field (Owner only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/promotions`  
+**Authorization**: Bearer Token (Owner)
+
+**Request Body**:
+
+```json
+{
+  "fieldId": 1,
+  "code": "SUMMER2025",
+  "discountType": "Percentage",
+  "discountValue": 20,
+  "startDate": "2025-06-01",
+  "endDate": "2025-08-31",
+  "usageLimit": 100,
+  "minBookingAmount": 500000
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
   ```json
   {
+    "promotionId": 1,
     "fieldId": 1,
-    "promotionCode": "string",
-    "discountType": "string", // "Percentage" or "Fixed"
+    "code": "SUMMER2025",
+    "discountType": "Percentage",
     "discountValue": 20,
     "startDate": "2025-06-01",
     "endDate": "2025-08-31",
-    "maxUsage": 100,
-    "minBookingAmount": 200000
+    "usageLimit": 100,
+    "minBookingAmount": 500000,
+    "message": "Promotion created successfully"
   }
   ```
-- **Response**:
-  - **201 Created**:
-    ```json
-    {
-      "promotionId": 1,
-      "promotionCode": "SUMMER2025",
-      "message": "Promotion created successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Invalid discount value"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to create a promotion for this field"
-    }
-    ```
----
 
-### 9.3. Update Promotion
+- **400 Bad Request**:
 
-- **Method**: PUT
-- **Path**: `/api/promotions/{id}`
-- **Role**: [Owner]
-- **Description**: Updates an existing promotion.
-- **Request Body**:
   ```json
   {
-    "promotionCode": "string",
-    "discountType": "string",
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "code",
+        "message": "Promotion code is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can create promotions"
+  }
+  ```
+
+**Note**:
+
+- `discountType` must be "Percentage" or "Fixed".
+- `usageLimit` specifies the maximum number of times the promotion can be used.
+- `code` maps to `Promotion.Code`, `usageLimit` to `Promotion.UsageLimit`.
+
+### 9.3 Update Promotion
+
+**Description**: Updates an existing promotion (Owner only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/promotions/{promotionId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `promotionId` (required, integer): The ID of the promotion.
+
+**Request Body**:
+
+```json
+{
+  "code": "SUMMER2025",
+  "discountType": "Percentage",
+  "discountValue": 25,
+  "startDate": "2025-06-01",
+  "endDate": "2025-08-31",
+  "usageLimit": 150,
+  "minBookingAmount": 500000
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "promotionId": 1,
+    "fieldId": 1,
+    "code": "SUMMER2025",
+    "discountType": "Percentage",
     "discountValue": 25,
     "startDate": "2025-06-01",
-    "endDate": "2025-09-30",
-    "maxUsage": 150,
-    "minBookingAmount": 250000
+    "endDate": "2025-08-31",
+    "usageLimit": 150,
+    "minBookingAmount": 500000,
+    "message": "Promotion updated successfully"
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "promotionId": 1,
-      "promotionCode": "SUMMER2025",
-      "message": "Promotion updated successfully"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Invalid discount value"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Promotion does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to update this promotion"
-    }
-    ```
----
 
-### 9.4. Delete Promotion
+- **400 Bad Request**:
 
-- **Method**: DELETE
-- **Path**: `/api/promotions/{id}`
-- **Role**: [Owner]
-- **Description**: Deletes a promotion.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "message": "Promotion deleted successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Promotion does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to delete this promotion"
-    }
-    ```
----
-
-### 9.5. Get Suggested Promotions
-
-- **Method**: GET
-- **Path**: `/api/promotions/suggestions`
-- **Role**: [User]
-- **Description**: Retrieves suggested promotions based on user’s booking history or location.
-- **Query Parameters**:
-  - `fieldId`: Filter by field.
-  - `sort`: Sort by field (e.g., "DiscountValue:desc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "promotionId": 1,
-          "promotionCode": "SUMMER2025",
-          "discountType": "Percentage",
-          "discountValue": 20,
-          "startDate": "2025-06-01",
-          "endDate": "2025-08-31",
-          "status": "Active"
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
----
-
-### 9.6 Validate Promotion
-
-- **Method**: POST
-- **Path**: `/api/promotions/validate`
-- **Role**: [User]
-- **Description**: Validates a promotion code for a specific booking context.  
-  _Note_: Backend must verify `promotionCode` is active, not expired, and applicable to `fieldId` and `bookingAmount`. Response includes discount details if valid.
-- **Request Body**:
   ```json
   {
-    "promotionCode": "string",
-    "fieldId": 1,
-    "bookingAmount": 300000
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "code",
+        "message": "Promotion code is required"
+      }
+    ]
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "promotionId": 1,
-      "promotionCode": "SUMMER2025",
-      "discountType": "Percentage",
-      "discountValue": 20,
-      "isValid": true,
-      "message": "Promotion code is valid"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "details": [
-        {
-          "field": "promotionCode",
-          "message": "Invalid or expired promotion code"
-        }
-      ]
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can update promotions"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Promotion not found"
+  }
+  ```
+
+### 9.4 Delete Promotion
+
+**Description**: Deletes a promotion (Owner only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/promotions/{promotionId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `promotionId` (required, integer): The ID of the promotion.
+
+**Request Example**:
+
+```http
+DELETE /api/promotions/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Promotion deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can delete promotions"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Promotion not found"
+  }
+  ```
+
+**Note**:
+
+- Soft deletes by setting `Promotion.DeletedAt`.
+
+### 9.5 Apply Promotion
+
+**Description**: Applies a promotion code to a booking preview.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/promotions/apply`  
+**Authorization**: Bearer Token (User)
+
+**Request Body**:
+
+```json
+{
+  "bookingId": 1,
+  "code": "SUMMER2025"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "bookingId": 1,
+    "promotionId": 1,
+    "discount": 100000,
+    "newTotalPrice": 400000,
+    "message": "Promotion applied successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "code",
+        "message": "Invalid or expired promotion code"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Booking not found"
+  }
+  ```
+
+**Note**:
+
+- Validates `Promotion.Code`, `Promotion.StartDate`, `Promotion.EndDate`, and `Promotion.UsageLimit`.
+
+### 9.6 Get Promotion By ID
+
+**Description**: Retrieves details of a specific promotion.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/promotions/{promotionId}`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `promotionId` (required, integer): The ID of the promotion.
+
+**Request Example**:
+
+```http
+GET /api/promotions/1
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "promotionId": 1,
+    "fieldId": 1,
+    "code": "SUMMER2025",
+    "discountType": "Percentage",
+    "discountValue": 20,
+    "startDate": "2025-06-01",
+    "endDate": "2025-08-31",
+    "usageLimit": 100,
+    "minBookingAmount": 500000
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Promotion not found"
+  }
+  ```
+
 ---
 
 ## 10. Owner Dashboard
 
-### 10.1. Get Field Statistics
+### 10.1 Get Dashboard Stats
 
-- **Method**: GET
-- **Path**: `/api/owners/fields/{id}/stats`
-- **Role**: [Owner]
-- **Description**: Retrieves statistics for a specific field (e.g., bookings, revenue).
-- **Query Parameters**:
-  - `startDate`: Start date for stats (e.g., "2025-06-01").
-  - `endDate`: End date for stats (e.g., "2025-06-30").
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "fieldId": 1,
-      "fieldName": "ABC Field",
-      "totalBookings": 50,
-      "totalRevenue": 15000000,
-      "averageRating": 4.5,
-      "bookingCompletionRate": 0.95
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Field does not exist"
-    }
-    ```
-  - **403 Forbidden**:
-    ```json
-    {
-      "error": "Forbidden",
-      "message": "You do not have permission to view this field"
-    }
-    ```
----
+**Description**: Retrieves key statistics for the authenticated owner’s fields.
 
-### 10.2. Get Owner Dashboard
+**HTTP Method**: GET  
+**Endpoint**: `/api/owner/dashboard`  
+**Authorization**: Bearer Token (Owner)
 
-- **Method**: GET
-- **Path**: `/api/owners/dashboard`
-- **Role**: [Owner]
-- **Description**: Retrieves an overview of the owner’s fields, bookings, and revenue.
-- **Query Parameters**:
-  - `startDate`: Start date for stats (e.g., "2025-06-01").
-  - `endDate`: End date for stats (e.g., "2025-06-30").
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "totalFields": 3,
-      "totalBookings": 150,
-      "totalRevenue": 45000000,
-      "fields": [
-        {
-          "fieldId": 1,
-          "fieldName": "ABC Field",
-          "bookings": 50,
-          "revenue": 15000000
-        }
-      ]
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
+**Query Parameters**:
+
+- `startDate` (optional, date: YYYY-MM-DD)
+- `endDate` (optional, date: YYYY-MM-DD)
+
+**Request Example**:
+
+```http
+GET /api/owner/dashboard?startDate=2025-06-01&endDate=2025-06-30
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "totalBookings": 50,
+    "totalRevenue": 25000000,
+    "averageRating": 4.5,
+    "fieldCount": 3,
+    "completedBookings": 40,
+    "pendingBookings": 10
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "startDate",
+        "message": "Invalid date format"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Aggregates data from `Field`, `Booking`, and `Payment` for the owner’s fields.
+- `averageRating` is the average of `Field.AverageRating` across all fields.
+
+### 10.2 Get Field Stats
+
+**Description**: Retrieves detailed statistics for a specific field.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/owner/fields/{fieldId}/stats`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `startDate` (optional, date: YYYY-MM-DD)
+- `endDate` (optional, date: YYYY-MM-DD)
+
+**Request Example**:
+
+```http
+GET /api/owner/fields/1/stats?startDate=2025-06-01&endDate=2025-06-30
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "fieldId": 1,
+    "totalBookings": 20,
+    "totalRevenue": 10000000,
+    "averageRating": 4.5,
+    "bookingCompletionRate": 0.95,
+    "mostBookedSubFieldId": 1
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "startDate",
+        "message": "Invalid date format"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can view stats"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+**Note**:
+
+- Aggregates data from `Booking` and `Payment` for the specified field.
+
 ---
 
 ## 11. Admin Management
 
-### 11.1. Get All Users
+### 11.1 Get All Users
 
-- **Method**: GET
-- **Path**: `/api/admin/users`
-- **Role**: [Admin]
-- **Description**: Retrieves a list of all users.
-- **Query Parameters**:
-  - `role`: Filter by role (e.g., "User", "Owner").
-  - `sort`: Sort by field (e.g., "CreatedAt:desc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "userId": 1,
-          "fullName": "Nguyen Van A",
-          "email": "user@example.com",
-          "role": "User",
-          "createdAt": "2025-06-01T10:00:00Z"
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
----
+**Description**: Retrieves a list of all users and owners (Admin only).
 
-### 11.2. Ban User
+**HTTP Method**: GET  
+**Endpoint**: `/api/admin/users`  
+**Authorization**: Bearer Token (Admin)
 
-- **Method**: PUT
-- **Path**: `/api/admin/users/{id}/ban`
-- **Role**: [Admin]
-- **Description**: Bans a user account.
-- **Request Body**:
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `role` (optional, string: User|Owner)
+- `search` (optional, string: email or full name)
+
+**Request Example**:
+
+```http
+GET /api/admin/users?page=1&pageSize=10&role=User
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
   ```json
   {
-    "reason": "string"
+    "data": [
+      {
+        "userId": 1, // For User role
+        "ownerId": 1, // For Owner role
+        "fullName": "Nguyen Van A",
+        "email": "user@example.com",
+        "role": "User",
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "userId": 1,
-      "message": "User banned successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "User does not exist"
-    }
-    ```
----
 
-### 11.3. Unban User
+- **400 Bad Request**:
 
-- **Method**: PUT
-- **Path**: `/api/admin/users/{id}/unban`
-- **Role**: [Admin]
-- **Description**: Unbans a user account.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "userId": 1,
-      "message": "User unbanned successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "User does not exist"
-    }
-    ```
----
-
-### 11.4. Get All Fields
-
-- **Method**: GET
-- **Path**: `/api/admin/fields`
-- **Role**: [Admin]
-- **Description**: Retrieves a list of all fields.
-- **Query Parameters**:
-  - `status`: Filter by status (e.g., "Active").
-  - `sort`: Sort by field (e.g., "CreatedAt:desc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "fieldId": 1,
-          "fieldName": "ABC Field",
-          "ownerId": 2,
-          "status": "Active",
-          "createdAt": "2025-06-01T10:00:00Z"
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
----
-
-### 11.5. Approve Field
-
-- **Method**: PUT
-- **Path**: `/api/admin/fields/{id}/approve`
-- **Role**: [Admin]
-- **Description**: Approves a field to make it active.
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "fieldId": 1,
-      "message": "Field approved successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Field does not exist"
-    }
-    ```
----
-
-### 11.6. Reject Field
-
-- **Method**: PUT
-- **Path**: `/api/admin/fields/{id}/reject`
-- **Role**: [Admin]
-- **Description**: Rejects a field with a reason.
-- **Request Body**:
   ```json
   {
-    "reason": "string"
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "role",
+        "message": "Invalid role"
+      }
+    ]
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "fieldId": 1,
-      "message": "Field rejected successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Field does not exist"
-    }
-    ```
----
 
-### 11.7. Get All Reviews
+- **401 Unauthorized**:
 
-- **Method**: GET
-- **Path**: `/api/admin/reviews`
-- **Role**: [Admin]
-- **Description**: Retrieves a list of all reviews for moderation.
-- **Query Parameters**:
-  - `fieldId`: Filter by field.
-  - `sort`: Sort by field (e.g., "CreatedAt:desc").
-  - `page`: Page number (default: 1).
-  - `pageSize`: Items per page (default: 10).
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "reviewId": 1,
-          "fieldId": 1,
-          "userId": 1,
-          "rating": 5,
-          "comment": "Great field!",
-          "createdAt": "2025-06-01T10:00:00Z"
-        }
-      ],
-      "total": 1,
-      "page": 1,
-      "pageSize": 10
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
----
-
-### 11.8. Moderate Review
-
-- **Method**: PUT
-- **Path**: `/api/admin/reviews/{id}/moderate`
-- **Role**: [Admin]
-- **Description**: Approves or removes a review.
-- **Request Body**:
   ```json
   {
-    "status": "string", // "Approved", "Removed"
-    "reason": "string" // Required if status is "Removed"
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
   }
   ```
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "reviewId": 1,
-      "status": "Approved",
-      "message": "Review moderated successfully"
-    }
-    ```
-  - **404 Not Found**:
-    ```json
-    {
-      "error": "Resource not found",
-      "message": "Review does not exist"
-    }
-    ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+**Note**:
+
+- Response includes both `User` and `Owner` accounts based on `Account.Role`.
+- `userId` or `ownerId` is included depending on `role`.
+
+### 11.2 Get User By ID
+
+**Description**: Retrieves details of a specific user or owner (Admin only).
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/admin/users/{accountId}`  
+**Authorization**: Bearer Token (Admin)
+
+**Path Parameters**:
+
+- `accountId` (required, integer): The ID of the account.
+
+**Request Example**:
+
+```http
+GET /api/admin/users/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "accountId": 1,
+    "userId": 1, // For User role
+    "ownerId": 1, // For Owner role
+    "fullName": "Nguyen Van A",
+    "email": "user@example.com",
+    "role": "User",
+    "phone": "0909123456",
+    "city": "Hà Nội", // For User role
+    "district": "Đống Đa", // For User role
+    "avatarUrl": "https://cloudinary.com/avatar.jpg", // For User role
+    "description": "Field owner", // For Owner role
+    "createdAt": "2025-06-01T10:00:00Z"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "User not found"
+  }
+  ```
+
+**Note**:
+
+- Response fields vary based on `Account.Role`.
+
+### 11.3 Update User
+
+**Description**: Updates a user or owner’s account (Admin only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/admin/users/{accountId}`  
+**Authorization**: Bearer Token (Admin)
+
+**Path Parameters**:
+
+- `accountId` (required, integer): The ID of the account.
+
+**Request Body**:
+
+```json
+{
+  "fullName": "Nguyen Van A",
+  "phone": "0909123456",
+  "city": "Hà Nội", // For User role
+  "district": "Đống Đa", // For User role
+  "avatarUrl": "https://cloudinary.com/avatar.jpg", // For User role
+  "description": "Field owner" // For Owner role
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "accountId": 1,
+    "userId": 1, // For User role
+    "ownerId": 1, // For Owner role
+    "fullName": "Nguyen Van A",
+    "email": "user@example.com",
+    "role": "User",
+    "phone": "0909123456",
+    "city": "Hà Nội",
+    "district": "Đống Đa",
+    "avatarUrl": "https://cloudinary.com/avatar.jpg",
+    "description": "Field owner",
+    "message": "User updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "phone",
+        "message": "Invalid phone format"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "User not found"
+  }
+  ```
+
+**Note**:
+
+- Request fields vary based on `Account.Role`.
+
+### 11.4 Delete User
+
+**Description**: Deletes a user or owner’s account (Admin only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/admin/users/{accountId}`  
+**Authorization**: Bearer Token (Admin)
+
+**Path Parameters**:
+
+- `accountId` (required, integer): The ID of the account.
+
+**Request Example**:
+
+```http
+DELETE /api/admin/users/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "User deleted successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "accountId",
+        "message": "Cannot delete account with active bookings or fields"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "User not found"
+  }
+  ```
+
+**Note**:
+
+- Soft deletes by setting `Account.DeletedAt`.
+- Checks for active bookings (`User`) or fields (`Owner`) before deletion.
+
+### 11.5 Get All Fields
+
+**Description**: Retrieves a list of all fields (Admin only).
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/admin/fields`  
+**Authorization**: Bearer Token (Admin)
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `city` (optional, string)
+- `district` (optional, string)
+- `sportId` (optional, integer)
+- `status` (optional, string: Active|Inactive|Deleted)
+
+**Request Example**:
+
+```http
+GET /api/admin/fields?page=1&pageSize=10&city=Hà Nội
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "fieldId": 1,
+        "fieldName": "Sân Bóng Đá ABC",
+        "address": "123 Đường Láng, Đống Đa",
+        "city": "Hà Nội",
+        "district": "Đống Đa",
+        "status": "Active",
+        "sportId": 1
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "status",
+        "message": "Invalid status"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+### 11.6 Update Field Status
+
+**Description**: Updates the status of a field (Admin only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/admin/fields/{fieldId}/status`  
+**Authorization**: Bearer Token (Admin)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Request Body**:
+
+```json
+{
+  "status": "Inactive"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "fieldId": 1,
+    "status": "Inactive",
+    "message": "Field status updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "status",
+        "message": "Invalid status"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+**Note**:
+
+- Updates `Field.Status` (Active|Inactive|Deleted).
+
+### 11.7 Get System Stats
+
+**Description**: Retrieves system-wide statistics (Admin only).
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/admin/stats`  
+**Authorization**: Bearer Token (Admin)
+
+**Query Parameters**:
+
+- `startDate` (optional, date: YYYY-MM-DD)
+- `endDate` (optional, date: YYYY-MM-DD)
+
+**Request Example**:
+
+```http
+GET /api/admin/stats?startDate=2025-06-01&endDate=2025-06-30
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "totalUsers": 1000,
+    "totalOwners": 50,
+    "totalFields": 200,
+    "totalBookings": 5000,
+    "totalRevenue": 250000000,
+    "averageBookingValue": 50000
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "startDate",
+        "message": "Invalid date format"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+**Note**:
+
+- Aggregates data from `Account`, `Field`, `Booking`, and `Payment`.
+
+### 11.8 Manage Refunds
+
+**Description**: Retrieves and manages refund requests (Admin only).
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/admin/refunds`  
+**Authorization**: Bearer Token (Admin)
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `status` (optional, string: Pending|Approved|Rejected)
+
+**Request Example**:
+
+```http
+GET /api/admin/refunds?page=1&pageSize=10&status=Pending
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "refundId": 1,
+        "paymentId": 1,
+        "amount": 500000,
+        "status": "Pending",
+        "reason": "Booking cancelled",
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "status",
+        "message": "Invalid status"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+**Note**:
+
+- Returns `RefundRequest` records filtered by `status`.
+
 ---
 
 ## 12. Statistics & Analytics
 
-### 12.1. Get Platform Statistics
+### 12.1 Get User Analytics
 
-- **Method**: GET
-- **Path**: `/api/statistics`
-- **Role**: [Admin]
-- **Description**: Retrieves overall platform statistics.
-- **Query Parameters**:
-  - `startDate`: Start date for stats (e.g., "2025-06-01").
-  - `endDate`: End date for stats (e.g., "2025-06-30").
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "totalUsers": 1000,
-      "totalFields": 50,
-      "totalBookings": 5000,
-      "totalRevenue": 1500000000,
-      "averageBookingPrice": 300000
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
----
+**Description**: Retrieves analytics for user activity (Admin only).
 
-### 12.2. Get Trends
+**HTTP Method**: GET  
+**Endpoint**: `/api/analytics/users`  
+**Authorization**: Bearer Token (Admin)
 
-- **Method**: GET
-- **Path**: `/api/statistics/trends`
-- **Role**: [Admin]
-- **Description**: Retrieves trending data (e.g., bookings, revenue) over time.
-- **Query Parameters**:
-  - `startDate`: Start date for trends (e.g., "2025-06-01").
-  - `endDate`: End date for trends (e.g., "2025-06-30").
-  - `interval`: Time interval (e.g., "daily", "weekly", "monthly").
-- **Response**:
-  - **200 OK**:
-    ```json
-    {
-      "data": [
-        {
-          "date": "2025-06-01",
-          "bookings": 100,
-          "revenue": 30000000
-        },
-        {
-          "date": "2025-06-02",
-          "bookings": 120,
-          "revenue": 36000000
-        }
-      ],
-      "interval": "daily"
-    }
-    ```
-  - **400 Bad Request**:
-    ```json
-    {
-      "error": "Invalid input",
-      "message": "Invalid date range or interval"
-    }
-    ```
-  - **401 Unauthorized**:
-    ```json
-    {
-      "error": "Unauthorized",
-      "message": "Invalid or missing token"
-    }
-    ```
+**Query Parameters**:
+
+- `startDate` (optional, date: YYYY-MM-DD)
+- `endDate` (optional, date: YYYY-MM-DD)
+- `role` (optional, string: User|Owner)
+
+**Request Example**:
+
+```http
+GET /api/analytics/users?startDate=2025-06-01&endDate=2025-06-30&role=User
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "totalUsers": 1000,
+    "newUsers": 100,
+    "activeUsers": 800,
+    "averageBookingsPerUser": 5,
+    "totalLoyaltyPoints": 150000
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "startDate",
+        "message": "Invalid date format"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+**Note**:
+
+- Aggregates data from `Account`, `User`, and `Booking`.
+
+### 12.2 Get Field Analytics
+
+**Description**: Retrieves analytics for field performance (Admin only).
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/analytics/fields`  
+**Authorization**: Bearer Token (Admin)
+
+**Query Parameters**:
+
+- `startDate` (optional, date: YYYY-MM-DD)
+- `endDate` (optional, date: YYYY-MM-DD)
+- `sportId` (optional, integer)
+- `city` (optional, string)
+
+**Request Example**:
+
+```http
+GET /api/analytics/fields?startDate=2025-06-01&endDate=2025-06-30&sportId=1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "totalFields": 200,
+    "activeFields": 180,
+    "averageBookingsPerField": 25,
+    "totalRevenue": 250000000,
+    "averageRating": 4.3
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "startDate",
+        "message": "Invalid date format"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+**Note**:
+
+- Aggregates data from `Field`, `Booking`, and `Payment`.

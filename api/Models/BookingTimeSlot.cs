@@ -17,10 +17,10 @@ namespace api.Models
 
         [Required]
         public TimeSpan EndTime { get; set; }
-
+        public DateTime? DeletedAt { get; set; }
         [Required]
         public decimal Price { get; set; }
 
-        public Booking Booking { get; set; }
+        public Booking Booking { get; set; } = null!;
     }
 }

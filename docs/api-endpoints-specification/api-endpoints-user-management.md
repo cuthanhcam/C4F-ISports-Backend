@@ -1,0 +1,609 @@
+## 2. User Management
+
+### 2.1 Get Profile
+
+**Description**: Retrieves the profile of the authenticated user or owner.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/users/profile`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Request Example**:
+
+```http
+GET /api/users/profile
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "userId": 1, // For User role
+    "ownerId": 1, // For Owner role
+    "fullName": "Nguyen Van A",
+    "email": "user@example.com",
+    "phone": "0909123456",
+    "city": "Hà Nội", // For User role
+    "district": "Đống Đa", // For User role
+    "avatarUrl": "https://cloudinary.com/avatar.jpg", // For User role
+    "description": "Field owner" // For Owner role
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Response fields vary based on `Account.Role`:
+  - `User`: Includes `userId`, `city`, `district`, `avatarUrl`.
+  - `Owner`: Includes `ownerId`, `description`.
+
+### 2.2 Update Profile
+
+**Description**: Updates the profile of the authenticated user or owner.
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/users/profile`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Request Body**:
+
+```json
+{
+  // For User role
+  "fullName": "Nguyen Van A",
+  "phone": "0909123456",
+  "city": "Hà Nội",
+  "district": "Đống Đa",
+  "avatarUrl": "https://cloudinary.com/avatar.jpg",
+  // For Owner role
+  "description": "Field owner"
+}
+```
+
+**Request Example**:
+
+```http
+PUT /api/users/profile
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "fullName": "Nguyen Van A",
+  "phone": "0909123456",
+  "city": "Hà Nội",
+  "district": "Đống Đa"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "userId": 1, // For User role
+    "ownerId": 1, // For Owner role
+    "fullName": "Nguyen Van A",
+    "phone": "0909123456",
+    "city": "Hà Nội", // For User role
+    "district": "Đống Đa", // For User role
+    "avatarUrl": "https://cloudinary.com/avatar.jpg", // For User role
+    "description": "Field owner", // For Owner role
+    "message": "Profile updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "phone",
+        "message": "Invalid phone format"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Request fields vary based on `Account.Role`:
+  - `User`: Can update `fullName`, `phone`, `city`, `district`, `avatarUrl`.
+  - `Owner`: Can update `fullName`, `phone`, `description`.
+
+### 2.3 Delete Profile
+
+**Description**: Deletes the profile of the authenticated user or owner (soft delete).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/users/profile`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Request Example**:
+
+```http
+DELETE /api/users/profile
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Profile deleted successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "account",
+        "message": "Cannot delete account with active bookings or fields"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Sets `Account.DeletedAt` for soft delete.
+- Checks for active bookings (`User`) or fields (`Owner`) before deletion.
+
+### 2.4 Get Booking History
+
+**Description**: Retrieves the booking history of the authenticated user.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/users/bookings`  
+**Authorization**: Bearer Token (User)
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `status` (optional, string: Confirmed|Pending|Cancelled)
+- `startDate` (optional, date: YYYY-MM-DD)
+- `endDate` (optional, date: YYYY-MM-DD)
+
+**Request Example**:
+
+```http
+GET /api/users/bookings?page=1&pageSize=10&status=Confirmed
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "bookingId": 1,
+        "fieldName": "Sân Bóng Đá ABC",
+        "subFieldName": "Sân 5A",
+        "bookingDate": "2025-06-01",
+        "startTime": "14:00",
+        "endTime": "15:00",
+        "totalPrice": 500000,
+        "status": "Confirmed",
+        "paymentStatus": "Paid"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "startDate",
+        "message": "Invalid date format"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Filters bookings by `Booking.UserId` and optional parameters.
+- `paymentStatus` reflects `Booking.PaymentStatus` (Paid|Unpaid|Refunded).
+
+### 2.5 Get Favorite Fields
+
+**Description**: Retrieves the favorite fields of the authenticated user.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/users/favorites`  
+**Authorization**: Bearer Token (User)
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/users/favorites?page=1&pageSize=10
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "fieldId": 1,
+        "fieldName": "Sân Bóng Đá ABC",
+        "address": "123 Đường Láng, Đống Đa",
+        "averageRating": 4.5
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+### 2.6 Add Favorite Field
+
+**Description**: Adds a field to the authenticated user's favorites.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/users/favorites`  
+**Authorization**: Bearer Token (User)
+
+**Request Body**:
+
+```json
+{
+  "fieldId": 1
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "fieldId": 1,
+    "message": "Field added to favorites"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "fieldId",
+        "message": "Field is already in favorites"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 2.7 Remove Favorite Field
+
+**Description**: Removes a field from the authenticated user's favorites.
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/users/favorites/{fieldId}`  
+**Authorization**: Bearer Token (User)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field to remove.
+
+**Request Example**:
+
+```http
+DELETE /api/users/favorites/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Favorite field removed successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "fieldId",
+        "message": "Field is not in favorites"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 2.8 Get User Reviews
+
+**Description**: Retrieves reviews made by the authenticated user.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/users/reviews`  
+**Authorization**: Bearer Token (User)
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/users/reviews?page=1&pageSize=10
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "reviewId": 1,
+        "fieldId": 1,
+        "fieldName": "Sân Bóng Đá ABC",
+        "rating": 5,
+        "comment": "Great field!",
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+### 2.9 Get Loyalty Points
+
+**Description**: Retrieves the total loyalty points of the authenticated user.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/users/loyalty-points`  
+**Authorization**: Bearer Token (User)
+
+**Request Example**:
+
+```http
+GET /api/users/loyalty-points
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "userId": 1,
+    "loyaltyPoints": 150
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Returns the total loyalty points stored in `User.LoyaltyPoints`.
+- No pagination is required as this endpoint returns a single value.
+
+### 2.10 Get User Search History
+
+**Description**: Retrieves the search history of the authenticated user. Supports pagination and filtering by date range. Search history includes keywords and optional metadata like field ID or location coordinates.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/users/search-history`  
+**Authorization**: Bearer Token (User)
+
+**Query Parameters**:
+
+- `startDate` (optional, date: YYYY-MM-DD): Filter history from this date.
+- `endDate` (optional, date: YYYY-MM-DD): Filter history up to this date.
+- `page` (optional, integer, default: 1): Page number.
+- `pageSize` (optional, integer, default: 10): Number of entries per page.
+
+**Request Example**:
+
+```http
+GET /api/users/search-history?page=1&pageSize=10&startDate=2025-05-01&endDate=2025-05-31
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+```json
+{
+  "data": [
+    {
+      "searchId": "1",
+      "userId": "1",
+      "keyword": "football field Hanoi",
+      "searchDateTime": "2025-05-25T10:00:00Z",
+      "fieldId": "1",
+      "latitude": 21.0001,
+      "longitude": 105.0001
+    },
+    {
+      "searchId": "2",
+      "userId": "1",
+      "keyword": "tennis court near me",
+      "searchDateTime": "2025-05-24T15:30:00Z",
+      "fieldId": null,
+      "latitude": null,
+      "longitude": null
+    }
+  ],
+  "totalCount": 2,
+  "page": 1,
+  "pageSize": 10,
+  "message": "Search history retrieved successfully"
+}
+```
+
+- **400 Bad Request**:
+
+```json
+{
+  "error": "Invalid input",
+  "details": [
+    {
+      "field": "startDate",
+      "message": "Invalid date format"
+    }
+  ]
+}
+```
+
+- **401 Unauthorized**:
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing token"
+}
+```
+
+- **403 Forbidden**:
+
+```json
+{
+  "error": "Forbidden",
+  "message": "User is not authorized to access this resource"
+}
+```
+
+**Note**:
+
+- Returns `SearchHistory` records for the authenticated user.
+- `userId` maps to `SearchHistory.UserId`.
+- `searchId` maps to `SearchHistory.SearchId`.
+- Supports filtering by `startDate` and `endDate` for `SearchHistory.SearchDateTime`.
+- `fieldId`, `latitude`, and `longitude` are optional and may be null.

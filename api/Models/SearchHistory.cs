@@ -4,25 +4,44 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Models
 {
+    [Index(nameof(UserId))]
+    [Index(nameof(SearchDateTime))]
     public class SearchHistory
     {
-        public int SearchHistoryId { get; set; }
-        public int UserId { get; set; }
-
-        [Required, StringLength(500)]
-        public required string SearchQuery { get; set; }
+        [Key]
+        public int SearchId { get; set; } 
 
         [Required]
-        public DateTime SearchDate { get; set; }
+        public int UserId { get; set; }
+
+        [Required]
+        [StringLength(500)]
+        public string Keyword { get; set; }
+
+        [Required]
+        public DateTime SearchDateTime { get; set; }
 
         public int? FieldId { get; set; }
+
         public decimal? Latitude { get; set; }
+
         public decimal? Longitude { get; set; }
 
-        public User User { get; set; }
+        public DateTime? DeletedAt { get; set; }
+
+        [ForeignKey("UserId")]
+        public User Account { get; set; }
+
+        [ForeignKey("FieldId")]
         public Field? Field { get; set; }
+
+        public SearchHistory()
+        {
+            SearchDateTime = DateTime.UtcNow;
+        }
     }
 }

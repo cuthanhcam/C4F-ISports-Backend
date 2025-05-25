@@ -1,0 +1,617 @@
+## 11. Admin Management
+
+### 11.1 Get All Users
+
+**Description**: Retrieves a list of all users and owners (Admin only).
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/admin/users`  
+**Authorization**: Bearer Token (Admin)
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `role` (optional, string: User|Owner)
+- `search` (optional, string: email or full name)
+
+**Request Example**:
+
+```http
+GET /api/admin/users?page=1&pageSize=10&role=User
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "userId": 1, // For User role
+        "ownerId": 1, // For Owner role
+        "fullName": "Nguyen Van A",
+        "email": "user@example.com",
+        "role": "User",
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "role",
+        "message": "Invalid role"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+**Note**:
+
+- Response includes both `User` and `Owner` accounts based on `Account.Role`.
+- `userId` or `ownerId` is included depending on `role`.
+
+### 11.2 Get User By ID
+
+**Description**: Retrieves details of a specific user or owner (Admin only).
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/admin/users/{accountId}`  
+**Authorization**: Bearer Token (Admin)
+
+**Path Parameters**:
+
+- `accountId` (required, integer): The ID of the account.
+
+**Request Example**:
+
+```http
+GET /api/admin/users/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "accountId": 1,
+    "userId": 1, // For User role
+    "ownerId": 1, // For Owner role
+    "fullName": "Nguyen Van A",
+    "email": "user@example.com",
+    "role": "User",
+    "phone": "0909123456",
+    "city": "Hà Nội", // For User role
+    "district": "Đống Đa", // For User role
+    "avatarUrl": "https://cloudinary.com/avatar.jpg", // For User role
+    "description": "Field owner", // For Owner role
+    "createdAt": "2025-06-01T10:00:00Z"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "User not found"
+  }
+  ```
+
+**Note**:
+
+- Response fields vary based on `Account.Role`.
+
+### 11.3 Update User
+
+**Description**: Updates a user or owner’s account (Admin only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/admin/users/{accountId}`  
+**Authorization**: Bearer Token (Admin)
+
+**Path Parameters**:
+
+- `accountId` (required, integer): The ID of the account.
+
+**Request Body**:
+
+```json
+{
+  "fullName": "Nguyen Van A",
+  "phone": "0909123456",
+  "city": "Hà Nội", // For User role
+  "district": "Đống Đa", // For User role
+  "avatarUrl": "https://cloudinary.com/avatar.jpg", // For User role
+  "description": "Field owner" // For Owner role
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "accountId": 1,
+    "userId": 1, // For User role
+    "ownerId": 1, // For Owner role
+    "fullName": "Nguyen Van A",
+    "email": "user@example.com",
+    "role": "User",
+    "phone": "0909123456",
+    "city": "Hà Nội",
+    "district": "Đống Đa",
+    "avatarUrl": "https://cloudinary.com/avatar.jpg",
+    "description": "Field owner",
+    "message": "User updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "phone",
+        "message": "Invalid phone format"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "User not found"
+  }
+  ```
+
+**Note**:
+
+- Request fields vary based on `Account.Role`.
+
+### 11.4 Delete User
+
+**Description**: Deletes a user or owner’s account (Admin only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/admin/users/{accountId}`  
+**Authorization**: Bearer Token (Admin)
+
+**Path Parameters**:
+
+- `accountId` (required, integer): The ID of the account.
+
+**Request Example**:
+
+```http
+DELETE /api/admin/users/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "User deleted successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "accountId",
+        "message": "Cannot delete account with active bookings or fields"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "User not found"
+  }
+  ```
+
+**Note**:
+
+- Soft deletes by setting `Account.DeletedAt`.
+- Checks for active bookings (`User`) or fields (`Owner`) before deletion.
+
+### 11.5 Get All Fields
+
+**Description**: Retrieves a list of all fields (Admin only).
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/admin/fields`  
+**Authorization**: Bearer Token (Admin)
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `city` (optional, string)
+- `district` (optional, string)
+- `sportId` (optional, integer)
+- `status` (optional, string: Active|Inactive|Deleted)
+
+**Request Example**:
+
+```http
+GET /api/admin/fields?page=1&pageSize=10&city=Hà Nội
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "fieldId": 1,
+        "fieldName": "Sân Bóng Đá ABC",
+        "address": "123 Đường Láng, Đống Đa",
+        "city": "Hà Nội",
+        "district": "Đống Đa",
+        "status": "Active",
+        "sportId": 1
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "status",
+        "message": "Invalid status"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+### 11.6 Update Field Status
+
+**Description**: Updates the status of a field (Admin only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/admin/fields/{fieldId}/status`  
+**Authorization**: Bearer Token (Admin)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Request Body**:
+
+```json
+{
+  "status": "Inactive"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "fieldId": 1,
+    "status": "Inactive",
+    "message": "Field status updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "status",
+        "message": "Invalid status"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+**Note**:
+
+- Updates `Field.Status` (Active|Inactive|Deleted).
+
+### 11.7 Get System Stats
+
+**Description**: Retrieves system-wide statistics (Admin only).
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/admin/stats`  
+**Authorization**: Bearer Token (Admin)
+
+**Query Parameters**:
+
+- `startDate` (optional, date: YYYY-MM-DD)
+- `endDate` (optional, date: YYYY-MM-DD)
+
+**Request Example**:
+
+```http
+GET /api/admin/stats?startDate=2025-06-01&endDate=2025-06-30
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "totalUsers": 1000,
+    "totalOwners": 50,
+    "totalFields": 200,
+    "totalBookings": 5000,
+    "totalRevenue": 250000000,
+    "averageBookingValue": 50000
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "startDate",
+        "message": "Invalid date format"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+**Note**:
+
+- Aggregates data from `Account`, `Field`, `Booking`, and `Payment`.
+
+### 11.8 Manage Refunds
+
+**Description**: Retrieves and manages refund requests (Admin only).
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/admin/refunds`  
+**Authorization**: Bearer Token (Admin)
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `status` (optional, string: Pending|Approved|Rejected)
+
+**Request Example**:
+
+```http
+GET /api/admin/refunds?page=1&pageSize=10&status=Pending
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "refundId": 1,
+        "paymentId": 1,
+        "amount": 500000,
+        "status": "Pending",
+        "reason": "Booking cancelled",
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "status",
+        "message": "Invalid status"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+**Note**:
+
+- Returns `RefundRequest` records filtered by `status`.

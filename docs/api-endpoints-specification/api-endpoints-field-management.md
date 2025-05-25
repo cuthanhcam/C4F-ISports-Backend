@@ -1,0 +1,2514 @@
+## 3. Field Management
+
+### 3.1 Get Fields
+
+**Description**: Retrieves a list of fields with optional filters.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields`  
+**Authorization**: None
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `city` (optional, string)
+- `district` (optional, string)
+- `sportId` (optional, integer)
+- `search` (optional, string: field name or address)
+
+**Request Example**:
+
+```http
+GET /api/fields?page=1&pageSize=10&city=Hà Nội&sportId=1
+```
+
+**Response**:
+
+- **200 OK**:
+  ```json
+  {
+    "data": [
+      {
+        "fieldId": 1,
+        "fieldName": "Sân Bóng Đá ABC",
+        "address": "123 Đường Láng, Đống Đa",
+        "city": "Hà Nội",
+        "district": "Đống Đa",
+        "latitude": 21.0123,
+        "longitude": 105.8234,
+        "openTime": "06:00",
+        "closeTime": "22:00",
+        "averageRating": 4.5,
+        "sportId": 1
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+### 3.2 Create Field
+
+**Description**: Creates a new field for the authenticated owner.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields`  
+**Authorization**: Bearer Token (Owner)
+
+**Request Body**:
+
+```json
+{
+  "fieldName": "Sân Bóng Đá ABC",
+  "address": "123 Đường Láng, Đống Đa",
+  "city": "Hà Nội",
+  "district": "Đống Đa",
+  "openTime": "06:00",
+  "closeTime": "22:00",
+  "sportId": 1
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "fieldId": 1,
+    "fieldName": "Sân Bóng Đá ABC",
+    "address": "123 Đường Láng, Đống Đa",
+    "city": "Hà Nội",
+    "district": "Đống Đa",
+    "openTime": "06:00",
+    "closeTime": "22:00",
+    "sportId": 1,
+    "latitude": 21.0123,
+    "longitude": 105.8234,
+    "message": "Field created successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "fieldName",
+        "message": "Field name is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- `latitude` and `longitude` are derived via geocoding from `address`, `city`, and `district`.
+- `OwnerId` is automatically set to the authenticated owner's ID.
+- `sportId` must correspond to an existing `Sport`.
+
+### 3.3 Update Field
+
+**Description**: Updates an existing field (Owner only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/fields/{fieldId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field to update.
+
+**Request Body**:
+
+```json
+{
+  "fieldName": "Sân Bóng Đá ABC",
+  "address": "123 Đường Láng, Đống Đa",
+  "city": "Hà Nội",
+  "district": "Đống Đa",
+  "openTime": "06:00",
+  "closeTime": "22:00",
+  "sportId": 1
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "fieldId": 1,
+    "fieldName": "Sân Bóng Đá ABC",
+    "address": "123 Đường Láng, Đống Đa",
+    "city": "Hà Nội",
+    "district": "Đống Đa",
+    "openTime": "06:00",
+    "closeTime": "22:00",
+    "sportId": 1,
+    "latitude": 21.0123,
+    "longitude": 105.8234,
+    "message": "Field updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "fieldName",
+        "message": "Field name is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can update this field"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+**Note**:
+
+- Updates `latitude` and `longitude` via geocoding if `address`, `city`, or `district` changes.
+- Checks if the authenticated owner owns the field.
+
+### 3.4 Get Field By ID
+
+**Description**: Retrieves details of a specific field.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Request Example**:
+
+```http
+GET /api/fields/1
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "fieldId": 1,
+    "fieldName": "Sân Bóng Đá ABC",
+    "address": "123 Đường Láng, Đống Đa",
+    "city": "Hà Nội",
+    "district": "Đống Đa",
+    "latitude": 21.0123,
+    "longitude": 105.8234,
+    "openTime": "06:00",
+    "closeTime": "22:00",
+    "averageRating": 4.5,
+    "sportId": 1
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 3.5 Delete Field
+
+**Description**: Soft deletes a field by setting its status to `Deleted` (Owner only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/fields/{fieldId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field to delete.
+
+**Request Example**:
+
+```http
+DELETE /api/fields/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "fieldId": 1,
+    "status": "Deleted",
+    "message": "Field deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can delete this field"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+**Note**:
+
+- Sets `Field.Status` to `Deleted` for soft delete.
+- Checks if the authenticated owner owns the field.
+
+### 3.6 Create Full Field
+
+**Description**: Creates a new field with all associated components (subfields, services, amenities, images, pricing rules) in a single request (Owner only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields/full`  
+**Authorization**: Bearer Token (Owner)
+
+**Request Body**:
+
+```json
+{
+  "fieldName": "Sân Bóng Đá ABC",
+  "address": "123 Đường Láng, Đống Đa",
+  "city": "Hà Nội",
+  "district": "Đống Đa",
+  "openTime": "06:00",
+  "closeTime": "22:00",
+  "sportId": 1,
+  "subFields": [
+    {
+      "subFieldName": "Sân 5A",
+      "fieldType": "5-a-side",
+      "status": "Active",
+      "capacity": 10,
+      "description": "Sân cỏ nhân tạo",
+      "pricingRules": [
+        {
+          "dayOfWeek": "Monday",
+          "startTime": "14:00",
+          "endTime": "15:00",
+          "pricePerHour": 600000
+        }
+      ]
+    }
+  ],
+  "services": [
+    {
+      "serviceName": "Water Bottle",
+      "price": 10000,
+      "description": "500ml water bottle"
+    }
+  ],
+  "amenities": [
+    {
+      "amenityName": "Parking",
+      "description": "Free parking for 50 cars"
+    }
+  ],
+  "images": [
+    {
+      "imageUrl": "https://cloudinary.com/field-image.jpg",
+      "isPrimary": true
+    }
+  ]
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "fieldId": 1,
+    "fieldName": "Sân Bóng Đá ABC",
+    "address": "123 Đường Láng, Đống Đa",
+    "city": "Hà Nội",
+    "district": "Đống Đa",
+    "openTime": "06:00",
+    "closeTime": "22:00",
+    "sportId": 1,
+    "latitude": 21.0123,
+    "longitude": 105.8234,
+    "subFields": [
+      {
+        "subFieldId": 1,
+        "subFieldName": "Sân 5A",
+        "fieldType": "5-a-side",
+        "status": "Active",
+        "capacity": 10,
+        "description": "Sân cỏ nhân tạo",
+        "pricingRules": [
+          {
+            "pricingRuleId": 1,
+            "dayOfWeek": "Monday",
+            "startTime": "14:00",
+            "endTime": "15:00",
+            "pricePerHour": 600000
+          }
+        ]
+      }
+    ],
+    "services": [
+      {
+        "fieldServiceId": 1,
+        "serviceName": "Water Bottle",
+        "price": 10000,
+        "description": "500ml water bottle"
+      }
+    ],
+    "amenities": [
+      {
+        "fieldAmenityId": 1,
+        "amenityName": "Parking",
+        "description": "Free parking for 50 cars"
+      }
+    ],
+    "images": [
+      {
+        "imageId": 1,
+        "imageUrl": "https://cloudinary.com/field-image.jpg",
+        "isPrimary": true
+      }
+    ],
+    "message": "Field and components created successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "fieldName",
+        "message": "Field name is required"
+      },
+      {
+        "field": "subFields[0].subFieldName",
+        "message": "Subfield name is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only owners can create fields"
+  }
+  ```
+
+**Note**:
+
+- `latitude` and `longitude` are derived via geocoding from `address`, `city`, and `district`.
+- `OwnerId` is automatically set to the authenticated owner's ID.
+- `sportId` must correspond to an existing `Sport`.
+- All components (`subFields`, `services`, `amenities`, `images`, `pricingRules`) are optional but validated if provided.
+- The operation is atomic: if any component fails validation, no data is saved.
+- Maximum limits: 10 subfields, 50 services, 50 amenities, 50 images per request.
+
+### 3.7 Update Full Field
+
+**Description**: Updates an existing field and its associated components (subfields, services, amenities, images, pricing rules) in a single request (Owner only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/fields/{fieldId}/full`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field to update.
+
+**Request Body**:
+
+```json
+{
+  "fieldName": "Sân Bóng Đá ABC",
+  "address": "123 Đường Láng, Đống Đa",
+  "city": "Hà Nội",
+  "district": "Đống Đa",
+  "openTime": "06:00",
+  "closeTime": "22:00",
+  "sportId": 1,
+  "subFields": [
+    {
+      "subFieldId": 1, // Existing subfield
+      "subFieldName": "Sân 5A Updated",
+      "fieldType": "5-a-side",
+      "status": "Active",
+      "capacity": 10,
+      "description": "Sân cỏ nhân tạo",
+      "pricingRules": [
+        {
+          "pricingRuleId": 1, // Existing pricing rule
+          "dayOfWeek": "Monday",
+          "startTime": "14:00",
+          "endTime": "15:00",
+          "pricePerHour": 650000
+        },
+        {
+          // New pricing rule
+          "dayOfWeek": "Tuesday",
+          "startTime": "14:00",
+          "endTime": "15:00",
+          "pricePerHour": 600000
+        }
+      ]
+    },
+    {
+      // New subfield
+      "subFieldName": "Sân 7B",
+      "fieldType": "7-a-side",
+      "status": "Active",
+      "capacity": 14,
+      "description": "Sân cỏ tự nhiên"
+    }
+  ],
+  "services": [
+    {
+      "fieldServiceId": 1, // Existing service
+      "serviceName": "Water Bottle",
+      "price": 12000,
+      "description": "500ml water bottle"
+    },
+    {
+      // New service
+      "serviceName": "Towel",
+      "price": 15000,
+      "description": "Clean towel"
+    }
+  ],
+  "amenities": [
+    {
+      "fieldAmenityId": 1, // Existing amenity
+      "amenityName": "Parking",
+      "description": "Free parking for 50 cars"
+    },
+    {
+      // New amenity
+      "amenityName": "Shower",
+      "description": "Hot water showers"
+    }
+  ],
+  "images": [
+    {
+      "imageId": 1, // Existing image
+      "imageUrl": "https://cloudinary.com/field-image-updated.jpg",
+      "isPrimary": true
+    },
+    {
+      // New image
+      "imageUrl": "https://cloudinary.com/field-image-new.jpg",
+      "isPrimary": false
+    }
+  ]
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "fieldId": 1,
+    "fieldName": "Sân Bóng Đá ABC",
+    "address": "123 Đường Láng, Đống Đa",
+    "city": "Hà Nội",
+    "district": "Đống Đa",
+    "openTime": "06:00",
+    "closeTime": "22:00",
+    "sportId": 1,
+    "latitude": 21.0123,
+    "longitude": 105.8234,
+    "subFields": [
+      {
+        "subFieldId": 1,
+        "subFieldName": "Sân 5A Updated",
+        "fieldType": "5-a-side",
+        "status": "Active",
+        "capacity": 10,
+        "description": "Sân cỏ nhân tạo",
+        "pricingRules": [
+          {
+            "pricingRuleId": 1,
+            "dayOfWeek": "Monday",
+            "startTime": "14:00",
+            "endTime": "15:00",
+            "pricePerHour": 650000
+          },
+          {
+            "pricingRuleId": 2,
+            "dayOfWeek": "Tuesday",
+            "startTime": "14:00",
+            "endTime": "15:00",
+            "pricePerHour": 600000
+          }
+        ]
+      },
+      {
+        "subFieldId": 2,
+        "subFieldName": "Sân 7B",
+        "fieldType": "7-a-side",
+        "status": "Active",
+        "capacity": 14,
+        "description": "Sân cỏ tự nhiên"
+      }
+    ],
+    "services": [
+      {
+        "fieldServiceId": 1,
+        "serviceName": "Water Bottle",
+        "price": 12000,
+        "description": "500ml water bottle"
+      },
+      {
+        "fieldServiceId": 2,
+        "serviceName": "Towel",
+        "price": 15000,
+        "description": "Clean towel"
+      }
+    ],
+    "amenities": [
+      {
+        "fieldAmenityId": 1,
+        "amenityName": "Parking",
+        "description": "Free parking for 50 cars"
+      },
+      {
+        "fieldAmenityId": 2,
+        "amenityName": "Shower",
+        "description": "Hot water showers"
+      }
+    ],
+    "images": [
+      {
+        "imageId": 1,
+        "imageUrl": "https://cloudinary.com/field-image-updated.jpg",
+        "isPrimary": true
+      },
+      {
+        "imageId": 2,
+        "imageUrl": "https://cloudinary.com/field-image-new.jpg",
+        "isPrimary": false
+      }
+    ],
+    "message": "Field and components updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "fieldName",
+        "message": "Field name is required"
+      },
+      {
+        "field": "subFields[0].subFieldId",
+        "message": "Subfield ID does not exist"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can update this field"
+  }
+  ```
+- **404 Not Found**:
+
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+  **Note**:
+
+- Updates `latitude` and `longitude` via geocoding if `address`, `city`, or `district` changes.
+- Checks if the authenticated owner owns the field.
+- Components (`subFields`, `services`, `amenities`, `images`, `pricingRules`) are optional:
+  - If `subFieldId`, `fieldServiceId`, `fieldAmenityId`, or `imageId` is provided, updates the existing record.
+  - If not provided, creates a new record.
+- The operation is atomic: if any component fails validation, no changes are applied.
+- Maximum limits: 10 subfields, 50 services, 50 amenities, 50 images per request.
+- Existing components not included in the request remain unchanged.
+
+### 3.8 Get Field Availability
+
+**Description**: Retrieves available time slots for a field or subfield.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/availability`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `subFieldId` (optional, integer)
+- `date` (required, date: YYYY-MM-DD)
+- `sportId` (optional, integer)
+
+**Request Example**:
+
+```http
+GET /api/fields/1/availability?date=2025-06-01&subFieldId=1
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "subFieldId": 1,
+        "subFieldName": "Sân 5A",
+        "availableSlots": [
+          {
+            "startTime": "14:00",
+            "endTime": "15:00"
+          }
+        ]
+      },
+      {
+        "subFieldId": 2,
+        "subFieldName": "Sân 7B",
+        "availableSlots": [
+          {
+            "startTime": "15:00",
+            "endTime": "16:00"
+          }
+        ]
+      }
+    ]
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "date",
+        "message": "Invalid date format"
+      }
+    ]
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "No fields found matching the criteria"
+  }
+  ```
+
+**Note**:
+
+- Checks `SubField` availability based on `Booking` records.
+
+### 3.9 Create SubField
+
+**Description**: Creates a new subfield for a field (Owner only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields/{fieldId}/subfields`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Request Body**:
+
+```json
+{
+  "subFieldName": "Sân 5A",
+  "pricePerHour": 500000
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "subFieldId": 1,
+    "fieldId": 1,
+    "subFieldName": "Sân 5A",
+    "pricePerHour": 500000,
+    "message": "Subfield created successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "subFieldName",
+        "message": "Subfield name is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can create subfields"
+  }
+  ```
+
+### 3.10 Update SubField
+
+**Description**: Updates an existing subfield (Owner only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/subfields/{subFieldId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `subFieldId` (required, integer): The ID of the subfield.
+
+**Request Body**:
+
+```json
+{
+  "subFieldName": "Sân 5A",
+  "pricePerHour": 550000
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "subFieldId": 1,
+    "fieldId": 1,
+    "subFieldName": "Sân 5A",
+    "pricePerHour": 550000,
+    "message": "Subfield updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "subFieldName",
+        "message": "Subfield name is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can update this subfield"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Subfield not found"
+  }
+  ```
+
+### 3.11 Delete SubField
+
+**Description**: Soft deletes a subfield by setting its `DeletedAt` timestamp (Owner only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/subfields/{subFieldId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `subFieldId` (required, integer): The ID of the subfield to delete.
+
+**Request Example**:
+
+```http
+DELETE /api/subfields/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "subFieldId": 1,
+    "message": "Subfield deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can delete this subfield"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Subfield not found"
+  }
+  ```
+
+**Note**:
+
+- Sets `SubField.DeletedAt` to the current timestamp for soft delete.
+- Checks if the authenticated owner owns the parent field.
+
+### 3.12 Upload Field Image
+
+**Description**: Uploads an image for a field (Owner only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields/{fieldId}/images`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Request Body**: Form-data with key `image` (file)
+
+**Request Example**:
+
+```http
+POST /api/fields/1/images
+Authorization: Bearer {token}
+Content-Type: multipart/form-data
+
+[image: field_image.jpg]
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "imageId": 1,
+    "imageUrl": "https://cloudinary.com/field-image.jpg",
+    "message": "Image uploaded successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "image",
+        "message": "Image file is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can upload images"
+  }
+  ```
+
+- **413 Payload Too Large**:
+  ```json
+  {
+    "error": "Payload too large",
+    "message": "Image file exceeds maximum size"
+  }
+  ```
+
+### 3.13 Delete Field Image
+
+**Description**: Deletes an image from a field (Owner only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/fields/{fieldId}/images/{imageId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+- `imageId` (required, integer): The ID of the image.
+
+**Request Example**:
+
+```http
+DELETE /api/fields/1/images/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Image deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can delete images"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Image not found"
+  }
+  ```
+
+### 3.14 Get Field Images
+
+**Description**: Retrieves images of a field.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/images`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/fields/1/images?page=1&pageSize=10
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "imageId": 1,
+        "imageUrl": "https://cloudinary.com/field-image.jpg"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 3.15 Create Field Service
+
+**Description**: Creates a service for a field (Owner only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields/{fieldId}/services`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Request Body**:
+
+```json
+{
+  "serviceName": "Water Bottle",
+  "price": 10000
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "fieldServiceId": 1,
+    "fieldId": 1,
+    "serviceName": "Water Bottle",
+    "price": 10000,
+    "message": "Service created successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "serviceName",
+        "message": "Service name is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can create services"
+  }
+  ```
+
+### 3.16 Update Field Service
+
+**Description**: Updates an existing field service (Owner only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/fields/services/{fieldServiceId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldServiceId` (required, integer): The ID of the service.
+
+**Request Body**:
+
+```json
+{
+  "serviceName": "Water Bottle",
+  "price": 12000
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "fieldServiceId": 1,
+    "fieldId": 1,
+    "serviceName": "Water Bottle",
+    "price": 12000,
+    "message": "Service updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "serviceName",
+        "message": "Service name is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can update services"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Service not found"
+  }
+  ```
+
+### 3.17 Delete Field Service
+
+**Description**: Deletes a field service (Owner only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/fields/services/{fieldServiceId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldServiceId` (required, integer): The ID of the service.
+
+**Request Example**:
+
+```http
+DELETE /api/fields/services/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Service deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can delete services"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Service not found"
+  }
+  ```
+
+### 3.18 Get Field Services
+
+**Description**: Retrieves services of a field.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/services`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/fields/1/services?page=1&pageSize=10
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "fieldServiceId": 1,
+        "serviceName": "Water Bottle",
+        "price": 10000
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 3.19 Create Pricing Rule
+
+**Description**: Creates a pricing rule for a subfield (Owner only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/subfields/{subFieldId}/pricing`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `subFieldId` (required, integer): The ID of the subfield.
+
+**Request Body**:
+
+```json
+{
+  "dayOfWeek": "Monday",
+  "startTime": "14:00",
+  "endTime": "15:00",
+  "pricePerHour": 600000
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "pricingRuleId": 1,
+    "subFieldId": 1,
+    "dayOfWeek": "Monday",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "pricePerHour": 600000,
+    "message": "Pricing rule created successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "dayOfWeek",
+        "message": "Invalid day of week"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can create pricing rules"
+  }
+  ```
+
+### 3.20 Update Pricing Rule
+
+**Description**: Updates an existing pricing rule (Owner only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/subfields/pricing/{pricingRuleId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `pricingRuleId` (required, integer): The ID of the pricing rule.
+
+**Request Body**:
+
+```json
+{
+  "dayOfWeek": "Monday",
+  "startTime": "14:00",
+  "endTime": "15:00",
+  "pricePerHour": 650000
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "pricingRuleId": 1,
+    "subFieldId": 1,
+    "dayOfWeek": "Monday",
+    "startTime": "14:00",
+    "endTime": "15:00",
+    "pricePerHour": 650000,
+    "message": "Pricing rule updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "dayOfWeek",
+        "message": "Invalid day of week"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can update pricing rules"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Pricing rule not found"
+  }
+  ```
+
+### 3.21 Delete Pricing Rule
+
+**Description**: Deletes a pricing rule (Owner only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/subfields/pricing/{pricingRuleId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `pricingRuleId` (required, integer): The ID of the pricing rule.
+
+**Request Example**:
+
+```http
+DELETE /api/subfields/pricing/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Pricing rule deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can delete pricing rules"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Pricing rule not found"
+  }
+  ```
+
+### 3.22 Get Pricing Rules
+
+**Description**: Retrieves pricing rules for a subfield.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/subfields/{subFieldId}/pricing`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `subFieldId` (required, integer): The ID of the subfield.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/subfields/1/pricing?page=1&pageSize=10
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "pricingRuleId": 1,
+        "dayOfWeek": "Monday",
+        "startTime": "14:00",
+        "endTime": "15:00",
+        "pricePerHour": 600000
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Subfield not found"
+  }
+  ```
+
+### 3.23 Get Field Descriptions
+
+**Description**: Retrieves descriptions of a field.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/descriptions`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/fields/1/descriptions?page=1&pageSize=10
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "fieldDescriptionId": 1,
+        "description": "Modern football field with artificial turf."
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 3.24 Add Field Description
+
+**Description**: Adds a description to a field (Owner only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields/{fieldId}/descriptions`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Request Body**:
+
+```json
+{
+  "description": "Modern football field with artificial turf."
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "fieldDescriptionId": 1,
+    "fieldId": 1,
+    "description": "Modern football field with artificial turf.",
+    "message": "Description added successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "description",
+        "message": "Description is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can add descriptions"
+  }
+  ```
+
+### 3.25 Update Field Description
+
+**Description**: Updates an existing field description (Owner only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/fields/descriptions/{fieldDescriptionId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldDescriptionId` (required, integer): The ID of the description.
+
+**Request Body**:
+
+```json
+{
+  "description": "Updated modern football field description."
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "fieldDescriptionId": 1,
+    "fieldId": 1,
+    "description": "Updated modern football field description.",
+    "message": "Description updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "description",
+        "message": "Description is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can update descriptions"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Description not found"
+  }
+  ```
+
+### 3.26 Delete Field Description
+
+**Description**: Deletes a field description (Owner only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/fields/descriptions/{fieldDescriptionId}`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldDescriptionId` (required, integer): The ID of the description.
+
+**Request Example**:
+
+```http
+DELETE /api/fields/descriptions/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Description deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can delete descriptions"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Description not found"
+  }
+  ```
+
+### 3.27 Get SubFields
+
+**Description**: Retrieves subfields of a field.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/subfields`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/fields/1/subfields?page=1&pageSize=10
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "subFieldId": 1,
+        "subFieldName": "Sân 5A",
+        "pricePerHour": 500000
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 3.28 Get Field Reviews
+
+**Description**: Retrieves reviews for a field.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/reviews`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `minRating` (optional, integer: 1-5)
+
+**Request Example**:
+
+```http
+GET /api/fields/1/reviews?page=1&pageSize=10&minRating=4
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "reviewId": 1,
+        "userId": 1,
+        "fullName": "Nguyen Van A",
+        "rating": 5,
+        "comment": "Great field!",
+        "createdAt": "2025-06-01T10:00:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 3.29 Get Field Bookings
+
+**Description**: Retrieves bookings for a field (Owner only).
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/bookings`  
+**Authorization**: Bearer Token (Owner)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `status` (optional, string: Confirmed|Pending|Cancelled)
+- `startDate` (optional, date: YYYY-MM-DD)
+- `endDate` (optional, date: YYYY-MM-DD)
+
+**Request Example**:
+
+```http
+GET /api/fields/1/bookings?page=1&pageSize=10&status=Confirmed
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "bookingId": 1,
+        "userId": 1,
+        "subFieldId": 1,
+        "bookingDate": "2025-06-01",
+        "startTime": "14:00",
+        "endTime": "15:00",
+        "totalPrice": 500000,
+        "status": "Confirmed"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the field owner can view bookings"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Field not found"
+  }
+  ```
+
+### 3.30 Get SubField By ID
+
+**Description**: Retrieves details of a specific subfield.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/subfields/{subFieldId}`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `subFieldId` (required, integer): The ID of the subfield.
+
+**Request Example**:
+
+```http
+GET /api/subfields/1
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "subFieldId": 1,
+    "fieldId": 1,
+    "subFieldName": "Sân 5A",
+    "pricePerHour": 500000
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Subfield not found"
+  }
+  ```
+
+### 3.31 Validate Address
+
+**Description**: Validates an address and returns geocoding information.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields/validate-address`  
+**Authorization**: None
+
+**Request Body**:
+
+```json
+{
+  "address": "123 Đường Láng, Đống Đa",
+  "city": "Hà Nội",
+  "district": "Đống Đa"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "isValid": true,
+    "formattedAddress": "123 Đường Láng, Đống Đa, Hà Nội",
+    "latitude": 21.0123,
+    "longitude": 105.8234
+  }
+  ```
+
+- **400 Bad Request**:
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "address",
+        "message": "Address is required"
+      }
+    ]
+  }
+  ```
+
+**Note**:
+
+- Uses a geocoding service to validate and derive `latitude` and `longitude`.
+
+### 3.32 Get Field Amenities
+
+**Description**: Retrieves a list of amenities for a specific field. Supports pagination and status filtering. Amenities are publicly accessible for viewing.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/fields/{fieldId}/amenities`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Query Parameters**:
+
+- `status` (optional, enum: Active|Inactive): Filter amenities by status.
+- `page` (optional, integer, default: 1): Page number.
+- `pageSize` (optional, integer, default: 10): Number of entries per page.
+
+**Request Example**:
+
+```http
+GET /api/fields/1/amenities?page=1&pageSize=10&status=Active
+```
+
+**Response**:
+
+- **200 OK**:
+
+```json
+{
+  "data": [
+    {
+      "fieldAmenityId": "1",
+      "fieldId": "1",
+      "amenityName": "Wi-Fi",
+      "description": "Free high-speed Wi-Fi",
+      "iconUrl": "https://example.com/icons/wifi.png",
+      "status": "Active"
+    },
+    {
+      "fieldAmenityId": "2",
+      "fieldId": "1",
+      "amenityName": "Parking",
+      "description": "Free parking for 50 cars",
+      "iconUrl": "https://example.com/icons/parking.png",
+      "status": "Active"
+    }
+  ],
+  "totalCount": 2,
+  "page": 1,
+  "pageSize": 10,
+  "message": "Amenities retrieved successfully"
+}
+```
+
+- **400 Bad Request**:
+
+```json
+{
+  "error": "Invalid input",
+  "details": [
+    {
+      "field": "page",
+      "message": "Page number must be greater than or equal to 1"
+    }
+  ]
+}
+```
+
+- **404 Not Found**:
+
+```json
+{
+  "error": "Resource not found",
+  "message": "Field not found"
+}
+```
+
+**Note**:
+
+- Returns `FieldAmenity` records for the specified `fieldId`.
+- `fieldAmenityId` and `fieldId` are returned as strings for consistency.
+- `status` defaults to Active if not specified.
+- `iconUrl` is optional and maps to `FieldAmenity.IconUrl`.
+
+### 3.33 Create Field Amenity
+
+**Description**: Creates a new amenity for a specific field. Only the field owner or admin can create amenities.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/fields/{fieldId}/amenities`  
+**Authorization**: Bearer Token (Owner or Admin)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+
+**Request Body**:
+
+```json
+{
+  "amenityName": "Shower",
+  "description": "Hot and cold shower facilities",
+  "iconUrl": "https://example.com/icons/shower.png"
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+```json
+{
+  "fieldAmenityId": "3",
+  "fieldId": "1",
+  "amenityName": "Shower",
+  "description": "Hot and cold shower facilities",
+  "iconUrl": "https://example.com/icons/shower.png",
+  "status": "Active",
+  "message": "Amenity created successfully"
+}
+```
+
+- **400 Bad Request**:
+
+```json
+{
+  "error": "Invalid input",
+  "details": [
+    {
+      "field": "amenityName",
+      "message": "Amenity name is required"
+    }
+  ]
+}
+```
+
+- **401 Unauthorized**:
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing token"
+}
+```
+
+- **403 Forbidden**:
+
+```json
+{
+  "error": "Forbidden",
+  "message": "Only the field owner or admin can create amenities"
+}
+```
+
+- **404 Not Found**:
+
+```json
+{
+  "error": "Resource not found",
+  "message": "Field not found"
+}
+```
+
+**Note**:
+
+- Creates a `FieldAmenity` record with `status` set to Active by default.
+- `amenityName`, `description`, and `iconUrl` map to `FieldAmenity.AmenityName`, `FieldAmenity.Description`, and `FieldAmenity.IconUrl`.
+
+### 3.34 Update Field Amenity
+
+**Description**: Updates an existing amenity for a specific field. Only the field owner or admin can update amenities.
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/fields/{fieldId}/amenities/{fieldAmenityId}`  
+**Authorization**: Bearer Token (Owner or Admin)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+- `fieldAmenityId` (required, integer): The ID of the amenity.
+
+**Request Body**:
+
+```json
+{
+  "amenityName": "Shower",
+  "description": "Updated shower facilities with hot water",
+  "iconUrl": "https://example.com/icons/shower-updated.png",
+  "status": "Active"
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+```json
+{
+  "fieldAmenityId": "3",
+  "fieldId": "1",
+  "amenityName": "Shower",
+  "description": "Updated shower facilities with hot water",
+  "iconUrl": "https://example.com/icons/shower-updated.png",
+  "status": "Active",
+  "message": "Amenity updated successfully"
+}
+```
+
+- **400 Bad Request**:
+
+```json
+{
+  "error": "Invalid input",
+  "details": [
+    {
+      "field": "amenityName",
+      "message": "Amenity name is required"
+    }
+  ]
+}
+```
+
+- **401 Unauthorized**:
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing token"
+}
+```
+
+- **403 Forbidden**:
+
+```json
+{
+  "error": "Forbidden",
+  "message": "Only the field owner or admin can update amenities"
+}
+```
+
+- **404 Not Found**:
+
+```json
+{
+  "error": "Resource not found",
+  "message": "Field or amenity not found"
+}
+```
+
+**Note**:
+
+- Updates `FieldAmenity.AmenityName`, `FieldAmenity.Description`, `FieldAmenity.IconUrl`, and `FieldAmenity.Status`.
+- `status` can be Active or Inactive.
+
+### 3.35 Delete Field Amenity
+
+**Description**: Soft deletes an amenity by setting its `DeletedAt` timestamp. Only the field owner or admin can delete amenities.
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/fields/{fieldId}/amenities/{fieldAmenityId}`  
+**Authorization**: Bearer Token (Owner or Admin)
+
+**Path Parameters**:
+
+- `fieldId` (required, integer): The ID of the field.
+- `fieldAmenityId` (required, integer): The ID of the amenity.
+
+**Request Example**:
+
+```http
+DELETE /api/fields/1/amenities/3
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+```json
+{
+  "message": "Amenity deleted successfully"
+}
+```
+
+- **401 Unauthorized**:
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing token"
+}
+```
+
+- **403 Forbidden**:
+
+```json
+{
+  "error": "Forbidden",
+  "message": "Only the field owner or admin can delete amenities"
+}
+```
+
+- **404 Not Found**:
+
+```json
+{
+  "error": "Resource not found",
+  "message": "Field or amenity not found"
+}
+```
+
+**Note**:
+
+- Sets `FieldAmenity.DeletedAt` for soft delete.
+- Does not physically remove the record from the database.
