@@ -1,0 +1,341 @@
+## 8. Sport Categories
+
+### 8.1 Get Sports
+
+**Description**: Retrieves a list of sport categories.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/sports`  
+**Authorization**: None
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+
+**Request Example**:
+
+```http
+GET /api/sports?page=1&pageSize=10
+```
+
+**Response**:
+
+- **200 OK**:
+  ```json
+  {
+    "data": [
+      {
+        "sportId": 1,
+        "sportName": "Football",
+        "description": "Soccer fields for 5-a-side or 11-a-side",
+        "isActive": true
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+### 8.2 Get Sport By ID
+
+**Description**: Retrieves details of a specific sport.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/sports/{sportId}`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `sportId` (required, integer): The ID of the sport.
+
+**Request Example**:
+
+```http
+GET /api/sports/1
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "sportId": 1,
+    "sportName": "Football",
+    "description": "Soccer fields for 5-a-side or 11-a-side",
+    "isActive": true
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Sport not found"
+  }
+  ```
+
+### 8.3 Update Sport
+
+**Description**: Updates an existing sport (Admin only).
+
+**HTTP Method**: PUT  
+**Endpoint**: `/api/sports/{sportId}`  
+**Authorization**: Bearer Token (Admin)
+
+**Path Parameters**:
+
+- `sportId` (required, integer): The ID of the sport.
+
+**Request Body**:
+
+```json
+{
+  "sportName": "Football",
+  "description": "Updated description",
+  "isActive": true
+}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "sportId": 1,
+    "sportName": "Football",
+    "description": "Updated description",
+    "isActive": true,
+    "message": "Sport updated successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "sportName",
+        "message": "Sport name is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Sport not found"
+  }
+  ```
+
+### 8.4 Create Sport
+
+**Description**: Creates a new sport category (Admin only).
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/sports`  
+**Authorization**: Bearer Token (Admin)
+
+**Request Body**:
+
+```json
+{
+  "sportName": "Basketball",
+  "description": "Basketball courts",
+  "isActive": true
+}
+```
+
+**Response**:
+
+- **201 Created**:
+
+  ```json
+  {
+    "sportId": 2,
+    "sportName": "Basketball",
+    "description": "Basketball courts",
+    "isActive": true,
+    "message": "Sport created successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid input",
+    "details": [
+      {
+        "field": "sportName",
+        "message": "Sport name is required"
+      }
+    ]
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+**Note**:
+
+- `isActive` defaults to true if not specified.
+
+### 8.5 Delete Sport
+
+**Description**: Deactivates a sport category (Admin only).
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/sports/{sportId}`  
+**Authorization**: Bearer Token (Admin)
+
+**Path Parameters**:
+
+- `sportId` (required, integer): The ID of the sport.
+
+**Request Example**:
+
+```http
+DELETE /api/sports/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "sportId": 1,
+    "isActive": false,
+    "message": "Sport deactivated successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Admin access required"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Sport not found"
+  }
+  ```
+
+**Note**:
+
+- Sets `Sport.IsActive` to false instead of deleting.
+
+### 8.6 Get Fields By Sport
+
+**Description**: Retrieves fields associated with a sport.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/sports/{sportId}/fields`  
+**Authorization**: None
+
+**Path Parameters**:
+
+- `sportId` (required, integer): The ID of the sport.
+
+**Query Parameters**:
+
+- `page` (optional, integer, default: 1)
+- `pageSize` (optional, integer, default: 10)
+- `city` (optional, string)
+- `district` (optional, string)
+
+**Request Example**:
+
+```http
+GET /api/sports/1/fields?page=1&pageSize=10&city=Hà Nội
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "data": [
+      {
+        "fieldId": 1,
+        "fieldName": "Sân Bóng Đá ABC",
+        "address": "123 Đường Láng, Đống Đa",
+        "city": "Hà Nội",
+        "district": "Đống Đa",
+        "averageRating": 4.5
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "pageSize": 10
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Sport not found"
+  }
+  ```
+
+**Note**:
+
+- Filters `Field` records by `Field.SportId` and optional parameters.

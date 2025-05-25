@@ -1,0 +1,253 @@
+## 7. Notification System
+
+### 7.1 Get Notifications
+
+**Description**: Retrieves notifications for the authenticated user.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/notifications`  
+**Authorization**: Bearer Token (User)
+
+**Query Parameters**:
+
+- `isRead` (optional, boolean): Filter by read/unread status.
+- `page` (optional, integer, default: 1): Page number.
+- `pageSize` (optional, integer, default: 10): Number of entries per page.
+
+**Request Example**:
+
+```http
+GET /api/notifications?page=1&pageSize=10&isRead=false
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+```json
+{
+  "data": [
+    {
+      "notificationId": "1",
+      "title": "Booking Confirmed",
+      "content": "Your booking for Sân 5A on 2025-06-01 is confirmed.",
+      "isRead": false,
+      "createdAt": "2025-05-25T10:00:00Z",
+      "notificationType": "Booking"
+    }
+  ],
+  "totalCount": 1,
+  "page": 1,
+  "pageSize": 10,
+  "message": "Notifications retrieved successfully"
+}
+```
+
+- **401 Unauthorized**:
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or missing token"
+}
+```
+
+**Note**:
+
+- Returns `Notification` records for the authenticated user.
+- `notificationType` maps to `Notification.NotificationType`.
+
+### 7.2 Mark Notification As Read
+
+**Description**: Marks a notification as read.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/notifications/{notificationId}/read`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Path Parameters**:
+
+- `notificationId` (required, integer): The ID of the notification.
+
+**Request Example**:
+
+```http
+POST /api/notifications/1/read
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "notificationId": 1,
+    "isRead": true,
+    "message": "Notification marked as read"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the notification recipient can mark it as read"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Notification not found"
+  }
+  ```
+
+**Note**:
+
+- Sets `Notification.IsRead` to true.
+
+### 7.3 Mark All Notifications As Read
+
+**Description**: Marks all notifications for the authenticated user or owner as read.
+
+**HTTP Method**: POST  
+**Endpoint**: `/api/notifications/read-all`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Request Example**:
+
+```http
+POST /api/notifications/read-all
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "All notifications marked as read"
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Sets `Notification.IsRead` to true for all notifications of the authenticated user or owner.
+
+### 7.4 Delete Notification
+
+**Description**: Deletes a notification.
+
+**HTTP Method**: DELETE  
+**Endpoint**: `/api/notifications/{notificationId}`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Path Parameters**:
+
+- `notificationId` (required, integer): The ID of the notification.
+
+**Request Example**:
+
+```http
+DELETE /api/notifications/1
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "Notification deleted successfully"
+  }
+  ```
+
+- **401 Unauthorized**:
+
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+- **403 Forbidden**:
+
+  ```json
+  {
+    "error": "Forbidden",
+    "message": "Only the notification recipient can delete it"
+  }
+  ```
+
+- **404 Not Found**:
+  ```json
+  {
+    "error": "Resource not found",
+    "message": "Notification not found"
+  }
+  ```
+
+**Note**:
+
+- Soft deletes by setting `Notification.DeletedAt`.
+
+### 7.5 Get Unread Notification Count
+
+**Description**: Retrieves the count of unread notifications for the authenticated user or owner.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/notifications/unread-count`  
+**Authorization**: Bearer Token (User or Owner)
+
+**Request Example**:
+
+```http
+GET /api/notifications/unread-count
+Authorization: Bearer {token}
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "unreadCount": 5
+  }
+  ```
+
+- **401 Unauthorized**:
+  ```json
+  {
+    "error": "Unauthorized",
+    "message": "Invalid or missing token"
+  }
+  ```
+
+**Note**:
+
+- Counts `Notification` records where `IsRead` is false.

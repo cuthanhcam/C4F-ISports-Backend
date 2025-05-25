@@ -17,6 +17,7 @@ namespace api.Models
 
         [Required]
         public TimeSpan EndTime { get; set; }
+        public DateTime? DeletedAt { get; set; } // Hỗ trợ soft delete
 
         [Required, Range(0, 6)]
         public int DayOfWeek { get; set; } // 0=Sunday, 1=Monday, ..., 6=Saturday
