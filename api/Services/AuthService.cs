@@ -288,6 +288,14 @@ namespace api.Services
 
         public async Task ResendVerificationEmailAsync(string email)
         {
+            _logger.LogInformation("Resending verification or restoration email to {Email}", email);
+
+            if (string.IsNullOrEmpty(email))
+            {
+                _logger.LogWarning("Email is empty");
+                throw new ArgumentException("Email không tồn tại.");
+            }
+
             var account = (await _unitOfWork.Repository<Account>().FindAsync(a => a.Email == email)).FirstOrDefault();
             if (account == null)
             {
@@ -295,45 +303,168 @@ namespace api.Services
                 throw new ArgumentException("Email không tồn tại.");
             }
 
-            if (account.IsActive)
+            // Kiểm tra trạng thái tài khoản
+            bool isRestoreRequest = account.DeletedAt != null && !account.IsActive;
+            bool isVerificationRequest = !account.IsActive && account.DeletedAt == null;
+
+            if (!isRestoreRequest && !isVerificationRequest)
             {
-                _logger.LogWarning("Resend verification requested for already verified email: {Email}", email);
-                throw new InvalidOperationException("Tài khoản đã được xác minh.");
+                _logger.LogWarning("Account already verified or not in a verifiable state for {Email}", email);
+                throw new InvalidOperationException("Tài khoản đã được xác minh hoặc không ở trạng thái có thể xác minh/khôi phục.");
             }
 
+            // Tạo token mới
             account.VerificationToken = GenerateSecureToken();
             account.VerificationTokenExpiry = DateTime.UtcNow.AddHours(24);
             _unitOfWork.Repository<Account>().Update(account);
             await _unitOfWork.SaveChangesAsync();
 
-            var verificationLink = $"{_configuration["BEUrl"]}/api/auth/verify-email?email={Uri.EscapeDataString(account.Email)}&token={Uri.EscapeDataString(account.VerificationToken)}";
-            var emailSubject = "Xác thực lại tài khoản C4F ISports";
-            var emailBody = $"<h3>Xin chào {account.Email},</h3>" +
-                            $"<p>Bạn đã yêu cầu gửi lại email xác thực. Vui lòng nhấp vào liên kết sau để xác thực tài khoản:</p>" +
-                            $"<a href='{verificationLink}'>Xác thực ngay</a>" +
-                            $"<p>Liên kết này có hiệu lực trong 24 giờ.</p>" +
-                            $"<p>Trân trọng,<br/>Đội ngũ C4F ISports</p>";
-            await _emailSender.SendEmailAsync(account.Email, emailSubject, emailBody);
-            _logger.LogInformation("Verification email resent to {Email}", email);
+            // Tạo link và nội dung email
+            string link, subject, body;
+            if (isRestoreRequest)
+            {
+                link = $"{_configuration["FEUrl"]}/auth/restore?email={Uri.EscapeDataString(account.Email)}&token={Uri.EscapeDataString(account.VerificationToken)}";
+                subject = "Khôi phục tài khoản C4F ISports";
+                body = $"<h3>Xin chào {account.Email},</h3>" +
+                       $"<p>Bạn đã yêu cầu khôi phục tài khoản. Vui lòng nhấp vào liên kết sau để khôi phục:</p>" +
+                       $"<a href='{link}'>Khôi phục tài khoản</a>" +
+                       $"<p>Liên kết này có hiệu lực trong 24 giờ.</p>" +
+                       $"<p>Trân trọng,<br/>Đội ngũ C4F ISports</p>";
+            }
+            else
+            {
+                link = $"{_configuration["BEUrl"]}/api/auth/verify-email?email={Uri.EscapeDataString(account.Email)}&token={Uri.EscapeDataString(account.VerificationToken)}";
+                subject = "Xác thực lại tài khoản C4F ISports";
+                body = $"<h3>Xin chào {account.Email},</h3>" +
+                       $"<p>Bạn đã yêu cầu gửi lại email xác thực. Vui lòng nhấp vào liên kết sau để xác thực tài khoản:</p>" +
+                       $"<a href='{link}'>Xác thực ngay</a>" +
+                       $"<p>Liên kết này có hiệu lực trong 24 giờ.</p>" +
+                       $"<p>Trân trọng,<br/>Đội ngũ C4F ISports</p>";
+            }
+
+            await _emailSender.SendEmailAsync(account.Email, subject, body);
+            _logger.LogInformation("{Type} email sent to {Email}", isRestoreRequest ? "Restoration" : "Verification", email);
         }
 
+        public async Task RestoreAccountAsync(string email, string token)
+        {
+            _logger.LogInformation("Restoring account for {Email}", email);
+
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+            {
+                _logger.LogWarning("Email or token is empty");
+                throw new ArgumentException("Email và token là bắt buộc.");
+            }
+
+            var account = (await _unitOfWork.Repository<Account>()
+                .FindAsync(a => a.Email == email && a.VerificationToken == token && a.VerificationTokenExpiry > DateTime.UtcNow))
+                .FirstOrDefault();
+            if (account == null || account.DeletedAt == null || account.IsActive)
+            {
+                _logger.LogWarning("Invalid or expired token, or account not in deleted state for {Email}", email);
+                throw new ArgumentException("Token không hợp lệ, đã hết hạn, hoặc tài khoản không ở trạng thái đã xóa.");
+            }
+
+            // Khôi phục Account
+            account.DeletedAt = null;
+            account.IsActive = true;
+            account.VerificationToken = null;
+            account.VerificationTokenExpiry = null;
+            account.UpdatedAt = DateTime.UtcNow;
+            _unitOfWork.Repository<Account>().Update(account);
+
+            // Khôi phục User hoặc Owner
+            if (account.Role == "User")
+            {
+                var userEntity = await _unitOfWork.Repository<User>()
+                    .FindSingleAsync(u => u.AccountId == account.AccountId && u.DeletedAt != null);
+                if (userEntity == null)
+                {
+                    _logger.LogWarning("User not found for AccountId: {AccountId}", account.AccountId);
+                    throw new ArgumentException("Thông tin người dùng không tồn tại.");
+                }
+
+                userEntity.DeletedAt = null;
+                userEntity.UpdatedAt = DateTime.UtcNow;
+                _unitOfWork.Repository<User>().Update(userEntity);
+            }
+            else if (account.Role == "Owner")
+            {
+                var ownerEntity = await _unitOfWork.Repository<Owner>()
+                    .FindSingleAsync(o => o.AccountId == account.AccountId && o.DeletedAt != null);
+                if (ownerEntity == null)
+                {
+                    _logger.LogWarning("Owner not found for AccountId: {AccountId}", account.AccountId);
+                    throw new ArgumentException("Thông tin chủ sân không tồn tại.");
+                }
+
+                ownerEntity.DeletedAt = null;
+                ownerEntity.UpdatedAt = DateTime.UtcNow;
+                _unitOfWork.Repository<Owner>().Update(ownerEntity);
+            }
+            else
+            {
+                _logger.LogWarning("Invalid role: {Role} for {Email}", account.Role, email);
+                throw new ArgumentException("Vai trò không hợp lệ.");
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+
+            // Gửi email thông báo
+            try
+            {
+                var emailSubject = "Thông báo khôi phục tài khoản C4F ISports";
+                var emailBody = $"<h3>Xin chào {email},</h3>" +
+                                "<p>Tài khoản của bạn đã được khôi phục thành công.</p>" +
+                                "<p>Bạn có thể đăng nhập lại bằng thông tin đăng nhập cũ.</p>" +
+                                "<p>Trân trọng,<br/>Đội ngũ C4F ISports</p>";
+                await _emailSender.SendEmailAsync(email, emailSubject, emailBody);
+                _logger.LogInformation("Restoration notification sent to {Email}", email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send restoration notification to {Email}", email);
+            }
+
+            _logger.LogInformation("Account restored successfully for {Email}", email);
+        }
+
+        // public async Task<Account> GetCurrentUserAsync(ClaimsPrincipal user)
+        // {
+        //     var accountIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        //     if (string.IsNullOrEmpty(accountIdClaim) || !int.TryParse(accountIdClaim, out int accountId))
+        //     {
+        //         _logger.LogWarning("Invalid user token");
+        //         throw new UnauthorizedAccessException("Token người dùng không hợp lệ.");
+        //     }
+
+        //     var account = await _unitOfWork.Repository<Account>().GetByIdAsync(accountId);
+        //     if (account == null)
+        //     {
+        //         _logger.LogWarning("User not found for AccountId: {AccountId}", accountId);
+        //         throw new UnauthorizedAccessException("Tài khoản không tồn tại.");
+        //     }
+
+        //     _logger.LogInformation("Current user retrieved: {Email}", account.Email);
+        //     return account;
+        // }
         public async Task<Account> GetCurrentUserAsync(ClaimsPrincipal user)
         {
             var accountIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(accountIdClaim) || !int.TryParse(accountIdClaim, out int accountId))
+            if (string.IsNullOrEmpty(accountIdClaim) || !int.TryParse(accountIdClaim, out var accountId))
             {
-                _logger.LogWarning("Invalid user token");
-                throw new UnauthorizedAccessException("Token người dùng không hợp lệ.");
+                _logger.LogWarning("Invalid or missing account ID in token");
+                throw new UnauthorizedAccessException("Invalid or missing token");
             }
 
-            var account = await _unitOfWork.Repository<Account>().GetByIdAsync(accountId);
+            var account = await _unitOfWork.Repository<Account>()
+                .FindSingleAsync(a => a.AccountId == accountId && a.DeletedAt == null && a.IsActive);
             if (account == null)
             {
-                _logger.LogWarning("User not found for AccountId: {AccountId}", accountId);
-                throw new UnauthorizedAccessException("Tài khoản không tồn tại.");
+                _logger.LogWarning("Account not found or inactive for AccountId: {AccountId}", accountId);
+                throw new UnauthorizedAccessException("Account not found or inactive");
             }
 
-            _logger.LogInformation("Current user retrieved: {Email}", account.Email);
             return account;
         }
 

@@ -479,8 +479,8 @@ namespace api.Controllers
                 }
 
                 await _authService.ResendVerificationEmailAsync(forgotPasswordDto.Email);
-                _logger.LogInformation("Verification email resent to {Email}", forgotPasswordDto.Email);
-                return Ok(new { Message = "Email xác minh đã được gửi lại" });
+                _logger.LogInformation("Verification or restoration email sent to {Email}", forgotPasswordDto.Email);
+                return Ok(new { Message = "Email xác minh hoặc khôi phục đã được gửi" });
             }
             catch (ArgumentException ex)
             {
@@ -489,13 +489,43 @@ namespace api.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning(ex, "Account already verified for ResendVerificationEmail: {Email}", forgotPasswordDto.Email);
-                return BadRequest(new { error = "Tài khoản đã được xác minh", details = ex.Message });
+                _logger.LogWarning(ex, "Account already verified or not verifiable for ResendVerificationEmail: {Email}", forgotPasswordDto.Email);
+                return BadRequest(new { error = "Tài khoản không thể xác minh/khôi phục", details = ex.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during resend verification email for {Email}", forgotPasswordDto.Email);
-                return BadRequest(new { error = "Dữ liệu đầu vào không hợp lệ", details = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Lỗi hệ thống", details = "Đã xảy ra lỗi không mong muốn." });
+            }
+        }
+
+        [HttpPost("restore-account")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> RestoreAccount([FromBody] RestoreAccountDto restoreAccountDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    _logger.LogWarning("Invalid model state for RestoreAccount: {Email}", restoreAccountDto.Email);
+                    return BadRequest(new { error = "Dữ liệu đầu vào không hợp lệ", details = ModelState });
+                }
+
+                await _authService.RestoreAccountAsync(restoreAccountDto.Email, restoreAccountDto.Token);
+                _logger.LogInformation("Account restored successfully for {Email}", restoreAccountDto.Email);
+                return Ok(new { Message = "Tài khoản đã được khôi phục thành công" });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Invalid restore attempt for {Email}", restoreAccountDto.Email);
+                return BadRequest(new { error = "Yêu cầu không hợp lệ", details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during account restoration for {Email}", restoreAccountDto.Email);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Lỗi hệ thống", details = "Đã xảy ra lỗi không mong muốn." });
             }
         }
 
