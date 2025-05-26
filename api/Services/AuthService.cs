@@ -227,35 +227,61 @@ namespace api.Services
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("User logged out");
         }
+        
+        // public async Task<Account> GetCurrentUserAsync(ClaimsPrincipal user)
+        // {
+        //     var accountIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        //     if (string.IsNullOrEmpty(accountIdClaim) || !int.TryParse(accountIdClaim, out int accountId))
+        //     {
+        //         _logger.LogWarning("Invalid user token");
+        //         throw new UnauthorizedAccessException("Token người dùng không hợp lệ.");
+        //     }
 
-        public async Task<(bool IsValid, string Role)> VerifyTokenAsync(string token)
+        //     var account = await _unitOfWork.Repository<Account>().GetByIdAsync(accountId);
+        //     if (account == null)
+        //     {
+        //         _logger.LogWarning("User not found for AccountId: {AccountId}", accountId);
+        //         throw new UnauthorizedAccessException("Tài khoản không tồn tại.");
+        //     }
+
+        //     _logger.LogInformation("Current user retrieved: {Email}", account.Email);
+        //     return account;
+        // }
+        public async Task<Account> GetCurrentUserAsync(ClaimsPrincipal user)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration["JwtSettings:Secret"] ?? throw new InvalidOperationException("JWT Secret chưa được cấu hình."));
-            try
+            var accountIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(accountIdClaim) || !int.TryParse(accountIdClaim, out var accountId))
             {
-                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = true,
-                    ValidIssuer = _configuration["JwtSettings:Issuer"] ?? throw new InvalidOperationException("JWT Issuer chưa được cấu hình."),
-                    ValidateAudience = true,
-                    ValidAudience = _configuration["JwtSettings:Audience"] ?? throw new InvalidOperationException("JWT Audience chưa được cấu hình."),
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.FromSeconds(30)
-                }, out _);
+                _logger.LogWarning("Invalid or missing account ID in token");
+                throw new UnauthorizedAccessException("Invalid or missing token");
+            }
 
-                var role = principal?.FindFirst(ClaimTypes.Role)?.Value;
-                _logger.LogInformation("Token verified successfully");
-                return (true, role ?? string.Empty);
-            }
-            catch (Exception ex)
+            var account = await _unitOfWork.Repository<Account>()
+                .FindSingleAsync(a => a.AccountId == accountId && a.DeletedAt == null && a.IsActive);
+            if (account == null)
             {
-                _logger.LogWarning(ex, "Token verification failed");
-                return (false, string.Empty);
+                _logger.LogWarning("Account not found or inactive for AccountId: {AccountId}", accountId);
+                throw new UnauthorizedAccessException("Account not found or inactive");
             }
+
+            return account;
         }
+
+        public async Task ChangePasswordAsync(ClaimsPrincipal user, ChangePasswordDto changePasswordDto)
+        {
+            var account = await GetCurrentUserAsync(user);
+            if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.CurrentPassword, account.Password))
+            {
+                _logger.LogWarning("Invalid current password for {Email}", account.Email);
+                throw new ArgumentException("Mật khẩu hiện tại không đúng.");
+            }
+
+            account.Password = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
+            account.UpdatedAt = DateTime.UtcNow;
+            _unitOfWork.Repository<Account>().Update(account);
+            await _unitOfWork.SaveChangesAsync();
+            _logger.LogInformation("Password changed successfully for {Email}", account.Email);
+        }    
 
         public async Task<bool> VerifyEmailAsync(string email, string token)
         {
@@ -429,59 +455,33 @@ namespace api.Services
             _logger.LogInformation("Account restored successfully for {Email}", email);
         }
 
-        // public async Task<Account> GetCurrentUserAsync(ClaimsPrincipal user)
-        // {
-        //     var accountIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        //     if (string.IsNullOrEmpty(accountIdClaim) || !int.TryParse(accountIdClaim, out int accountId))
-        //     {
-        //         _logger.LogWarning("Invalid user token");
-        //         throw new UnauthorizedAccessException("Token người dùng không hợp lệ.");
-        //     }
-
-        //     var account = await _unitOfWork.Repository<Account>().GetByIdAsync(accountId);
-        //     if (account == null)
-        //     {
-        //         _logger.LogWarning("User not found for AccountId: {AccountId}", accountId);
-        //         throw new UnauthorizedAccessException("Tài khoản không tồn tại.");
-        //     }
-
-        //     _logger.LogInformation("Current user retrieved: {Email}", account.Email);
-        //     return account;
-        // }
-        public async Task<Account> GetCurrentUserAsync(ClaimsPrincipal user)
+        public async Task<(bool IsValid, string Role)> VerifyTokenAsync(string token)
         {
-            var accountIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(accountIdClaim) || !int.TryParse(accountIdClaim, out var accountId))
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_configuration["JwtSettings:Secret"] ?? throw new InvalidOperationException("JWT Secret chưa được cấu hình."));
+            try
             {
-                _logger.LogWarning("Invalid or missing account ID in token");
-                throw new UnauthorizedAccessException("Invalid or missing token");
-            }
+                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = _configuration["JwtSettings:Issuer"] ?? throw new InvalidOperationException("JWT Issuer chưa được cấu hình."),
+                    ValidateAudience = true,
+                    ValidAudience = _configuration["JwtSettings:Audience"] ?? throw new InvalidOperationException("JWT Audience chưa được cấu hình."),
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromSeconds(30)
+                }, out _);
 
-            var account = await _unitOfWork.Repository<Account>()
-                .FindSingleAsync(a => a.AccountId == accountId && a.DeletedAt == null && a.IsActive);
-            if (account == null)
+                var role = principal?.FindFirst(ClaimTypes.Role)?.Value;
+                _logger.LogInformation("Token verified successfully");
+                return (true, role ?? string.Empty);
+            }
+            catch (Exception ex)
             {
-                _logger.LogWarning("Account not found or inactive for AccountId: {AccountId}", accountId);
-                throw new UnauthorizedAccessException("Account not found or inactive");
+                _logger.LogWarning(ex, "Token verification failed");
+                return (false, string.Empty);
             }
-
-            return account;
-        }
-
-        public async Task ChangePasswordAsync(ClaimsPrincipal user, ChangePasswordDto changePasswordDto)
-        {
-            var account = await GetCurrentUserAsync(user);
-            if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.CurrentPassword, account.Password))
-            {
-                _logger.LogWarning("Invalid current password for {Email}", account.Email);
-                throw new ArgumentException("Mật khẩu hiện tại không đúng.");
-            }
-
-            account.Password = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
-            account.UpdatedAt = DateTime.UtcNow;
-            _unitOfWork.Repository<Account>().Update(account);
-            await _unitOfWork.SaveChangesAsync();
-            _logger.LogInformation("Password changed successfully for {Email}", account.Email);
         }
 
         private async Task<(string Token, string RefreshToken)> GenerateTokensAsync(Account account)

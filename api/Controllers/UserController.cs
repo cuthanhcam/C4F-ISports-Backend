@@ -177,126 +177,6 @@ namespace api.Controllers
         }
 
         /// <summary>
-        /// Lấy lịch sử tìm kiếm của người dùng hiện tại.
-        /// </summary>
-        /// <param name="startDate">Ngày bắt đầu lọc (YYYY-MM-DD).</param>
-        /// <param name="endDate">Ngày kết thúc lọc (YYYY-MM-DD).</param>
-        /// <param name="page">Số trang (mặc định: 1).</param>
-        /// <param name="pageSize">Số mục mỗi trang (mặc định: 10).</param>
-        /// <returns>Danh sách lịch sử tìm kiếm.</returns>
-        /// <response code="200">Trả về lịch sử tìm kiếm.</response>
-        /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
-        /// <response code="403">Người dùng không có quyền truy cập.</response>
-        [HttpGet("search-history")]
-        [Authorize(Roles = "User")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> GetSearchHistory(
-            [FromQuery] DateTime? startDate,
-            [FromQuery] DateTime? endDate,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10)
-        {
-            try
-            {
-                if (page < 1 || pageSize < 1)
-                {
-                    _logger.LogWarning("Tham số phân trang không hợp lệ: page={Page}, pageSize={PageSize}", page, pageSize);
-                    return BadRequest(new { error = "Invalid input", details = new[] { new { field = "pagination", message = "Page and pageSize must be positive." } } });
-                }
-
-                if (startDate.HasValue && endDate.HasValue && startDate > endDate)
-                {
-                    _logger.LogWarning("Khoảng thời gian không hợp lệ: startDate={StartDate}, endDate={EndDate}", startDate, endDate);
-                    return BadRequest(new { error = "Invalid input", details = new[] { new { field = "dateRange", message = "startDate cannot be greater than endDate." } } });
-                }
-
-                var (data, total, pageResult, pageSizeResult) = await _userService.GetSearchHistoryAsync(User, startDate, endDate, page, pageSize);
-                _logger.LogInformation("Lấy lịch sử tìm kiếm thành công");
-                return Ok(new { data, totalCount = total, page = pageResult, pageSize = pageSizeResult, message = "Search history retrieved successfully" });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Lỗi xác thực khi lấy lịch sử tìm kiếm");
-                return Unauthorized(new { error = "Unauthorized", message = ex.Message });
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Lỗi tham số khi lấy lịch sử tìm kiếm");
-                return BadRequest(new { error = "Invalid input", details = new[] { new { field = "account", message = ex.Message } } });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi hệ thống khi lấy lịch sử tìm kiếm");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal Server Error", message = "An unexpected error occurred." });
-            }
-        }
-
-        /// <summary>
-        /// Lấy lịch sử đặt sân của người dùng hiện tại.
-        /// </summary>
-        /// <param name="status">Lọc theo trạng thái (Confirmed, Pending, Cancelled).</param>
-        /// <param name="startDate">Ngày bắt đầu lọc (YYYY-MM-DD).</param>
-        /// <param name="endDate">Ngày kết thúc lọc (YYYY-MM-DD).</param>
-        /// <param name="sort">Sắp xếp theo trường (BookingDate:asc/desc).</param>
-        /// <param name="page">Số trang (mặc định: 1).</param>
-        /// <param name="pageSize">Số mục mỗi trang (mặc định: 10).</param>
-        /// <returns>Danh sách lịch sử đặt sân.</returns>
-        /// <response code="200">Trả về lịch sử đặt sân.</response>
-        /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
-        [HttpGet("bookings")]
-        [Authorize(Roles = "User")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetBookingHistory(
-            [FromQuery] string? status,
-            [FromQuery] DateTime? startDate,
-            [FromQuery] DateTime? endDate,
-            [FromQuery] string? sort,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10)
-        {
-            try
-            {
-                if (page < 1 || pageSize < 1)
-                {
-                    _logger.LogWarning("Tham số phân trang không hợp lệ: page={Page}, pageSize={PageSize}", page, pageSize);
-                    return BadRequest(new { error = "Invalid input", details = new[] { new { field = "pagination", message = "Page and pageSize must be positive." } } });
-                }
-
-                if (startDate.HasValue && endDate.HasValue && startDate > endDate)
-                {
-                    _logger.LogWarning("Khoảng thời gian không hợp lệ: startDate={StartDate}, endDate={EndDate}", startDate, endDate);
-                    return BadRequest(new { error = "Invalid input", details = new[] { new { field = "dateRange", message = "startDate cannot be greater than endDate." } } });
-                }
-
-                var (data, total, pageResult, pageSizeResult) = await _userService.GetBookingHistoryAsync(User, status, startDate, endDate, sort, page, pageSize);
-                _logger.LogInformation("Lấy lịch sử đặt sân thành công");
-                return Ok(new { data, total, page = pageResult, pageSize = pageSizeResult });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Lỗi xác thực khi lấy lịch sử đặt sân");
-                return Unauthorized(new { error = "Unauthorized", message = ex.Message });
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Lỗi tham số khi lấy lịch sử đặt sân");
-                return BadRequest(new { error = "Invalid input", details = new[] { new { field = "account", message = ex.Message } } });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi hệ thống khi lấy lịch sử đặt sân");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal Server Error", message = "An unexpected error occurred." });
-            }
-        }
-
-        /// <summary>
         /// Lấy danh sách sân yêu thích của người dùng hiện tại.
         /// </summary>
         /// <param name="sort">Sắp xếp theo trường (FieldName:asc/desc).</param>
@@ -441,6 +321,158 @@ namespace api.Controllers
         }
 
         /// <summary>
+        /// Lấy lịch sử đặt sân của người dùng hiện tại.
+        /// </summary>
+        /// <param name="status">Lọc theo trạng thái (Confirmed, Pending, Cancelled).</param>
+        /// <param name="startDate">Ngày bắt đầu lọc (YYYY-MM-DD).</param>
+        /// <param name="endDate">Ngày kết thúc lọc (YYYY-MM-DD).</param>
+        /// <param name="sort">Sắp xếp theo trường (BookingDate:asc/desc).</param>
+        /// <param name="page">Số trang (mặc định: 1).</param>
+        /// <param name="pageSize">Số mục mỗi trang (mặc định: 10).</param>
+        /// <returns>Danh sách lịch sử đặt sân.</returns>
+        /// <response code="200">Trả về lịch sử đặt sân.</response>
+        /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
+        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
+        [HttpGet("bookings")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetBookingHistory(
+            [FromQuery] string? status,
+            [FromQuery] DateTime? startDate,
+            [FromQuery] DateTime? endDate,
+            [FromQuery] string? sort,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                if (page < 1 || pageSize < 1)
+                {
+                    _logger.LogWarning("Tham số phân trang không hợp lệ: page={Page}, pageSize={PageSize}", page, pageSize);
+                    return BadRequest(new { error = "Invalid input", details = new[] { new { field = "pagination", message = "Page and pageSize must be positive." } } });
+                }
+
+                if (startDate.HasValue && endDate.HasValue && startDate > endDate)
+                {
+                    _logger.LogWarning("Khoảng thời gian không hợp lệ: startDate={StartDate}, endDate={EndDate}", startDate, endDate);
+                    return BadRequest(new { error = "Invalid input", details = new[] { new { field = "dateRange", message = "startDate cannot be greater than endDate." } } });
+                }
+
+                var (data, total, pageResult, pageSizeResult) = await _userService.GetBookingHistoryAsync(User, status, startDate, endDate, sort, page, pageSize);
+                _logger.LogInformation("Lấy lịch sử đặt sân thành công");
+                return Ok(new { data, total, page = pageResult, pageSize = pageSizeResult });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Lỗi xác thực khi lấy lịch sử đặt sân");
+                return Unauthorized(new { error = "Unauthorized", message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogError(ex, "Lỗi tham số khi lấy lịch sử đặt sân");
+                return BadRequest(new { error = "Invalid input", details = new[] { new { field = "account", message = ex.Message } } });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi hệ thống khi lấy lịch sử đặt sân");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal Server Error", message = "An unexpected error occurred." });
+            }
+        }
+
+        /// <summary>
+        /// Lấy lịch sử tìm kiếm của người dùng hiện tại.
+        /// </summary>
+        /// <param name="startDate">Ngày bắt đầu lọc (YYYY-MM-DD).</param>
+        /// <param name="endDate">Ngày kết thúc lọc (YYYY-MM-DD).</param>
+        /// <param name="page">Số trang (mặc định: 1).</param>
+        /// <param name="pageSize">Số mục mỗi trang (mặc định: 10).</param>
+        /// <returns>Danh sách lịch sử tìm kiếm.</returns>
+        /// <response code="200">Trả về lịch sử tìm kiếm.</response>
+        /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
+        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
+        /// <response code="403">Người dùng không có quyền truy cập.</response>
+        [HttpGet("search-history")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> GetSearchHistory(
+            [FromQuery] DateTime? startDate,
+            [FromQuery] DateTime? endDate,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                if (page < 1 || pageSize < 1)
+                {
+                    _logger.LogWarning("Tham số phân trang không hợp lệ: page={Page}, pageSize={PageSize}", page, pageSize);
+                    return BadRequest(new { error = "Invalid input", details = new[] { new { field = "pagination", message = "Page and pageSize must be positive." } } });
+                }
+
+                if (startDate.HasValue && endDate.HasValue && startDate > endDate)
+                {
+                    _logger.LogWarning("Khoảng thời gian không hợp lệ: startDate={StartDate}, endDate={EndDate}", startDate, endDate);
+                    return BadRequest(new { error = "Invalid input", details = new[] { new { field = "dateRange", message = "startDate cannot be greater than endDate." } } });
+                }
+
+                var (data, total, pageResult, pageSizeResult) = await _userService.GetSearchHistoryAsync(User, startDate, endDate, page, pageSize);
+                _logger.LogInformation("Lấy lịch sử tìm kiếm thành công");
+                return Ok(new { data, totalCount = total, page = pageResult, pageSize = pageSizeResult, message = "Search history retrieved successfully" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Lỗi xác thực khi lấy lịch sử tìm kiếm");
+                return Unauthorized(new { error = "Unauthorized", message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogError(ex, "Lỗi tham số khi lấy lịch sử tìm kiếm");
+                return BadRequest(new { error = "Invalid input", details = new[] { new { field = "account", message = ex.Message } } });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi hệ thống khi lấy lịch sử tìm kiếm");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal Server Error", message = "An unexpected error occurred." });
+            }
+        }
+
+        /// <summary>
+        /// Clears the search history of the current user.
+        /// </summary>
+        /// <returns>Confirmation message.</returns>
+        /// <response code="200">Search history cleared successfully.</response>
+        /// <response code="401">Unauthorized or invalid token.</response>
+        /// <response code="403">Forbidden, user not authorized.</response>
+        [HttpDelete("search-history")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> ClearSearchHistory()
+        {
+            try
+            {
+                await _userService.ClearSearchHistoryAsync(User);
+                _logger.LogInformation("Cleared search history successfully");
+                return Ok(new { message = "Search history cleared successfully" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Authentication failed while clearing search history");
+                return Unauthorized(new { error = "Unauthorized", message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "System error while clearing search history");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal Server Error", message = "An unexpected error occurred." });
+            }
+        }
+
+        /// <summary>
         /// Lấy danh sách đánh giá của người dùng hiện tại.
         /// </summary>
         /// <param name="sort">Sắp xếp theo trường (CreatedAt:asc/desc).</param>
@@ -488,75 +520,5 @@ namespace api.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal Server Error", message = "An unexpected error occurred." });
             }
         }
-
-        /// <summary>
-        /// Clears the search history of the current user.
-        /// </summary>
-        /// <returns>Confirmation message.</returns>
-        /// <response code="200">Search history cleared successfully.</response>
-        /// <response code="401">Unauthorized or invalid token.</response>
-        /// <response code="403">Forbidden, user not authorized.</response>
-        [HttpDelete("search-history")]
-        [Authorize(Roles = "User")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> ClearSearchHistory()
-        {
-            try
-            {
-                await _userService.ClearSearchHistoryAsync(User);
-                _logger.LogInformation("Cleared search history successfully");
-                return Ok(new { message = "Search history cleared successfully" });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Authentication failed while clearing search history");
-                return Unauthorized(new { error = "Unauthorized", message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "System error while clearing search history");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal Server Error", message = "An unexpected error occurred." });
-            }
-        }
-
-        /// <summary>
-        /// Khôi phục hồ sơ của người dùng hiện tại (đặt lại DeletedAt).
-        /// </summary>
-        /// <returns>Thông báo khôi phục thành công.</returns>
-        /// <response code="200">Khôi phục hồ sơ thành công.</response>
-        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
-        /// <response code="404">Tài khoản không tìm thấy hoặc chưa bị xóa.</response>
-        [HttpPost("restore-profile")]
-        [Authorize]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> RestoreProfile()
-        {
-            try
-            {
-                await _userService.RestoreProfileAsync(User);
-                _logger.LogInformation("Khôi phục hồ sơ thành công");
-                return Ok(new { message = "Profile restored successfully" });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Lỗi xác thực khi khôi phục hồ sơ");
-                return Unauthorized(new { error = "Unauthorized", message = ex.Message });
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Lỗi tham số khi khôi phục hồ sơ");
-                return NotFound(new { error = "Resource not found", message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi hệ thống khi khôi phục hồ sơ");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal Server Error", message = "An unexpected error occurred." });
-            }
-        }
-
     }
 }
