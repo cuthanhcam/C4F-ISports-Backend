@@ -12,7 +12,7 @@ namespace api.Dtos.Auth
         [MinLength(8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự.")]
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$",
             ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.")]
-        public required string OldPassword { get; set; }
+        public required string CurrentPassword { get; set; }
 
         [Required(ErrorMessage = "Mật khẩu mới là bắt buộc.")]
         [MinLength(8, ErrorMessage = "Mật khẩu phải có ít nhất 8 ký tự.")]

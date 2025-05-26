@@ -28,17 +28,22 @@ namespace api.Services
             _logger = logger;
         }
 
-        public async Task<(string Token, string RefreshToken)> RegisterAsync(RegisterDto registerDto)
+        public async Task<(int AccountId, string Token, string RefreshToken)> RegisterAsync(RegisterDto registerDto)
         {
             _logger.LogInformation("Starting registration for {Email}", registerDto.Email);
 
             if (registerDto.Role == "Admin")
             {
                 _logger.LogWarning("Attempt to register Admin role by {Email}", registerDto.Email);
-                throw new ArgumentException("Không thể đăng ký tài khoản với vai trò Admin.");
+                throw new ArgumentException("Không thể đăng ký vai trò Admin.");
             }
 
-            _logger.LogInformation("Checking for existing account: {Email}", registerDto.Email);
+            if (registerDto.Password != registerDto.ConfirmPassword)
+            {
+                _logger.LogWarning("Password and ConfirmPassword do not match for {Email}", registerDto.Email);
+                throw new ArgumentException("Mật khẩu và xác nhận mật khẩu không khớp.");
+            }
+
             var existingAccount = (await _unitOfWork.Repository<Account>().FindAsync(a => a.Email == registerDto.Email)).FirstOrDefault();
             if (existingAccount != null)
             {
@@ -57,16 +62,12 @@ namespace api.Services
                 VerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
             };
 
-            // Sử dụng execution strategy cho giao dịch
             var strategy = _unitOfWork.Context.Database.CreateExecutionStrategy();
             return await strategy.ExecuteAsync(async () =>
             {
                 await using var transaction = await _unitOfWork.BeginTransactionAsync();
                 try
                 {
-                    _logger.LogInformation("Transaction started for {Email}", registerDto.Email);
-
-                    _logger.LogInformation("Adding account for {Email}", registerDto.Email);
                     await _unitOfWork.Repository<Account>().AddAsync(account);
                     await _unitOfWork.SaveChangesAsync();
 
@@ -77,11 +78,8 @@ namespace api.Services
                             AccountId = account.AccountId,
                             FullName = registerDto.FullName,
                             Phone = registerDto.Phone,
-                            Gender = null,
-                            DateOfBirth = null,
                             CreatedAt = DateTime.UtcNow
                         };
-                        _logger.LogInformation("Adding user for {Email}", registerDto.Email);
                         await _unitOfWork.Repository<User>().AddAsync(user);
                     }
                     else if (registerDto.Role == "Owner")
@@ -94,14 +92,12 @@ namespace api.Services
                             CreatedAt = DateTime.UtcNow,
                             UpdatedAt = DateTime.UtcNow
                         };
-                        _logger.LogInformation("Adding owner for {Email}", registerDto.Email);
                         await _unitOfWork.Repository<Owner>().AddAsync(owner);
                     }
 
-                    _logger.LogInformation("Saving changes for {Email}", registerDto.Email);
                     await _unitOfWork.SaveChangesAsync();
 
-                    var verificationLink = $"{_configuration["AppUrl"]}/api/auth/verify-email?email={Uri.EscapeDataString(account.Email)}&token={Uri.EscapeDataString(account.VerificationToken)}";
+                    var verificationLink = $"{_configuration["BEUrl"]}/api/auth/verify-email?email={Uri.EscapeDataString(account.Email)}&token={Uri.EscapeDataString(account.VerificationToken)}";
                     var emailSubject = "Xác thực tài khoản C4F ISports";
                     var emailBody = $"<h3>Xin chào {registerDto.FullName},</h3>" +
                                     $"<p>Vui lòng nhấp vào liên kết sau để xác thực email của bạn:</p>" +
@@ -109,40 +105,36 @@ namespace api.Services
                                     $"<p>Liên kết này có hiệu lực trong 24 giờ.</p>" +
                                     $"<p>Trân trọng,<br/>Đội ngũ C4F ISports</p>";
 
-                    _logger.LogInformation("Email sending skipped for {Email}", account.Email);
                     await _emailSender.SendEmailAsync(account.Email, emailSubject, emailBody);
+                    _logger.LogInformation("Verification email sent to {Email}", account.Email);
 
-                    _logger.LogInformation("Generating tokens for {Email}", account.Email);
                     var (token, refreshToken) = await GenerateTokensAsync(account);
 
-                    _logger.LogInformation("Committing transaction for {Email}", registerDto.Email);
                     await _unitOfWork.CommitTransactionAsync();
-                    _logger.LogInformation("User registered successfully: {Email}", registerDto.Email);
-
-                    return (token, refreshToken);
+                    return (account.AccountId, token, refreshToken);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error during registration for {Email}. Rolling back transaction.", registerDto.Email);
                     await _unitOfWork.RollbackTransactionAsync();
+                    _logger.LogError(ex, "Registration failed for {Email}", registerDto.Email);
                     throw;
                 }
             });
         }
 
-        public async Task<(string Token, string RefreshToken)> LoginAsync(LoginDto loginDto)
+        public async Task<(string Token, string RefreshToken, string Role)> LoginAsync(LoginDto loginDto)
         {
             var account = (await _unitOfWork.Repository<Account>().FindAsync(a => a.Email == loginDto.Email)).FirstOrDefault();
             if (account == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, account.Password))
             {
                 _logger.LogWarning("Invalid login attempt for {Email}", loginDto.Email);
-                throw new UnauthorizedAccessException("Email hoặc mật khẩu không chính xác.");
+                throw new UnauthorizedAccessException("Email hoặc mật khẩu không đúng.");
             }
 
             if (!account.IsActive)
             {
                 _logger.LogWarning("Unverified account login attempt for {Email}", loginDto.Email);
-                throw new UnauthorizedAccessException("Tài khoản chưa được xác thực.");
+                throw new UnauthorizedAccessException("Tài khoản chưa được xác minh.");
             }
 
             account.LastLogin = DateTime.UtcNow;
@@ -151,7 +143,7 @@ namespace api.Services
 
             var (token, refreshToken) = await GenerateTokensAsync(account);
             _logger.LogInformation("User logged in: {Email}", loginDto.Email);
-            return (token, refreshToken);
+            return (token, refreshToken, account.Role);
         }
 
         public async Task<(string Token, string RefreshToken)> RefreshTokenAsync(string refreshToken)
@@ -210,7 +202,7 @@ namespace api.Services
             if (account == null || account.ResetTokenExpiry < DateTime.UtcNow)
             {
                 _logger.LogWarning("Invalid or expired reset token for {Email}", resetPasswordDto.Email);
-                throw new SecurityTokenException("Token không hợp lệ hoặc đã hết hạn.");
+                throw new SecurityTokenException("Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
             }
 
             account.Password = BCrypt.Net.BCrypt.HashPassword(resetPasswordDto.NewPassword);
@@ -236,39 +228,46 @@ namespace api.Services
             _logger.LogInformation("User logged out");
         }
 
-        public async Task<bool> VerifyTokenAsync(string token)
+        public async Task<(bool IsValid, string Role)> VerifyTokenAsync(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration["JwtSettings:Secret"]);
+            var key = Encoding.UTF8.GetBytes(_configuration["JwtSettings:Secret"] ?? throw new InvalidOperationException("JWT Secret chưa được cấu hình."));
             try
             {
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = true,
-                    ValidIssuer = _configuration["JwtSettings:Issuer"],
+                    ValidIssuer = _configuration["JwtSettings:Issuer"] ?? throw new InvalidOperationException("JWT Issuer chưa được cấu hình."),
                     ValidateAudience = true,
-                    ValidAudience = _configuration["JwtSettings:Audience"],
+                    ValidAudience = _configuration["JwtSettings:Audience"] ?? throw new InvalidOperationException("JWT Audience chưa được cấu hình."),
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.FromSeconds(30)
                 }, out _);
+
+                var role = principal?.FindFirst(ClaimTypes.Role)?.Value;
                 _logger.LogInformation("Token verified successfully");
-                return true;
+                return (true, role ?? string.Empty);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Token verification failed");
-                return false;
+                return (false, string.Empty);
             }
         }
 
         public async Task<bool> VerifyEmailAsync(string email, string token)
         {
             var account = (await _unitOfWork.Repository<Account>().FindAsync(a => a.Email == email && a.VerificationToken == token)).FirstOrDefault();
-            if (account == null || account.VerificationTokenExpiry < DateTime.UtcNow)
+            if (account == null)
             {
-                _logger.LogWarning("Invalid or expired verification token for {Email}", email);
+                _logger.LogWarning("No account found for email {Email} or token {Token}", email, token);
+                return false;
+            }
+            if (account.VerificationTokenExpiry < DateTime.UtcNow)
+            {
+                _logger.LogWarning("Verification token expired for {Email}, expiry: {Expiry}", email, account.VerificationTokenExpiry);
                 return false;
             }
 
@@ -299,7 +298,7 @@ namespace api.Services
             if (account.IsActive)
             {
                 _logger.LogWarning("Resend verification requested for already verified email: {Email}", email);
-                throw new InvalidOperationException("Tài khoản đã được kích hoạt.");
+                throw new InvalidOperationException("Tài khoản đã được xác minh.");
             }
 
             account.VerificationToken = GenerateSecureToken();
@@ -307,7 +306,7 @@ namespace api.Services
             _unitOfWork.Repository<Account>().Update(account);
             await _unitOfWork.SaveChangesAsync();
 
-            var verificationLink = $"{_configuration["AppUrl"]}/api/auth/verify-email?email={Uri.EscapeDataString(account.Email)}&token={Uri.EscapeDataString(account.VerificationToken)}";
+            var verificationLink = $"{_configuration["BEUrl"]}/api/auth/verify-email?email={Uri.EscapeDataString(account.Email)}&token={Uri.EscapeDataString(account.VerificationToken)}";
             var emailSubject = "Xác thực lại tài khoản C4F ISports";
             var emailBody = $"<h3>Xin chào {account.Email},</h3>" +
                             $"<p>Bạn đã yêu cầu gửi lại email xác thực. Vui lòng nhấp vào liên kết sau để xác thực tài khoản:</p>" +
@@ -341,17 +340,17 @@ namespace api.Services
         public async Task ChangePasswordAsync(ClaimsPrincipal user, ChangePasswordDto changePasswordDto)
         {
             var account = await GetCurrentUserAsync(user);
-            if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.OldPassword, account.Password))
+            if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.CurrentPassword, account.Password))
             {
-                _logger.LogWarning("Incorrect old password for {Email}", account.Email);
-                throw new ArgumentException("Mật khẩu cũ không đúng.");
+                _logger.LogWarning("Invalid current password for {Email}", account.Email);
+                throw new ArgumentException("Mật khẩu hiện tại không đúng.");
             }
 
             account.Password = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
             account.UpdatedAt = DateTime.UtcNow;
             _unitOfWork.Repository<Account>().Update(account);
             await _unitOfWork.SaveChangesAsync();
-            _logger.LogInformation("Password changed for {Email}", account.Email);
+            _logger.LogInformation("Password changed successfully for {Email}", account.Email);
         }
 
         private async Task<(string Token, string RefreshToken)> GenerateTokensAsync(Account account)
@@ -363,14 +362,15 @@ namespace api.Services
                 new Claim(ClaimTypes.Role, account.Role)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Secret"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Secret"] ?? throw new InvalidOperationException("JWT Secret chưa được cấu hình.")));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var token = new JwtSecurityToken(
-                issuer: _configuration["JwtSettings:Issuer"],
-                audience: _configuration["JwtSettings:Audience"],
+                issuer: _configuration["JwtSettings:Issuer"] ?? throw new InvalidOperationException("JWT Issuer chưa được cấu hình."),
+                audience: _configuration["JwtSettings:Audience"] ?? throw new InvalidOperationException("JWT Audience chưa được cấu hình."),
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JwtSettings:TokenExpiryMinutes"])),
-                signingCredentials: creds);
+                expires: DateTime.UtcNow.AddMinutes(int.Parse(_configuration["JwtSettings:TokenExpiryMinutes"] ?? throw new InvalidOperationException("TokenExpiryMinutes chưa được cấu hình."))),
+                signingCredentials: creds
+            );
 
             var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 
@@ -378,13 +378,13 @@ namespace api.Services
             {
                 AccountId = account.AccountId,
                 Token = GenerateSecureToken(),
-                Expires = DateTime.UtcNow.AddDays(int.Parse(_configuration["JwtSettings:RefreshTokenExpiryDays"])),
+                Expires = DateTime.UtcNow.AddDays(int.Parse(_configuration["JwtSettings:RefreshTokenExpiryDays"] ?? throw new InvalidOperationException("RefreshTokenExpiryDays chưa được cấu hình."))),
                 Created = DateTime.UtcNow
             };
             await _unitOfWork.Repository<RefreshToken>().AddAsync(refreshToken);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation("Tokens generated for {Email}", account.Email);
+            _logger.LogInformation("Tokens generated successfully for {Email}", account.Email);
             return (jwtToken, refreshToken.Token);
         }
 
