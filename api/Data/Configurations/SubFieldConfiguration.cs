@@ -8,15 +8,7 @@ namespace api.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<SubField> builder)
         {
-            builder.ToTable("SubFields");
-
             builder.HasKey(sf => sf.SubFieldId);
-
-            builder.Property(sf => sf.SubFieldId)
-                .ValueGeneratedOnAdd();
-
-            builder.Property(sf => sf.FieldId)
-                .IsRequired();
 
             builder.Property(sf => sf.SubFieldName)
                 .IsRequired()
@@ -36,25 +28,21 @@ namespace api.Data.Configurations
             builder.Property(sf => sf.Description)
                 .HasMaxLength(500);
 
-            // Indexes
-            builder.HasIndex(sf => sf.FieldId);
-
             // Relationships
             builder.HasOne(sf => sf.Field)
                 .WithMany(f => f.SubFields)
                 .HasForeignKey(sf => sf.FieldId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // Sử dụng ON DELETE NO ACTION
             builder.HasMany(sf => sf.FieldPricings)
                 .WithOne(fp => fp.SubField)
                 .HasForeignKey(fp => fp.SubFieldId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(sf => sf.Bookings)
                 .WithOne(b => b.SubField)
                 .HasForeignKey(b => b.SubFieldId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

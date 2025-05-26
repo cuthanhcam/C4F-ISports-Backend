@@ -10,7 +10,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.Bookings.AnyAsync())
+            if (!await context.Bookings.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Bookings...");
                 var user = await context.Users.FirstOrDefaultAsync();

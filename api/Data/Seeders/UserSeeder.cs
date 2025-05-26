@@ -9,13 +9,13 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.Users.AnyAsync())
+            if (!await context.Users.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Users...");
-                var userAccount = await context.Accounts.FirstOrDefaultAsync(a => a.Email == "user@gmail.com");
-                if (userAccount == null)
+                var account = await context.Accounts.FirstOrDefaultAsync(a => a.Email == "user@gmail.com");
+                if (account == null)
                 {
-                    logger?.LogError("No User Account found for seeding Users.");
+                    logger?.LogError("No Account found for seeding Users.");
                     return;
                 }
 
@@ -23,17 +23,16 @@ namespace api.Data.Seeders
                 {
                     new User
                     {
-                        AccountId = userAccount.AccountId,
-                        Account = userAccount,
-                        FullName = "Nguyễn Văn A",
-                        Phone = "0901234567",
-                        Gender = "Male",
-                        DateOfBirth = new DateTime(1990, 1, 1),
-                        AvatarUrl = "https://example.com/avatar1.png",
-                        LoyaltyPoints = 100,
-                        CreatedAt = DateTime.UtcNow,
-                        City = "Hà Nội",
-                        District = "Cầu Giấy"
+                        AccountId = account.AccountId,
+                        Account = account,
+                        FullName = "Tran Thi Khach",
+                        Phone = "0987654321",
+                        Gender = "Female",
+                        DateOfBirth = new DateTime(1995, 5, 20),
+                        City = "Ho Chi Minh",
+                        District = "Quan 1",
+                        LoyaltyPoints = 0,
+                        CreatedAt = DateTime.UtcNow
                     }
                 };
 

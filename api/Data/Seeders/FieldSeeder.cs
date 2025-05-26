@@ -1,22 +1,21 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using api.Interfaces;
 using System.Threading.Tasks;
-using api.Dtos.Field.AddressValidationDtos; // Add this to use ValidateAddressDto
+using api.Interfaces;
 
 namespace api.Data.Seeders
 {
     public static class FieldSeeder
     {
-        public static async Task SeedAsync(ApplicationDbContext context, IGeocodingService geocodingService = null, ILogger logger = null)
+        public static async Task SeedAsync(ApplicationDbContext context, IGeocodingService geocodingService, ILogger logger = null)
         {
-            if (!await context.Fields.AnyAsync())
+            if (!await context.Fields.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Fields...");
-                var football = await context.Sports.FirstOrDefaultAsync(s => s.SportName == "Bóng đá");
+                var sport = await context.Sports.FirstOrDefaultAsync(s => s.SportName == "Football");
                 var owner = await context.Owners.FirstOrDefaultAsync();
-                if (football == null || owner == null)
+                if (sport == null || owner == null)
                 {
                     logger?.LogError("No Sport or Owner found for seeding Fields.");
                     return;
@@ -26,65 +25,25 @@ namespace api.Data.Seeders
                 {
                     new Field
                     {
-                        SportId = football.SportId,
-                        Sport = football,
+                        SportId = sport.SportId,
+                        Sport = sport,
                         OwnerId = owner.OwnerId,
                         Owner = owner,
-                        FieldName = "Sân bóng Cầu Giấy",
-                        Phone = "0909876543",
-                        Address = "123 Đường Láng, Cầu Giấy, Hà Nội",
-                        OpenHours = "06:00-23:00",
-                        OpenTime = TimeSpan.Parse("06:00"),
-                        CloseTime = TimeSpan.Parse("23:00"),
+                        FieldName = "Sân ABC",
+                        Phone = "0123456789",
+                        Address = "123 Đường ABC, Quận 1, TP.HCM",
+                        OpenHours = "06:00-22:00",
+                        OpenTime = new TimeSpan(6, 0, 0),
+                        CloseTime = new TimeSpan(22, 0, 0),
                         Status = "Active",
-                        City = "Hà Nội",
-                        District = "Cầu Giấy",
+                        Latitude = 10.7769,
+                        Longitude = 106.7009,
+                        City = "Ho Chi Minh",
+                        District = "Quan 1",
                         AverageRating = 4.5m,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
-                        Latitude = 0,
-                        Longitude = 0
+                        CreatedAt = DateTime.UtcNow
                     }
                 };
-
-                if (geocodingService != null)
-                {
-                    foreach (var field in fields)
-                    {
-                        try
-                        {
-                            // Create ValidateAddressDto
-                            var addressDto = new ValidateAddressDto
-                            {
-                                FieldName = field.FieldName,
-                                Address = field.Address,
-                                District = field.District,
-                                City = field.City
-                            };
-
-                            // Call ValidateAddressAsync instead of GetCoordinatesFromAddressAsync
-                            var result = await geocodingService.ValidateAddressAsync(addressDto);
-                            if (result.IsValid)
-                            {
-                                field.Latitude = result.Latitude;
-                                field.Longitude = result.Longitude;
-                                logger?.LogInformation("Coordinates for {FieldName}: Lat={Lat}, Lng={Lng}", field.FieldName, result.Latitude, result.Longitude);
-                            }
-                            else
-                            {
-                                logger?.LogWarning("Invalid address for {FieldName}. Using default coordinates.", field.FieldName);
-                                field.Latitude = 21.030123m; // Fallback
-                                field.Longitude = 105.801456m;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            logger?.LogWarning("Failed to get coordinates for {FieldName}: {Error}. Using default coordinates.", field.FieldName, ex.Message);
-                            field.Latitude = 21.030123m; // Fallback
-                            field.Longitude = 105.801456m;
-                        }
-                    }
-                }
 
                 try
                 {

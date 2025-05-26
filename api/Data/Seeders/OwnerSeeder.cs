@@ -1,7 +1,6 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
@@ -10,13 +9,13 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.Owners.AnyAsync())
+            if (!await context.Owners.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Owners...");
-                var ownerAccount = await context.Accounts.FirstOrDefaultAsync(a => a.Email == "owner@gmail.com");
-                if (ownerAccount == null)
+                var account = await context.Accounts.FirstOrDefaultAsync(a => a.Email == "owner@gmail.com");
+                if (account == null)
                 {
-                    logger?.LogError("No Owner Account found for seeding Owners.");
+                    logger?.LogError("No Account found for seeding Owners.");
                     return;
                 }
 
@@ -24,19 +23,31 @@ namespace api.Data.Seeders
                 {
                     new Owner
                     {
-                        AccountId = ownerAccount.AccountId,
-                        Account = ownerAccount, // Gán navigation property
-                        FullName = "Trần Thị B",
-                        Phone = "0912345678",
-                        Description = "Chủ sân bóng uy tín tại Hà Nội.",
+                        AccountId = account.AccountId,
+                        Account = account,
+                        FullName = "Nguyen Van Chu",
+                        Phone = "0123456789",
+                        Description = "Chủ sở hữu sân thể thao ABC",
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     }
                 };
 
-                await context.Owners.AddRangeAsync(owners);
-                await context.SaveChangesAsync();
-                logger?.LogInformation("Owners seeded successfully. Owners: {Count}", await context.Owners.CountAsync());
+                try
+                {
+                    await context.Owners.AddRangeAsync(owners);
+                    await context.SaveChangesAsync();
+                    logger?.LogInformation("Owners seeded successfully. Owners: {Count}", await context.Owners.CountAsync());
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "Failed to seed Owners. StackTrace: {StackTrace}", ex.StackTrace);
+                    throw;
+                }
+            }
+            else
+            {
+                logger?.LogInformation("Owners already seeded. Skipping...");
             }
         }
     }
