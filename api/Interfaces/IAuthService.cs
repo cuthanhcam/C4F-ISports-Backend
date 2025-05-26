@@ -83,5 +83,13 @@ namespace api.Interfaces
         /// <param name="token">Token cần kiểm tra.</param>
         /// <returns>Kết quả kiểm tra (IsValid) và vai trò của người dùng (Role).</returns>
         Task<(bool IsValid, string Role)> VerifyTokenAsync(string token);
+
+        /// <summary>
+        /// Khôi phục tài khoản đã bị xóa.
+        /// </summary>
+        /// <param name="email">Email của tài khoản cần khôi phục.</param>
+        /// <param name="token">Token xác thực để khôi phục tài khoản.</param>
+        /// <returns>Không có giá trị trả về.</returns>
+        Task RestoreAccountAsync(string email, string token);
     }
 }
