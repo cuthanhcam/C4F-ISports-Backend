@@ -30,5 +30,9 @@ namespace api.Dtos.User
         [Required(ErrorMessage = "Trạng thái là bắt buộc.")]
         [RegularExpression("^(Confirmed|Pending|Cancelled)$", ErrorMessage = "Trạng thái không hợp lệ. Chỉ chấp nhận 'Confirmed', 'Pending' hoặc 'Cancelled'.")]
         public string Status { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Trạng thái thanh toán là bắt buộc.")]
+        [RegularExpression("^(Paid|Unpaid|Refunded)$", ErrorMessage = "Trạng thái thanh toán không hợp lệ. Chỉ chấp nhận 'Paid', 'Unpaid' hoặc 'Refunded'.")]
+        public string PaymentStatus { get; set; } = string.Empty;
     }
 }

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using api.Validators;
 
 namespace api.Dtos.User
 {
@@ -23,5 +24,14 @@ namespace api.Dtos.User
         [StringLength(500, ErrorMessage = "URL ảnh đại diện không được vượt quá 500 ký tự.")]
         [Url(ErrorMessage = "URL ảnh đại diện không hợp lệ.")]
         public string? AvatarUrl { get; set; }
+
+        [DataType(DataType.Date)]
+        [Display(Name = "Ngày sinh")]
+        [Required(ErrorMessage = "Ngày sinh là bắt buộc.")]
+        [CustomValidation(typeof(DateValidator), nameof(DateValidator.ValidateBirthDate))]
+        public DateTime? DateOfBirth { get; set; }
+
+        [StringLength(1000, ErrorMessage = "Mô tả không được vượt quá 1000 ký tự.")]
+        public string? Description { get; set; }
     }
 }
