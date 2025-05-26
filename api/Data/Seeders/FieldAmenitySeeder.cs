@@ -1,7 +1,6 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
@@ -13,36 +12,50 @@ namespace api.Data.Seeders
             if (!await context.FieldAmenities.AnyAsync())
             {
                 logger?.LogInformation("Seeding FieldAmenities...");
-                var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân bóng Cầu Giấy");
+                var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
                 if (field == null)
                 {
                     logger?.LogError("No Field found for seeding FieldAmenities.");
                     return;
                 }
 
-                var amenities = new[]
+                var fieldAmenities = new[]
                 {
                     new FieldAmenity
                     {
+                        FieldAmenityId = 1,
                         FieldId = field.FieldId,
-                        Field = field, // Gán navigation property
-                        AmenityName = "Nhà vệ sinh",
-                        Description = "Nhà vệ sinh sạch sẽ, tiện nghi.",
-                        IconUrl = "https://example.com/toilet-icon.png"
+                        Field = field,
+                        AmenityName = "Phòng thay đồ",
+                        Description = "Phòng thay đồ sạch sẽ với tủ khóa",
+                        IconUrl = "https://example.com/icons/dressing-room.png"
                     },
                     new FieldAmenity
                     {
+                        FieldAmenityId = 2,
                         FieldId = field.FieldId,
-                        Field = field, // Gán navigation property
+                        Field = field,
                         AmenityName = "Bãi đỗ xe",
-                        Description = "Bãi đỗ xe rộng rãi, miễn phí.",
-                        IconUrl = "https://example.com/parking-icon.png"
+                        Description = "Bãi đỗ xe rộng rãi",
+                        IconUrl = "https://example.com/icons/parking.png"
                     }
                 };
 
-                await context.FieldAmenities.AddRangeAsync(amenities);
-                await context.SaveChangesAsync();
-                logger?.LogInformation("FieldAmenities seeded successfully. FieldAmenities: {Count}", await context.FieldAmenities.CountAsync());
+                try
+                {
+                    await context.FieldAmenities.AddRangeAsync(fieldAmenities);
+                    await context.SaveChangesAsync();
+                    logger?.LogInformation("FieldAmenities seeded successfully. FieldAmenities: {Count}", await context.FieldAmenities.CountAsync());
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "Failed to seed FieldAmenities. StackTrace: {StackTrace}", ex.StackTrace);
+                    throw;
+                }
+            }
+            else
+            {
+                logger?.LogInformation("FieldAmenities already seeded. Skipping...");
             }
         }
     }

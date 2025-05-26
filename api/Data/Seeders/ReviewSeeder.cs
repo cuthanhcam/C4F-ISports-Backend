@@ -1,7 +1,6 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
@@ -14,7 +13,7 @@ namespace api.Data.Seeders
             {
                 logger?.LogInformation("Seeding Reviews...");
                 var user = await context.Users.FirstOrDefaultAsync();
-                var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân bóng Cầu Giấy");
+                var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
                 if (user == null || field == null)
                 {
                     logger?.LogError("No User or Field found for seeding Reviews.");
@@ -25,20 +24,33 @@ namespace api.Data.Seeders
                 {
                     new Review
                     {
+                        ReviewId = 1,
                         UserId = user.UserId,
-                        User = user, // Gán navigation property
+                        User = user,
                         FieldId = field.FieldId,
-                        Field = field, // Gán navigation property
-                        Rating = 4,
-                        Comment = "Sân sạch sẽ, dịch vụ tốt, nhưng cần thêm quạt mát.",
+                        Field = field,
+                        Rating = 5,
+                        Comment = "Sân rất đẹp, dịch vụ tốt, sẽ quay lại!",
                         CreatedAt = DateTime.UtcNow,
                         IsVisible = true
                     }
                 };
 
-                await context.Reviews.AddRangeAsync(reviews);
-                await context.SaveChangesAsync();
-                logger?.LogInformation("Reviews seeded successfully. Reviews: {Count}", await context.Reviews.CountAsync());
+                try
+                {
+                    await context.Reviews.AddRangeAsync(reviews);
+                    await context.SaveChangesAsync();
+                    logger?.LogInformation("Reviews seeded successfully. Reviews: {Count}", await context.Reviews.CountAsync());
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "Failed to seed Reviews. StackTrace: {StackTrace}", ex.StackTrace);
+                    throw;
+                }
+            }
+            else
+            {
+                logger?.LogInformation("Reviews already seeded. Skipping...");
             }
         }
     }

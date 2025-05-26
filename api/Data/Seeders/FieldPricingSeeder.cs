@@ -1,7 +1,6 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
@@ -20,33 +19,47 @@ namespace api.Data.Seeders
                     return;
                 }
 
-                var pricings = new[]
+                var fieldPricings = new[]
                 {
                     new FieldPricing
                     {
+                        FieldPricingId = 1,
                         SubFieldId = subField.SubFieldId,
-                        SubField = subField, // Gán navigation property
-                        StartTime = TimeSpan.Parse("17:00"),
-                        EndTime = TimeSpan.Parse("19:00"),
-                        DayOfWeek = 1, // Thứ Hai
-                        Price = 500000m,
+                        SubField = subField,
+                        StartTime = new TimeSpan(6, 0, 0),
+                        EndTime = new TimeSpan(12, 0, 0),
+                        DayOfWeek = 0, // Sunday
+                        Price = 300000,
                         IsActive = true
                     },
                     new FieldPricing
                     {
+                        FieldPricingId = 2,
                         SubFieldId = subField.SubFieldId,
-                        SubField = subField, // Gán navigation property
-                        StartTime = TimeSpan.Parse("19:00"),
-                        EndTime = TimeSpan.Parse("21:00"),
-                        DayOfWeek = 1, // Thứ Hai
-                        Price = 600000m,
+                        SubField = subField,
+                        StartTime = new TimeSpan(12, 0, 0),
+                        EndTime = new TimeSpan(18, 0, 0),
+                        DayOfWeek = 0, // Sunday
+                        Price = 400000,
                         IsActive = true
                     }
                 };
 
-                await context.FieldPricings.AddRangeAsync(pricings);
-                await context.SaveChangesAsync();
-                logger?.LogInformation("FieldPricings seeded successfully. FieldPricings: {Count}", await context.FieldPricings.CountAsync());
+                try
+                {
+                    await context.FieldPricings.AddRangeAsync(fieldPricings);
+                    await context.SaveChangesAsync();
+                    logger?.LogInformation("FieldPricings seeded successfully. FieldPricings: {Count}", await context.FieldPricings.CountAsync());
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "Failed to seed FieldPricings. StackTrace: {StackTrace}", ex.StackTrace);
+                    throw;
+                }
+            }
+            else
+            {
+                logger?.LogInformation("FieldPricings already seeded. Skipping...");
             }
         }
     }

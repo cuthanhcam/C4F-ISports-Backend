@@ -1,7 +1,6 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
@@ -17,16 +16,18 @@ namespace api.Data.Seeders
                 {
                     new Sport
                     {
-                        SportName = "Bóng đá",
-                        Description = "Môn thể thao vua, phổ biến toàn cầu.",
-                        IconUrl = "https://example.com/football-icon.png",
+                        SportId = 1,
+                        SportName = "Football",
+                        Description = "Bóng đá sân 5 và sân 7",
+                        IconUrl = "https://example.com/icons/football.png",
                         IsActive = true
                     },
                     new Sport
                     {
-                        SportName = "Cầu lông",
-                        Description = "Môn thể thao sử dụng vợt, phù hợp mọi lứa tuổi.",
-                        IconUrl = "https://example.com/badminton-icon.png",
+                        SportId = 2,
+                        SportName = "Badminton",
+                        Description = "Cầu lông trong nhà",
+                        IconUrl = "https://example.com/icons/badminton.png",
                         IsActive = true
                     }
                 };
@@ -45,7 +46,7 @@ namespace api.Data.Seeders
             }
             else
             {
-                logger?.LogInformation("Sports already seeded. Count: {Count}", await context.Sports.CountAsync());
+                logger?.LogInformation("Sports already seeded. Skipping...");
             }
         }
     }

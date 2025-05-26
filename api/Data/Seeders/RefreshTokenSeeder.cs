@@ -1,7 +1,6 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
@@ -24,17 +23,30 @@ namespace api.Data.Seeders
                 {
                     new RefreshToken
                     {
+                        RefreshTokenId = 1,
                         AccountId = account.AccountId,
-                        Account = account, // Gán navigation property
-                        Token = "sample_refresh_token_" + Guid.NewGuid().ToString(),
+                        Account = account,
+                        Token = "sample-refresh-token-123",
                         Expires = DateTime.UtcNow.AddDays(7),
                         Created = DateTime.UtcNow
                     }
                 };
 
-                await context.RefreshTokens.AddRangeAsync(refreshTokens);
-                await context.SaveChangesAsync();
-                logger?.LogInformation("RefreshTokens seeded successfully. RefreshTokens: {Count}", await context.RefreshTokens.CountAsync());
+                try
+                {
+                    await context.RefreshTokens.AddRangeAsync(refreshTokens);
+                    await context.SaveChangesAsync();
+                    logger?.LogInformation("RefreshTokens seeded successfully. RefreshTokens: {Count}", await context.RefreshTokens.CountAsync());
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "Failed to seed RefreshTokens. StackTrace: {StackTrace}", ex.StackTrace);
+                    throw;
+                }
+            }
+            else
+            {
+                logger?.LogInformation("RefreshTokens already seeded. Skipping...");
             }
         }
     }

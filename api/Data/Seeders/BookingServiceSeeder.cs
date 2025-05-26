@@ -1,7 +1,6 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
@@ -14,7 +13,7 @@ namespace api.Data.Seeders
             {
                 logger?.LogInformation("Seeding BookingServices...");
                 var booking = await context.Bookings.FirstOrDefaultAsync();
-                var fieldService = await context.FieldServices.FirstOrDefaultAsync(fs => fs.ServiceName == "Nước uống");
+                var fieldService = await context.FieldServices.FirstOrDefaultAsync();
                 if (booking == null || fieldService == null)
                 {
                     logger?.LogError("No Booking or FieldService found for seeding BookingServices.");
@@ -25,19 +24,32 @@ namespace api.Data.Seeders
                 {
                     new BookingService
                     {
+                        BookingServiceId = 1,
                         BookingId = booking.BookingId,
-                        Booking = booking, // Gán navigation property
+                        Booking = booking,
                         FieldServiceId = fieldService.FieldServiceId,
-                        FieldService = fieldService, // Gán navigation property
-                        Quantity = 2,
-                        Price = fieldService.Price * 2,
-                        Description = "2 chai nước suối cho đội."
+                        FieldService = fieldService,
+                        Quantity = 5,
+                        Price = fieldService.Price * 5,
+                        Description = "Mua 5 chai nước suối"
                     }
                 };
 
-                await context.BookingServices.AddRangeAsync(bookingServices);
-                await context.SaveChangesAsync();
-                logger?.LogInformation("BookingServices seeded successfully. BookingServices: {Count}", await context.BookingServices.CountAsync());
+                try
+                {
+                    await context.BookingServices.AddRangeAsync(bookingServices);
+                    await context.SaveChangesAsync();
+                    logger?.LogInformation("BookingServices seeded successfully. BookingServices: {Count}", await context.BookingServices.CountAsync());
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "Failed to seed BookingServices. StackTrace: {StackTrace}", ex.StackTrace);
+                    throw;
+                }
+            }
+            else
+            {
+                logger?.LogInformation("BookingServices already seeded. Skipping...");
             }
         }
     }

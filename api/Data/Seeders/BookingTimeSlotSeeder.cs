@@ -1,7 +1,6 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
@@ -20,21 +19,34 @@ namespace api.Data.Seeders
                     return;
                 }
 
-                var timeSlots = new[]
+                var bookingTimeSlots = new[]
                 {
                     new BookingTimeSlot
                     {
+                        BookingTimeSlotId = 1,
                         BookingId = booking.BookingId,
-                        Booking = booking, // Gán navigation property
-                        StartTime = TimeSpan.Parse("17:00"),
-                        EndTime = TimeSpan.Parse("18:00"),
-                        Price = 450000m
+                        Booking = booking,
+                        StartTime = new TimeSpan(17, 0, 0),
+                        EndTime = new TimeSpan(18, 0, 0),
+                        Price = 450000
                     }
                 };
 
-                await context.BookingTimeSlots.AddRangeAsync(timeSlots);
-                await context.SaveChangesAsync();
-                logger?.LogInformation("BookingTimeSlots seeded successfully. BookingTimeSlots: {Count}", await context.BookingTimeSlots.CountAsync());
+                try
+                {
+                    await context.BookingTimeSlots.AddRangeAsync(bookingTimeSlots);
+                    await context.SaveChangesAsync();
+                    logger?.LogInformation("BookingTimeSlots seeded successfully. BookingTimeSlots: {Count}", await context.BookingTimeSlots.CountAsync());
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "Failed to seed BookingTimeSlots. StackTrace: {StackTrace}", ex.StackTrace);
+                    throw;
+                }
+            }
+            else
+            {
+                logger?.LogInformation("BookingTimeSlots already seeded. Skipping...");
             }
         }
     }
