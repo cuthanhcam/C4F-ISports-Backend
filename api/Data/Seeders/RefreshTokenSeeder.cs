@@ -9,7 +9,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.RefreshTokens.AnyAsync())
+            if (!await context.RefreshTokens.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding RefreshTokens...");
                 var account = await context.Accounts.FirstOrDefaultAsync(a => a.Email == "user@gmail.com");
@@ -23,7 +23,6 @@ namespace api.Data.Seeders
                 {
                     new RefreshToken
                     {
-                        RefreshTokenId = 1,
                         AccountId = account.AccountId,
                         Account = account,
                         Token = "sample-refresh-token-123",

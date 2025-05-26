@@ -9,7 +9,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.Payments.AnyAsync())
+            if (!await context.Payments.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Payments...");
                 var booking = await context.Bookings.FirstOrDefaultAsync();
@@ -23,7 +23,6 @@ namespace api.Data.Seeders
                 {
                     new Payment
                     {
-                        PaymentId = 1,
                         BookingId = booking.BookingId,
                         Booking = booking,
                         Amount = booking.TotalPrice,

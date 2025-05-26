@@ -10,7 +10,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, IDistributedCache cache, ILogger logger = null)
         {
-            if (!await context.SearchHistories.AnyAsync())
+            if (!await context.SearchHistories.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding SearchHistories...");
                 var user = await context.Users.FirstOrDefaultAsync();
@@ -25,7 +25,6 @@ namespace api.Data.Seeders
                 {
                     new SearchHistory
                     {
-                        SearchId = 1,
                         UserId = user.UserId,
                         Account = user,
                         Keyword = "Sân bóng Quận 1",

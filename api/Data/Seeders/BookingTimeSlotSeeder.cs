@@ -9,7 +9,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.BookingTimeSlots.AnyAsync())
+            if (!await context.BookingTimeSlots.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding BookingTimeSlots...");
                 var booking = await context.Bookings.FirstOrDefaultAsync();
@@ -23,7 +23,6 @@ namespace api.Data.Seeders
                 {
                     new BookingTimeSlot
                     {
-                        BookingTimeSlotId = 1,
                         BookingId = booking.BookingId,
                         Booking = booking,
                         StartTime = new TimeSpan(17, 0, 0),

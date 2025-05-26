@@ -10,7 +10,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, IGeocodingService geocodingService, ILogger logger = null)
         {
-            if (!await context.Fields.AnyAsync())
+            if (!await context.Fields.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Fields...");
                 var sport = await context.Sports.FirstOrDefaultAsync(s => s.SportName == "Football");
@@ -25,7 +25,6 @@ namespace api.Data.Seeders
                 {
                     new Field
                     {
-                        FieldId = 1,
                         SportId = sport.SportId,
                         Sport = sport,
                         OwnerId = owner.OwnerId,

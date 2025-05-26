@@ -9,7 +9,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.Reviews.AnyAsync())
+            if (!await context.Reviews.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Reviews...");
                 var user = await context.Users.FirstOrDefaultAsync();
@@ -24,7 +24,6 @@ namespace api.Data.Seeders
                 {
                     new Review
                     {
-                        ReviewId = 1,
                         UserId = user.UserId,
                         User = user,
                         FieldId = field.FieldId,

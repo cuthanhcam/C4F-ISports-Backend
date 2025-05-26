@@ -9,7 +9,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.Owners.AnyAsync())
+            if (!await context.Owners.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Owners...");
                 var account = await context.Accounts.FirstOrDefaultAsync(a => a.Email == "owner@gmail.com");
@@ -23,7 +23,6 @@ namespace api.Data.Seeders
                 {
                     new Owner
                     {
-                        OwnerId = 1,
                         AccountId = account.AccountId,
                         Account = account,
                         FullName = "Nguyen Van Chu",

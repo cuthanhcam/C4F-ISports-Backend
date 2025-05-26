@@ -9,7 +9,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.FieldAmenities.AnyAsync())
+            if (!await context.FieldAmenities.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding FieldAmenities...");
                 var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
@@ -23,7 +23,6 @@ namespace api.Data.Seeders
                 {
                     new FieldAmenity
                     {
-                        FieldAmenityId = 1,
                         FieldId = field.FieldId,
                         Field = field,
                         AmenityName = "Phòng thay đồ",
@@ -32,7 +31,6 @@ namespace api.Data.Seeders
                     },
                     new FieldAmenity
                     {
-                        FieldAmenityId = 2,
                         FieldId = field.FieldId,
                         Field = field,
                         AmenityName = "Bãi đỗ xe",

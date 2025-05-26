@@ -9,7 +9,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.Promotions.AnyAsync())
+            if (!await context.Promotions.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Promotions...");
                 var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
@@ -23,7 +23,6 @@ namespace api.Data.Seeders
                 {
                     new Promotion
                     {
-                        PromotionId = 1,
                         Code = "SUMMER2025",
                         Description = "Giảm giá 10% cho đặt sân tháng 6",
                         DiscountType = "Percentage",

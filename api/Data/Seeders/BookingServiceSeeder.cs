@@ -9,7 +9,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.BookingServices.AnyAsync())
+            if (!await context.BookingServices.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding BookingServices...");
                 var booking = await context.Bookings.FirstOrDefaultAsync();
@@ -24,7 +24,6 @@ namespace api.Data.Seeders
                 {
                     new BookingService
                     {
-                        BookingServiceId = 1,
                         BookingId = booking.BookingId,
                         Booking = booking,
                         FieldServiceId = fieldService.FieldServiceId,

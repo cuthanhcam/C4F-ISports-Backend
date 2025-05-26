@@ -9,7 +9,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.FieldServices.AnyAsync())
+            if (!await context.FieldServices.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding FieldServices...");
                 var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
@@ -23,7 +23,6 @@ namespace api.Data.Seeders
                 {
                     new FieldService
                     {
-                        FieldServiceId = 1,
                         FieldId = field.FieldId,
                         Field = field,
                         ServiceName = "Nước uống",

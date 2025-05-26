@@ -9,7 +9,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.SubFields.AnyAsync())
+            if (!await context.SubFields.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding SubFields...");
                 var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
@@ -23,7 +23,6 @@ namespace api.Data.Seeders
                 {
                     new SubField
                     {
-                        SubFieldId = 1,
                         FieldId = field.FieldId,
                         Field = field,
                         SubFieldName = "Sân 5A",
@@ -34,7 +33,6 @@ namespace api.Data.Seeders
                     },
                     new SubField
                     {
-                        SubFieldId = 2,
                         FieldId = field.FieldId,
                         Field = field,
                         SubFieldName = "Sân 7A",

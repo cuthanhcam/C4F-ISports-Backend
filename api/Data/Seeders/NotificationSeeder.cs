@@ -10,7 +10,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, IEmailSender emailSender, ILogger logger = null)
         {
-            if (!await context.Notifications.AnyAsync())
+            if (!await context.Notifications.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Notifications...");
                 var user = await context.Users.FirstOrDefaultAsync();
@@ -24,7 +24,6 @@ namespace api.Data.Seeders
                 {
                     new Notification
                     {
-                        NotificationId = 1,
                         UserId = user.UserId,
                         User = user,
                         Title = "Xác nhận đặt sân",

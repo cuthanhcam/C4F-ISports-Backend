@@ -9,7 +9,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.FavoriteFields.AnyAsync())
+            if (!await context.FavoriteFields.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding FavoriteFields...");
                 var user = await context.Users.FirstOrDefaultAsync();
@@ -24,7 +24,6 @@ namespace api.Data.Seeders
                 {
                     new FavoriteField
                     {
-                        FavoriteId = 1,
                         UserId = user.UserId,
                         User = user,
                         FieldId = field.FieldId,

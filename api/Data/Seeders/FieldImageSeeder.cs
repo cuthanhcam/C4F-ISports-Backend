@@ -10,7 +10,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ICloudinaryService cloudinaryService, ILogger logger = null)
         {
-            if (!await context.FieldImages.AnyAsync())
+            if (!await context.FieldImages.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding FieldImages...");
                 var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
@@ -24,7 +24,6 @@ namespace api.Data.Seeders
                 {
                     new FieldImage
                     {
-                        FieldImageId = 1,
                         FieldId = field.FieldId,
                         Field = field,
                         ImageUrl = "https://example.com/images/field-abc.jpg",

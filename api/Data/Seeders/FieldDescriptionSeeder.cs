@@ -9,7 +9,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.FieldDescriptions.AnyAsync())
+            if (!await context.FieldDescriptions.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding FieldDescriptions...");
                 var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
@@ -23,7 +23,6 @@ namespace api.Data.Seeders
                 {
                     new FieldDescription
                     {
-                        FieldDescriptionId = 1,
                         FieldId = field.FieldId,
                         Field = field,
                         Description = "Sân ABC là một trong những sân bóng đá chất lượng cao tại TP.HCM, với cỏ nhân tạo hiện đại và hệ thống chiếu sáng tốt."
