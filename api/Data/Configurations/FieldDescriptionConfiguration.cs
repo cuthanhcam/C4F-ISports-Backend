@@ -8,15 +8,7 @@ namespace api.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<FieldDescription> builder)
         {
-            builder.ToTable("FieldDescriptions");
-
             builder.HasKey(fd => fd.FieldDescriptionId);
-
-            builder.Property(fd => fd.FieldDescriptionId)
-                .ValueGeneratedOnAdd();
-
-            builder.Property(fd => fd.FieldId)
-                .IsRequired();
 
             builder.Property(fd => fd.Description)
                 .IsRequired()
@@ -26,7 +18,7 @@ namespace api.Data.Configurations
             builder.HasOne(fd => fd.Field)
                 .WithMany(f => f.FieldDescriptions)
                 .HasForeignKey(fd => fd.FieldId)
-                .OnDelete(DeleteBehavior.NoAction); // Sử dụng NoAction
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

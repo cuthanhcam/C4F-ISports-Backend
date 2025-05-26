@@ -30,7 +30,6 @@ namespace api.Data.Configurations
                 .HasDefaultValue(true);
 
             // Relationships
-            // Sử dụng ON DELETE NO ACTION cho Fields
             builder.HasMany(s => s.Fields)
                 .WithOne(f => f.Sport)
                 .HasForeignKey(f => f.SportId)
