@@ -36,32 +36,6 @@ namespace api.Interfaces
         Task<LoyaltyPointsDto> GetLoyaltyPointsAsync(ClaimsPrincipal user);
 
         /// <summary>
-        /// Lấy lịch sử tìm kiếm của người dùng hiện tại.
-        /// </summary>
-        /// <param name="user">Thông tin người dùng từ ClaimsPrincipal.</param>
-        /// <param name="startDate">Ngày bắt đầu lọc (tùy chọn).</param>
-        /// <param name="endDate">Ngày kết thúc lọc (tùy chọn).</param>
-        /// <param name="page">Số trang (mặc định: 1).</param>
-        /// <param name="pageSize">Số mục mỗi trang (mặc định: 10).</param>
-        /// <returns>Danh sách lịch sử tìm kiếm với phân trang.</returns>
-        Task<(IList<SearchHistoryDto> Data, int Total, int Page, int PageSize)> GetSearchHistoryAsync(
-            ClaimsPrincipal user, DateTime? startDate, DateTime? endDate, int page, int pageSize);
-
-        /// <summary>
-        /// Lấy lịch sử đặt sân của người dùng hiện tại.
-        /// </summary>
-        /// <param name="user">Thông tin người dùng từ ClaimsPrincipal.</param>
-        /// <param name="status">Lọc theo trạng thái (Confirmed, Pending, Cancelled).</param>
-        /// <param name="startDate">Ngày bắt đầu lọc (tùy chọn).</param>
-        /// <param name="endDate">Ngày kết thúc lọc (tùy chọn).</param>
-        /// <param name="sort">Sắp xếp theo trường (BookingDate:asc/desc).</param>
-        /// <param name="page">Số trang (mặc định: 1).</param>
-        /// <param name="pageSize">Số mục mỗi trang (mặc định: 10).</param>
-        /// <returns>Danh sách lịch sử đặt sân với phân trang.</returns>
-        Task<(IList<BookingHistoryDto> Data, int Total, int Page, int PageSize)> GetBookingHistoryAsync(
-            ClaimsPrincipal user, string? status, DateTime? startDate, DateTime? endDate, string? sort, int page, int pageSize);
-
-        /// <summary>
         /// Lấy danh sách sân yêu thích của người dùng hiện tại.
         /// </summary>
         /// <param name="user">Thông tin người dùng từ ClaimsPrincipal.</param>
@@ -88,15 +62,30 @@ namespace api.Interfaces
         Task RemoveFavoriteFieldAsync(ClaimsPrincipal user, int fieldId);
 
         /// <summary>
-        /// Lấy danh sách đánh giá của người dùng hiện tại.
+        /// Lấy lịch sử đặt sân của người dùng hiện tại.
         /// </summary>
         /// <param name="user">Thông tin người dùng từ ClaimsPrincipal.</param>
-        /// <param name="sort">Sắp xếp theo trường (CreatedAt:asc/desc).</param>
+        /// <param name="status">Lọc theo trạng thái (Confirmed, Pending, Cancelled).</param>
+        /// <param name="startDate">Ngày bắt đầu lọc (tùy chọn).</param>
+        /// <param name="endDate">Ngày kết thúc lọc (tùy chọn).</param>
+        /// <param name="sort">Sắp xếp theo trường (BookingDate:asc/desc).</param>
         /// <param name="page">Số trang (mặc định: 1).</param>
         /// <param name="pageSize">Số mục mỗi trang (mặc định: 10).</param>
-        /// <returns>Danh sách đánh giá với phân trang.</returns>
-        Task<(IList<UserReviewDto> Data, int Total, int Page, int PageSize)> GetUserReviewsAsync(
-            ClaimsPrincipal user, string? sort, int page, int pageSize);
+        /// <returns>Danh sách lịch sử đặt sân với phân trang.</returns>
+        Task<(IList<BookingHistoryDto> Data, int Total, int Page, int PageSize)> GetBookingHistoryAsync(
+            ClaimsPrincipal user, string? status, DateTime? startDate, DateTime? endDate, string? sort, int page, int pageSize);    
+
+        /// <summary>
+        /// Lấy lịch sử tìm kiếm của người dùng hiện tại.
+        /// </summary>
+        /// <param name="user">Thông tin người dùng từ ClaimsPrincipal.</param>
+        /// <param name="startDate">Ngày bắt đầu lọc (tùy chọn).</param>
+        /// <param name="endDate">Ngày kết thúc lọc (tùy chọn).</param>
+        /// <param name="page">Số trang (mặc định: 1).</param>
+        /// <param name="pageSize">Số mục mỗi trang (mặc định: 10).</param>
+        /// <returns>Danh sách lịch sử tìm kiếm với phân trang.</returns>
+        Task<(IList<SearchHistoryDto> Data, int Total, int Page, int PageSize)> GetSearchHistoryAsync(
+            ClaimsPrincipal user, DateTime? startDate, DateTime? endDate, int page, int pageSize);
 
         /// <summary>
         /// Xóa toàn bộ lịch sử tìm kiếm của người dùng hiện tại (soft delete).
@@ -105,9 +94,14 @@ namespace api.Interfaces
         Task ClearSearchHistoryAsync(ClaimsPrincipal user);
 
         /// <summary>
-        /// Khôi phục hồ sơ của người dùng hiện tại (đặt lại DeletedAt).
+        /// Lấy danh sách đánh giá của người dùng hiện tại.
         /// </summary>
         /// <param name="user">Thông tin người dùng từ ClaimsPrincipal.</param>
-        Task RestoreProfileAsync(ClaimsPrincipal user);
+        /// <param name="sort">Sắp xếp theo trường (CreatedAt:asc/desc).</param>
+        /// <param name="page">Số trang (mặc định: 1).</param>
+        /// <param name="pageSize">Số mục mỗi trang (mặc định: 10).</param>
+        /// <returns>Danh sách đánh giá với phân trang.</returns>
+        Task<(IList<UserReviewDto> Data, int Total, int Page, int PageSize)> GetUserReviewsAsync(
+            ClaimsPrincipal user, string? sort, int page, int pageSize);   
     }
 }
