@@ -147,3 +147,4 @@ _NCrunch*/
 *.nupkg
 *.meta
 *.cache
+global.json

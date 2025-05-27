@@ -8,30 +8,27 @@ namespace api.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<BookingTimeSlot> builder)
         {
-            builder.ToTable("BookingTimeSlots");
+            builder.HasKey(bts => bts.BookingTimeSlotId);
 
-            builder.HasKey(bt => bt.BookingTimeSlotId);
-
-            builder.Property(bt => bt.BookingTimeSlotId)
-                .ValueGeneratedOnAdd();
-
-            builder.Property(bt => bt.BookingId)
+            builder.Property(bts => bts.StartTime)
                 .IsRequired();
 
-            builder.Property(bt => bt.StartTime)
+            builder.Property(bts => bts.EndTime)
                 .IsRequired();
 
-            builder.Property(bt => bt.EndTime)
-                .IsRequired();
-
-            builder.Property(bt => bt.Price)
+            builder.Property(bts => bts.Price)
                 .IsRequired()
-                .HasColumnType("decimal(18,2)");
+                .HasPrecision(18, 2);
+
+            builder.Property(bts => bts.DeletedAt)
+                .HasColumnType("datetime");
+
+            builder.HasQueryFilter(bts => bts.DeletedAt == null);
 
             // Relationships
-            builder.HasOne(bt => bt.Booking)
+            builder.HasOne(bts => bts.Booking)
                 .WithMany(b => b.TimeSlots)
-                .HasForeignKey(bt => bt.BookingId)
+                .HasForeignKey(bts => bts.BookingId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

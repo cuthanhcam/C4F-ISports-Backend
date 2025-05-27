@@ -1,7 +1,6 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
@@ -10,7 +9,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.RefreshTokens.AnyAsync())
+            if (!await context.RefreshTokens.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding RefreshTokens...");
                 var account = await context.Accounts.FirstOrDefaultAsync(a => a.Email == "user@gmail.com");
@@ -25,16 +24,28 @@ namespace api.Data.Seeders
                     new RefreshToken
                     {
                         AccountId = account.AccountId,
-                        Account = account, // Gán navigation property
-                        Token = "sample_refresh_token_" + Guid.NewGuid().ToString(),
+                        Account = account,
+                        Token = "sample-refresh-token-123",
                         Expires = DateTime.UtcNow.AddDays(7),
                         Created = DateTime.UtcNow
                     }
                 };
 
-                await context.RefreshTokens.AddRangeAsync(refreshTokens);
-                await context.SaveChangesAsync();
-                logger?.LogInformation("RefreshTokens seeded successfully. RefreshTokens: {Count}", await context.RefreshTokens.CountAsync());
+                try
+                {
+                    await context.RefreshTokens.AddRangeAsync(refreshTokens);
+                    await context.SaveChangesAsync();
+                    logger?.LogInformation("RefreshTokens seeded successfully. RefreshTokens: {Count}", await context.RefreshTokens.CountAsync());
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "Failed to seed RefreshTokens. StackTrace: {StackTrace}", ex.StackTrace);
+                    throw;
+                }
+            }
+            else
+            {
+                logger?.LogInformation("RefreshTokens already seeded. Skipping...");
             }
         }
     }

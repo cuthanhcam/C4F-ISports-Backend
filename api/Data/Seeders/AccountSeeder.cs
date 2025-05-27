@@ -10,7 +10,7 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            if (!await context.Accounts.AnyAsync())
+            if (!await context.Accounts.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Accounts...");
                 var accounts = new List<Account>
@@ -18,7 +18,7 @@ namespace api.Data.Seeders
                     new Account
                     {
                         Email = "admin@gmail.com",
-                        Password = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
+                        Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
                         Role = "Admin",
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow,
@@ -28,7 +28,7 @@ namespace api.Data.Seeders
                     new Account
                     {
                         Email = "owner@gmail.com",
-                        Password = BCrypt.Net.BCrypt.HashPassword("Owner@123"),
+                        Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
                         Role = "Owner",
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow,
@@ -38,7 +38,7 @@ namespace api.Data.Seeders
                     new Account
                     {
                         Email = "user@gmail.com",
-                        Password = BCrypt.Net.BCrypt.HashPassword("User@123"),
+                        Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
                         Role = "User",
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow,

@@ -8,16 +8,11 @@ namespace api.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Account> builder)
         {
-            builder.ToTable("Accounts");
-
             builder.HasKey(a => a.AccountId);
-
-            builder.Property(a => a.AccountId)
-                .ValueGeneratedOnAdd();
 
             builder.Property(a => a.Email)
                 .IsRequired()
-                .HasMaxLength(256);
+                .HasMaxLength(100);
 
             builder.Property(a => a.Password)
                 .IsRequired()
@@ -25,35 +20,20 @@ namespace api.Data.Configurations
 
             builder.Property(a => a.Role)
                 .IsRequired()
-                .HasMaxLength(50);
+                .HasMaxLength(20);
 
             builder.Property(a => a.IsActive)
-                .IsRequired()
                 .HasDefaultValue(true);
 
             builder.Property(a => a.CreatedAt)
-                .IsRequired()
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            builder.Property(a => a.UpdatedAt)
-                .IsRequired(false);
-
-            builder.Property(a => a.LastLogin)
-                .IsRequired(false);
+                .HasDefaultValueSql("GETUTCDATE()");
 
             builder.Property(a => a.VerificationToken)
                 .HasMaxLength(256);
 
-            builder.Property(a => a.VerificationTokenExpiry)
-                .IsRequired(false);
-
             builder.Property(a => a.ResetToken)
                 .HasMaxLength(256);
 
-            builder.Property(a => a.ResetTokenExpiry)
-                .IsRequired(false);
-
-            // Indexes
             builder.HasIndex(a => a.Email)
                 .IsUnique();
 
@@ -71,7 +51,7 @@ namespace api.Data.Configurations
             builder.HasMany(a => a.RefreshTokens)
                 .WithOne(rt => rt.Account)
                 .HasForeignKey(rt => rt.AccountId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

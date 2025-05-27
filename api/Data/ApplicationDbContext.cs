@@ -14,26 +14,28 @@ namespace api.Data
         }
 
         public DbSet<Account> Accounts { get; set; }
-        public DbSet<User> Users { get; set; }
-        public DbSet<Owner> Owners { get; set; }
-        public DbSet<Sport> Sports { get; set; }
-        public DbSet<Field> Fields { get; set; }
-        public DbSet<SubField> SubFields { get; set; }
-        public DbSet<FieldPricing> FieldPricings { get; set; }
-        public DbSet<FieldAmenity> FieldAmenities { get; set; }
-        public DbSet<FieldDescription> FieldDescriptions { get; set; }
-        public DbSet<FieldImage> FieldImages { get; set; }
-        public DbSet<FieldService> FieldServices { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<BookingService> BookingServices { get; set; }
         public DbSet<BookingTimeSlot> BookingTimeSlots { get; set; }
+        public DbSet<FavoriteField> FavoriteFields { get; set; }
+        public DbSet<Field> Fields { get; set; }
+        public DbSet<FieldAmenity> FieldAmenities { get; set; }
+        public DbSet<FieldDescription> FieldDescriptions { get; set; }
+        public DbSet<FieldImage> FieldImages { get; set; }
+        public DbSet<FieldPricing> FieldPricings { get; set; }
+        public DbSet<FieldService> FieldServices { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Owner> Owners { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Promotion> Promotions { get; set; }
-        public DbSet<Review> Reviews { get; set; }
-        public DbSet<Notification> Notifications { get; set; }
-        public DbSet<FavoriteField> FavoriteFields { get; set; }
-        public DbSet<SearchHistory> SearchHistories { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<RefundRequest> RefundRequests { get; set; }
+        public DbSet<RescheduleRequest> RescheduleRequests { get; set; }
+        public DbSet<Review> Reviews { get; set; }
+        public DbSet<SearchHistory> SearchHistories { get; set; }
+        public DbSet<Sport> Sports { get; set; }
+        public DbSet<SubField> SubFields { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -41,59 +43,16 @@ namespace api.Data
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
-            modelBuilder.Entity<Account>()
-                .HasIndex(a => a.Email)
-                .IsUnique();
-
-            modelBuilder.Entity<Promotion>()
-                .HasIndex(p => p.Code)
-                .IsUnique();
-
-            modelBuilder.Entity<RefreshToken>()
-                .HasIndex(rt => rt.Token)
-                .IsUnique();
-
-            modelBuilder.Entity<SubField>()
-                .HasIndex(sf => sf.FieldId);
-
-            modelBuilder.Entity<FieldPricing>()
-                .HasIndex(fp => new { fp.SubFieldId, fp.StartTime, fp.EndTime });
-
-            modelBuilder.Entity<Field>()
-                .HasIndex(f => new { f.Latitude, f.Longitude });
-
-            modelBuilder.Entity<Booking>()
-                .HasIndex(b => new { b.SubFieldId, b.BookingDate, b.StartTime, b.EndTime });
-
-            modelBuilder.Entity<FavoriteField>()
-                .HasOne(ff => ff.User)
-                .WithMany(u => u.FavoriteFields)
-                .HasForeignKey(ff => ff.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            modelBuilder.Entity<FavoriteField>()
-                .HasOne(ff => ff.Field)
-                .WithMany(f => f.FavoriteFields)
-                .HasForeignKey(ff => ff.FieldId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.User)
-                .WithMany(u => u.Reviews)
-                .HasForeignKey(r => r.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.Field)
-                .WithMany(f => f.Reviews)
-                .HasForeignKey(r => r.FieldId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            modelBuilder.Entity<SearchHistory>()
-                .HasOne(sh => sh.User)
-                .WithMany(u => u.SearchHistories)
-                .HasForeignKey(sh => sh.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<Booking>().HasQueryFilter(b => b.DeletedAt == null);
+            modelBuilder.Entity<BookingTimeSlot>().HasQueryFilter(bts => bts.DeletedAt == null);
+            modelBuilder.Entity<Field>().HasQueryFilter(f => f.DeletedAt == null);
+            modelBuilder.Entity<FieldPricing>().HasQueryFilter(fp => fp.DeletedAt == null);
+            modelBuilder.Entity<Payment>().HasQueryFilter(p => p.DeletedAt == null);
+            modelBuilder.Entity<Promotion>().HasQueryFilter(p => p.DeletedAt == null);
+            modelBuilder.Entity<RefundRequest>().HasQueryFilter(rr => rr.DeletedAt == null);
+            modelBuilder.Entity<RescheduleRequest>().HasQueryFilter(rr => rr.DeletedAt == null);
+            modelBuilder.Entity<SearchHistory>().HasQueryFilter(sh => sh.DeletedAt == null);
+            modelBuilder.Entity<User>().HasQueryFilter(u => u.DeletedAt == null);
         }
     }
 }

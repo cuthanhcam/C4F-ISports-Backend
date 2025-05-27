@@ -75,8 +75,8 @@ namespace api.Services
                 Status = createFieldDto.Status,
                 SportId = createFieldDto.SportId,
                 OwnerId = int.Parse(ownerId),
-                Latitude = addressValidation.Latitude,
-                Longitude = addressValidation.Longitude,
+                // Latitude = addressValidation.Latitude,
+                // Longitude = addressValidation.Longitude,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -132,8 +132,8 @@ namespace api.Services
             field.CloseTime = closeTime;
             field.Status = updateFieldDto.Status;
             field.SportId = updateFieldDto.SportId;
-            field.Latitude = addressValidation.Latitude;
-            field.Longitude = addressValidation.Longitude;
+            // field.Latitude = addressValidation.Latitude;
+            // field.Longitude = addressValidation.Longitude;
             field.UpdatedAt = DateTime.UtcNow;
 
             _unitOfWork.Repository<Field>().Update(field);
@@ -657,7 +657,7 @@ namespace api.Services
                                 {
                                     PromotionId = p.PromotionId,
                                     PromotionCode = p.Code,
-                                    DiscountValue = p.DiscountValue,
+                                    // DiscountValue = p.DiscountValue,
                                     DiscountType = p.DiscountType
                                 })
                                 .FirstOrDefaultAsync();
@@ -704,8 +704,8 @@ namespace api.Services
                 OpenTime = field.OpenTime?.ToString(@"hh\:mm"),
                 CloseTime = field.CloseTime?.ToString(@"hh\:mm"),
                 Status = field.Status,
-                Latitude = field.Latitude,
-                Longitude = field.Longitude,
+                // Latitude = field.Latitude,
+                // Longitude = field.Longitude,
                 AverageRating = field.AverageRating,
                 SportId = field.SportId,
                 SubFields = field.SubFields.Select(sf => new SubFieldDto

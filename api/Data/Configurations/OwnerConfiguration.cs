@@ -8,15 +8,7 @@ namespace api.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Owner> builder)
         {
-            builder.ToTable("Owners");
-
             builder.HasKey(o => o.OwnerId);
-
-            builder.Property(o => o.OwnerId)
-                .ValueGeneratedOnAdd();
-
-            builder.Property(o => o.AccountId)
-                .IsRequired();
 
             builder.Property(o => o.FullName)
                 .IsRequired()
@@ -30,12 +22,10 @@ namespace api.Data.Configurations
                 .HasMaxLength(1000);
 
             builder.Property(o => o.CreatedAt)
-                .IsRequired()
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                .HasDefaultValueSql("GETUTCDATE()");
 
             builder.Property(o => o.UpdatedAt)
-                .IsRequired()
-                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                .HasDefaultValueSql("GETUTCDATE()");
 
             // Relationships
             builder.HasOne(o => o.Account)
@@ -43,11 +33,10 @@ namespace api.Data.Configurations
                 .HasForeignKey<Owner>(o => o.AccountId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Sử dụng ON DELETE NO ACTION cho Fields
             builder.HasMany(o => o.Fields)
                 .WithOne(f => f.Owner)
                 .HasForeignKey(f => f.OwnerId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

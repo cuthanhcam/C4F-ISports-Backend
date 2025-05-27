@@ -8,15 +8,7 @@ namespace api.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<FieldAmenity> builder)
         {
-            builder.ToTable("FieldAmenities");
-
             builder.HasKey(fa => fa.FieldAmenityId);
-
-            builder.Property(fa => fa.FieldAmenityId)
-                .ValueGeneratedOnAdd();
-
-            builder.Property(fa => fa.FieldId)
-                .IsRequired();
 
             builder.Property(fa => fa.AmenityName)
                 .IsRequired()
@@ -32,7 +24,7 @@ namespace api.Data.Configurations
             builder.HasOne(fa => fa.Field)
                 .WithMany(f => f.FieldAmenities)
                 .HasForeignKey(fa => fa.FieldId)
-                .OnDelete(DeleteBehavior.NoAction); // Sử dụng NoAction để tránh lan truyền xóa
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

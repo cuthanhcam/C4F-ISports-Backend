@@ -13,13 +13,13 @@ using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.AspNetCore.Mvc;
 using System.Reflection;
 using api.Repositories;
-using api.Models;
 using Polly;
 using Polly.Extensions.Http;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
+using api.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -230,7 +230,6 @@ void ConfigureServices(WebApplicationBuilder builder)
             Description = "API for C4F ISports application, supporting field booking, user management, and more."
         });
 
-        // Chỉ thêm XML comments nếu file tồn tại
         var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
         var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
         if (File.Exists(xmlPath))
@@ -266,10 +265,7 @@ void ConfigureServices(WebApplicationBuilder builder)
             }
         });
 
-        // Thêm filter để hỗ trợ multipart/form-data
         options.OperationFilter<FormFileOperationFilter>();
-
-        // Thêm filter để log lỗi Swagger
         options.DocumentFilter<SwaggerDocumentFilter>();
     });
 
@@ -293,14 +289,13 @@ void ConfigureServices(WebApplicationBuilder builder)
         logging.AddFilter("Microsoft.AspNetCore", LogLevel.Warning);
         logging.AddFilter("api.Services", LogLevel.Debug);
         logging.AddFilter("api.Controllers", LogLevel.Debug);
-        logging.AddFilter("Swashbuckle", LogLevel.Debug); // Logging chi tiết cho Swashbuckle
+        logging.AddFilter("Swashbuckle", LogLevel.Debug);
     });
 }
 
 // Hàm cấu hình middleware
 void ConfigureMiddleware(WebApplication app)
 {
-    // Middleware bắt lỗi chi tiết
     app.UseExceptionHandler(errorApp =>
     {
         errorApp.Run(async context =>
@@ -457,7 +452,6 @@ public class SwaggerDocumentFilter : IDocumentFilter
     {
         try
         {
-            // _logger.LogInformation("Generating Swagger document for {ApiDescriptionCount} API descriptions", context.ApiDescriptions.Count);
             foreach (var apiDescription in context.ApiDescriptions)
             {
                 _logger.LogDebug("Processing API: {HttpMethod} {RelativePath}", apiDescription.HttpMethod, apiDescription.RelativePath);

@@ -1,51 +1,54 @@
+using api.Data;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
 
 namespace api.Data.Seeders
 {
     public static class SportSeeder
     {
-        public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
+        public static async Task SeedAsync(ApplicationDbContext context, ILogger logger)
         {
-            if (!await context.Sports.AnyAsync())
+            try
             {
-                logger?.LogInformation("Seeding Sports...");
-                var sports = new[]
+                if (!await context.Sports.IgnoreQueryFilters().AnyAsync())
                 {
-                    new Sport
-                    {
-                        SportName = "Bóng đá",
-                        Description = "Môn thể thao vua, phổ biến toàn cầu.",
-                        IconUrl = "https://example.com/football-icon.png",
-                        IsActive = true
-                    },
-                    new Sport
-                    {
-                        SportName = "Cầu lông",
-                        Description = "Môn thể thao sử dụng vợt, phù hợp mọi lứa tuổi.",
-                        IconUrl = "https://example.com/badminton-icon.png",
-                        IsActive = true
-                    }
-                };
+                    logger.LogInformation("Seeding Sports...");
 
-                try
-                {
-                    await context.Sports.AddRangeAsync(sports);
+                    var sports = new List<Sport>
+                    {
+                        new Sport
+                        {
+                            SportName = "Football",
+                            Description = "Môn thể thao đồng đội phổ biến nhất thế giới.",
+                            IconUrl = "https://example.com/icons/football.png",
+                            IsActive = true
+                        },
+                        new Sport
+                        {
+                            SportName = "Badminton",
+                            Description = "Môn thể thao đối kháng sử dụng vợt và cầu lông.",
+                            IconUrl = "https://example.com/icons/badminton.png",
+                            IsActive = true
+                        }
+                    };
+
+                    context.Sports.AddRange(sports);
                     await context.SaveChangesAsync();
-                    logger?.LogInformation("Sports seeded successfully. Sports: {Count}", await context.Sports.CountAsync());
+
+                    logger.LogInformation("Seeded {Count} sports.", sports.Count);
                 }
-                catch (Exception ex)
+                else
                 {
-                    logger?.LogError(ex, "Failed to seed Sports. StackTrace: {StackTrace}", ex.StackTrace);
-                    throw;
+                    logger.LogInformation("Sports already seeded. Skipping...");
                 }
+
+                logger.LogInformation("SportSeeder completed. Sports: {Count}", await context.Sports.CountAsync());
             }
-            else
+            catch (Exception ex)
             {
-                logger?.LogInformation("Sports already seeded. Count: {Count}", await context.Sports.CountAsync());
+                logger.LogError(ex, "Failed to seed Sports. StackTrace: {StackTrace}", ex.StackTrace);
+                throw;
             }
         }
     }
