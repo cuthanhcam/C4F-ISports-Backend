@@ -73,7 +73,7 @@ namespace api.Interfaces
         /// <param name="pageSize">Số mục mỗi trang (mặc định: 10).</param>
         /// <returns>Danh sách lịch sử đặt sân với phân trang.</returns>
         Task<(IList<BookingHistoryDto> Data, int Total, int Page, int PageSize)> GetBookingHistoryAsync(
-            ClaimsPrincipal user, string? status, DateTime? startDate, DateTime? endDate, string? sort, int page, int pageSize);    
+            ClaimsPrincipal user, string? status, DateTime? startDate, DateTime? endDate, string? sort, int page, int pageSize);
 
         /// <summary>
         /// Lấy lịch sử tìm kiếm của người dùng hiện tại.
@@ -102,6 +102,14 @@ namespace api.Interfaces
         /// <param name="pageSize">Số mục mỗi trang (mặc định: 10).</param>
         /// <returns>Danh sách đánh giá với phân trang.</returns>
         Task<(IList<UserReviewDto> Data, int Total, int Page, int PageSize)> GetUserReviewsAsync(
-            ClaimsPrincipal user, string? sort, int page, int pageSize);   
+            ClaimsPrincipal user, string? sort, int page, int pageSize);
+
+        /// <summary>
+        /// Tải lên ảnh đại diện mới cho người dùng.
+        /// </summary>
+        /// <param name="user">Thông tin người dùng từ ClaimsPrincipal.</param>
+        /// <param name="file">File ảnh tải lên.</param>
+        /// <returns>URL của ảnh đại diện mới.</returns>
+        Task<string> UploadAvatarAsync(ClaimsPrincipal user, IFormFile file);
     }
 }

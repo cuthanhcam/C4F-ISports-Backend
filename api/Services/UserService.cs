@@ -16,13 +16,20 @@ namespace api.Services
         private readonly ILogger<UserService> _logger;
         private readonly IAuthService _authService;
         private readonly IEmailSender _emailSender;
+        private readonly ICloudinaryService _cloudinaryService;
 
-        public UserService(IUnitOfWork unitOfWork, ILogger<UserService> logger, IAuthService authService, IEmailSender emailSender)
+        public UserService(
+            IUnitOfWork unitOfWork,
+            ILogger<UserService> logger,
+            IAuthService authService,
+            IEmailSender emailSender,
+            ICloudinaryService cloudinaryService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
             _authService = authService;
             _emailSender = emailSender;
+            _cloudinaryService = cloudinaryService;
         }
 
         public async Task<UserProfileDto> GetProfileAsync(ClaimsPrincipal user)
@@ -683,6 +690,7 @@ namespace api.Services
             _logger.LogInformation("Lấy danh sách đánh giá thành công cho {Email}", account.Email);
             return (data, total, page, pageSize);
         }
+
         public async Task ClearSearchHistoryAsync(ClaimsPrincipal user)
         {
             _logger.LogInformation("Clearing search history for user");
@@ -721,6 +729,75 @@ namespace api.Services
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("Cleared search history successfully for {Email}", account.Email);
+        }
+
+        public async Task<string> UploadAvatarAsync(ClaimsPrincipal user, IFormFile file)
+        {
+            _logger.LogInformation("Tải lên ảnh đại diện mới");
+            
+            if (file == null || file.Length == 0)
+            {
+                _logger.LogWarning("File ảnh trống hoặc không hợp lệ");
+                throw new ArgumentException("Vui lòng chọn file ảnh hợp lệ.");
+            }
+
+            // Kiểm tra định dạng file
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                _logger.LogWarning("Định dạng file không hợp lệ: {FileExtension}", fileExtension);
+                throw new ArgumentException("Định dạng file không hỗ trợ. Chỉ chấp nhận JPG, JPEG, PNG và GIF.");
+            }
+
+            // Giới hạn kích thước file (ví dụ: 5MB)
+            if (file.Length > 5 * 1024 * 1024)
+            {
+                _logger.LogWarning("Kích thước file quá lớn: {FileSize} bytes", file.Length);
+                throw new ArgumentException("Kích thước file không được vượt quá 5MB.");
+            }
+
+            var account = await _authService.GetCurrentUserAsync(user);
+
+            if (account == null)
+            {
+                _logger.LogWarning("Không tìm thấy tài khoản người dùng");
+                throw new UnauthorizedAccessException("Invalid or missing token");
+            }
+
+            if (account.Role != "User")
+            {
+                _logger.LogWarning("Vai trò không hợp lệ để tải lên ảnh đại diện: {Role}", account.Role);
+                throw new UnauthorizedAccessException("Chỉ người dùng có thể tải lên ảnh đại diện.");
+            }
+
+            var userEntity = await _unitOfWork.Repository<User>()
+                .FindSingleAsync(u => u.AccountId == account.AccountId && u.DeletedAt == null);
+            if (userEntity == null)
+            {
+                _logger.LogWarning("Không tìm thấy thông tin người dùng cho AccountId: {AccountId}", account.AccountId);
+                throw new ArgumentException("Thông tin người dùng không tồn tại.");
+            }
+
+            try
+            {
+                // Tải ảnh lên Cloudinary
+                string imageUrl = await _cloudinaryService.UploadImageAsync(file);
+
+                // Cập nhật đường dẫn ảnh đại diện cho người dùng
+                userEntity.AvatarUrl = imageUrl;
+                userEntity.UpdatedAt = DateTime.UtcNow;
+                _unitOfWork.Repository<User>().Update(userEntity);
+                await _unitOfWork.SaveChangesAsync();
+
+                _logger.LogInformation("Tải lên ảnh đại diện thành công cho {Email}", account.Email);
+                return imageUrl;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi tải lên ảnh đại diện");
+                throw new Exception("Không thể tải lên ảnh đại diện: " + ex.Message);
+            }
         }
     }
 }
