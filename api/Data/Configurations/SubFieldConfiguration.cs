@@ -1,6 +1,7 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Text.Json;
 
 namespace api.Data.Configurations
 {
@@ -20,28 +21,30 @@ namespace api.Data.Configurations
 
             builder.Property(sf => sf.Status)
                 .IsRequired()
-                .HasMaxLength(20);
-
-            builder.Property(sf => sf.Capacity)
-                .IsRequired();
+                .HasMaxLength(20)
+                .HasDefaultValue("Active");
 
             builder.Property(sf => sf.Description)
                 .HasMaxLength(500);
 
+            builder.Property(sf => sf.DefaultPricePerSlot)
+                .HasPrecision(18, 2);
+
+            // Store Child5aSideIds as JSON array
+            builder.Property(sf => sf.Child5aSideIds)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => JsonSerializer.Deserialize<List<int>>(v, (JsonSerializerOptions)null) ?? new List<int>());
+
             // Relationships
             builder.HasOne(sf => sf.Field)
-                .WithMany(f => f.SubFields)
+                .WithMany()
                 .HasForeignKey(sf => sf.FieldId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasMany(sf => sf.FieldPricings)
-                .WithOne(fp => fp.SubField)
-                .HasForeignKey(fp => fp.SubFieldId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasMany(sf => sf.Bookings)
-                .WithOne(b => b.SubField)
-                .HasForeignKey(b => b.SubFieldId)
+            builder.HasOne(sf => sf.Parent7aSide)
+                .WithMany()
+                .HasForeignKey(sf => sf.Parent7aSideId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

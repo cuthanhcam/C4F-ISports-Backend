@@ -11,33 +11,36 @@ namespace api.Data.Configurations
             builder.HasKey(f => f.FieldId);
 
             builder.Property(f => f.FieldName)
+                .IsRequired()
                 .HasMaxLength(100);
 
-            builder.Property(f => f.Phone)
-                .HasMaxLength(20);
-
-            builder.Property(f => f.Address)
+            builder.Property(f => f.Description)
                 .HasMaxLength(500);
 
-            builder.Property(f => f.OpenHours)
-                .HasMaxLength(50);
-
-            builder.Property(f => f.Status)
-                .HasMaxLength(20)
-                .HasDefaultValue("Active");
+            builder.Property(f => f.Address)
+                .IsRequired()
+                .HasMaxLength(500);
 
             builder.Property(f => f.City)
+                .IsRequired()
                 .HasMaxLength(100);
 
             builder.Property(f => f.District)
+                .IsRequired()
                 .HasMaxLength(100);
 
+            builder.Property(f => f.Status)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasDefaultValue("Active");
+
             builder.Property(f => f.AverageRating)
-                .HasPrecision(18, 2);
+                .HasPrecision(3, 2);
 
             builder.Property(f => f.CreatedAt)
                 .HasDefaultValueSql("GETUTCDATE()");
 
+            // Indexes
             builder.HasIndex(f => f.SportId);
             builder.HasIndex(f => f.OwnerId);
             builder.HasIndex(f => f.City);
@@ -45,54 +48,12 @@ namespace api.Data.Configurations
 
             // Relationships
             builder.HasOne(f => f.Sport)
-                .WithMany(s => s.Fields)
+                .WithMany()
                 .HasForeignKey(f => f.SportId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(f => f.Owner)
-                .WithMany(o => o.Fields)
-                .HasForeignKey(f => f.OwnerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasMany(f => f.SubFields)
-                .WithOne(sf => sf.Field)
-                .HasForeignKey(sf => sf.FieldId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasMany(f => f.Reviews)
-                .WithOne(r => r.Field)
-                .HasForeignKey(r => r.FieldId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasMany(f => f.FieldImages)
-                .WithOne(fi => fi.Field)
-                .HasForeignKey(fi => fi.FieldId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasMany(f => f.FieldAmenities)
-                .WithOne(fa => fa.Field)
-                .HasForeignKey(fa => fa.FieldId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasMany(f => f.FieldDescriptions)
-                .WithOne(fd => fd.Field)
-                .HasForeignKey(fd => fd.FieldId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasMany(f => f.FieldServices)
-                .WithOne(fs => fs.Field)
-                .HasForeignKey(fs => fs.FieldId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasMany(f => f.FavoriteFields)
-                .WithOne(ff => ff.Field)
-                .HasForeignKey(ff => ff.FieldId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasMany(f => f.Promotions)
-                .WithOne(p => p.Field)
-                .HasForeignKey(p => p.FieldId)
-                .OnDelete(DeleteBehavior.SetNull);
+            // Add soft delete filter
+            builder.HasQueryFilter(f => f.DeletedAt == null);
         }
     }
 }

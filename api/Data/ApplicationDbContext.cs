@@ -27,6 +27,7 @@ namespace api.Data
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Owner> Owners { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<PricingRule> PricingRules { get; set; }
         public DbSet<Promotion> Promotions { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<RefundRequest> RefundRequests { get; set; }
@@ -35,6 +36,7 @@ namespace api.Data
         public DbSet<SearchHistory> SearchHistories { get; set; }
         public DbSet<Sport> Sports { get; set; }
         public DbSet<SubField> SubFields { get; set; }
+        public DbSet<TimeSlot> TimeSlots { get; set; }
         public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -53,6 +55,13 @@ namespace api.Data
             modelBuilder.Entity<RescheduleRequest>().HasQueryFilter(rr => rr.DeletedAt == null);
             modelBuilder.Entity<SearchHistory>().HasQueryFilter(sh => sh.DeletedAt == null);
             modelBuilder.Entity<User>().HasQueryFilter(u => u.DeletedAt == null);
+            modelBuilder.Entity<Owner>().HasQueryFilter(o => o.DeletedAt == null);
+            modelBuilder.Entity<Sport>().HasQueryFilter(s => s.DeletedAt == null);
+            modelBuilder.Entity<Account>().HasQueryFilter(a => a.DeletedAt == null);
+            modelBuilder.Entity<BookingTimeSlot>().HasQueryFilter(bts => bts.DeletedAt == null);
+            modelBuilder.Entity<RefundRequest>().HasQueryFilter(rr => rr.DeletedAt == null);
+            modelBuilder.Entity<RescheduleRequest>().HasQueryFilter(rr => rr.DeletedAt == null);
+                
         }
     }
 }
