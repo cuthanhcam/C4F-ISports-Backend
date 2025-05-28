@@ -281,7 +281,8 @@ namespace api.Services
             try
             {
                 // Tải ảnh lên Cloudinary
-                string imageUrl = await _cloudinaryService.UploadImageAsync(file);
+                var uploadResult = await _cloudinaryService.UploadImageAsync(file);
+                string imageUrl = uploadResult.Url;
 
                 // Cập nhật URL ảnh
                 sport.ImageUrl = imageUrl;

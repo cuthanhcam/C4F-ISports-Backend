@@ -783,7 +783,8 @@ namespace api.Services
             try
             {
                 // Tải ảnh lên Cloudinary
-                string imageUrl = await _cloudinaryService.UploadImageAsync(file);
+                var uploadResponse = await _cloudinaryService.UploadImageAsync(file);
+                string imageUrl = uploadResponse.Url;
 
                 // Cập nhật đường dẫn ảnh đại diện cho người dùng
                 userEntity.AvatarUrl = imageUrl;
