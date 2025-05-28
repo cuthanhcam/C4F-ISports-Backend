@@ -10,6 +10,8 @@ namespace api.Models
     public class BookingTimeSlot
     {
         public int BookingTimeSlotId { get; set; }
+
+        [Required]
         public int BookingId { get; set; }
 
         [Required]
@@ -17,10 +19,13 @@ namespace api.Models
 
         [Required]
         public TimeSpan EndTime { get; set; }
-        public DateTime? DeletedAt { get; set; }
-        [Required]
-        public decimal Price { get; set; }
 
+        [Required]
+        public decimal Price { get; set; } // Giá cho slot 30 phút
+
+        public DateTime? DeletedAt { get; set; }
+
+        [ForeignKey("BookingId")]
         public Booking Booking { get; set; } = null!;
     }
 }

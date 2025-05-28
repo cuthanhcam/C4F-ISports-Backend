@@ -10,7 +10,11 @@ namespace api.Models
     public class BookingService
     {
         public int BookingServiceId { get; set; }
+
+        [Required]
         public int BookingId { get; set; }
+
+        [Required]
         public int FieldServiceId { get; set; }
 
         [Required]
@@ -22,7 +26,10 @@ namespace api.Models
         [StringLength(500)]
         public string? Description { get; set; }
 
-        public Booking Booking { get; set; }
-        public FieldService FieldService { get; set; }
+        [ForeignKey("BookingId")]
+        public Booking Booking { get; set; } = null!;
+
+        [ForeignKey("FieldServiceId")]
+        public FieldService FieldService { get; set; } = null!;
     }
 }

@@ -10,10 +10,12 @@ namespace api.Models
     public class FieldService
     {
         public int FieldServiceId { get; set; }
+
+        [Required]
         public int FieldId { get; set; }
 
         [Required, StringLength(100)]
-        public required string ServiceName { get; set; }
+        public string ServiceName { get; set; } = string.Empty;
 
         [Required]
         public decimal Price { get; set; }
@@ -23,7 +25,8 @@ namespace api.Models
 
         public bool IsActive { get; set; } = true;
 
-        public Field Field { get; set; }
+        [ForeignKey("FieldId")]
+        public Field Field { get; set; } = null!;
         public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
     }
 }
