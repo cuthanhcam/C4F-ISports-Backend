@@ -25,8 +25,8 @@ namespace api.Services
 
             try
             {
-                if (string.IsNullOrEmpty(config.Value.CloudName) || 
-                    string.IsNullOrEmpty(config.Value.ApiKey) || 
+                if (string.IsNullOrEmpty(config.Value.CloudName) ||
+                    string.IsNullOrEmpty(config.Value.ApiKey) ||
                     string.IsNullOrEmpty(config.Value.ApiSecret))
                 {
                     _logger.LogError("CloudinarySettings is missing required fields (CloudName, ApiKey, or ApiSecret).");
@@ -49,6 +49,7 @@ namespace api.Services
             }
         }
 
+        /*
         public async Task<string> UploadImageAsync(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -94,6 +95,46 @@ namespace api.Services
             {
                 _logger.LogError(ex, "Failed to upload image {FileName}. StackTrace: {StackTrace}", file.FileName, ex.StackTrace);
                 throw new Exception($"Failed to upload image {file.FileName}: {ex.Message}", ex);
+            }
+        }
+        */
+        public async Task<ImageUploadResponse> UploadImageAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                _logger.LogError("UploadImageAsync: File is null or empty.");
+                throw new ArgumentException("File cannot be null or empty.", nameof(file));
+            }
+
+            try
+            {
+                using var stream = file.OpenReadStream();
+                var uploadParams = new ImageUploadParams
+                {
+                    File = new FileDescription(file.FileName, stream),
+                    Transformation = new Transformation().Width(500).Height(500).Crop("fit")
+                };
+
+                _logger.LogInformation("Uploading image {FileName} to Cloudinary...", file.FileName);
+                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+                if (uploadResult?.Error != null)
+                {
+                    _logger.LogError("Cloudinary upload failed: {Error}", uploadResult.Error.Message);
+                    throw new Exception($"Cloudinary upload failed: {uploadResult.Error.Message}");
+                }
+
+                _logger.LogInformation("Image {FileName} uploaded successfully. URL: {Url}", file.FileName, uploadResult.SecureUrl.ToString());
+                return new ImageUploadResponse
+                {
+                    Url = uploadResult.SecureUrl.ToString(),
+                    PublicId = uploadResult.PublicId
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to upload image {FileName}.", file.FileName);
+                throw;
             }
         }
 

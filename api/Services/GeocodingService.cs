@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using api.Interfaces;
 using Microsoft.Extensions.Logging;
 using api.Dtos.Field;
-using api.Dtos.Field.AddressValidationDtos;
 
 namespace api.Services
 {
@@ -22,7 +21,7 @@ namespace api.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<AddressValidationResultDto> ValidateAddressAsync(ValidateAddressDto addressDto)
+        public async Task<ValidateAddressResponseDto> ValidateAddressAsync(ValidateAddressDto addressDto)
         {
             var query = NormalizeQuery(addressDto);
             try
@@ -39,7 +38,7 @@ namespace api.Services
                 catch (Exception innerEx)
                 {
                     _logger.LogError(innerEx, "Failed to validate address for query: {Query}", addressDto.Address);
-                    return new AddressValidationResultDto
+                    return new ValidateAddressResponseDto
                     {
                         IsValid = false,
                         FormattedAddress = addressDto.Address,
@@ -79,7 +78,7 @@ namespace api.Services
             return query;
         }
 
-        private async Task<AddressValidationResultDto> GetCoordinatesFromOpenCageAsync(string query)
+        private async Task<ValidateAddressResponseDto> GetCoordinatesFromOpenCageAsync(string query)
         {
             var apiKey = _configuration["Geocoding:OpenCageApiKey"];
             var baseUrl = _configuration["Geocoding:OpenCageGeocodingUrl"];
@@ -110,7 +109,7 @@ namespace api.Services
                 if (result == null || result.Results == null || result.Results.Length == 0)
                 {
                     _logger.LogWarning("No geocoding results found for query: {Query}. Full response: {Response}", query, content);
-                    return new AddressValidationResultDto
+                    return new ValidateAddressResponseDto
                     {
                         IsValid = false,
                         FormattedAddress = query,
@@ -123,7 +122,7 @@ namespace api.Services
                 if (firstResult.Geometry == null)
                 {
                     _logger.LogError("Geometry is null in first result for query: {Query}", query);
-                    return new AddressValidationResultDto
+                    return new ValidateAddressResponseDto
                     {
                         IsValid = false,
                         FormattedAddress = query,
@@ -132,13 +131,13 @@ namespace api.Services
                     };
                 }
 
-                var lat = (decimal)Math.Round(firstResult.Geometry.Lat, 6);
-                var lng = (decimal)Math.Round(firstResult.Geometry.Lng, 6);
+                var lat = firstResult.Geometry.Lat;
+                var lng = firstResult.Geometry.Lng;
                 var formattedAddress = firstResult.Formatted ?? query;
 
                 _logger.LogInformation("Address validated: Lat={Lat}, Lng={Lng}, FormattedAddress={FormattedAddress}", lat, lng, formattedAddress);
 
-                return new AddressValidationResultDto
+                return new ValidateAddressResponseDto
                 {
                     IsValid = true,
                     Latitude = lat,

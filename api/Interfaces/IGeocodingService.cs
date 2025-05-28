@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using api.Dtos.Field.AddressValidationDtos;
+using api.Dtos.Field;
 
 namespace api.Interfaces
 {
     public interface IGeocodingService
     {
-        Task<AddressValidationResultDto> ValidateAddressAsync(ValidateAddressDto addressDto);
+        Task<ValidateAddressResponseDto> ValidateAddressAsync(ValidateAddressDto addressDto);
     }
 }   
