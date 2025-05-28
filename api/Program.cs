@@ -278,6 +278,7 @@ void ConfigureServices(WebApplicationBuilder builder)
     builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
     builder.Services.AddScoped<IFieldService, api.Services.FieldService>();
     builder.Services.AddScoped<ISubFieldService, SubFieldService>();
+    builder.Services.AddScoped<ISportService, SportService>();
 
     // 2.14. Cấu hình Logging
     builder.Services.AddLogging(logging =>
