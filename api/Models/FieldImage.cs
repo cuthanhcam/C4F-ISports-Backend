@@ -10,20 +10,23 @@ namespace api.Models
     public class FieldImage
     {
         public int FieldImageId { get; set; }
+
+        [Required]
         public int FieldId { get; set; }
 
         [Required, StringLength(500), Url]
-        public required string ImageUrl { get; set; }
+        public string ImageUrl { get; set; } = string.Empty;
 
         [StringLength(500)]
-        public string? PublicId { get; set; } // Added for Cloudinary
+        public string? PublicId { get; set; } // For Cloudinary
 
         [StringLength(500), Url]
         public string? Thumbnail { get; set; }
 
         public bool IsPrimary { get; set; }
-        public DateTime UploadedAt { get; set; }
+        public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 
-        public Field Field { get; set; }
+        [ForeignKey("FieldId")]
+        public Field Field { get; set; } = null!;
     }
 }

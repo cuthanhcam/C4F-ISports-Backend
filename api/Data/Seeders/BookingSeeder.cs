@@ -22,29 +22,39 @@ namespace api.Data.Seeders
                     return;
                 }
 
-                var bookings = new[]
+                var booking = new Booking
                 {
-                    new Booking
+                    UserId = user.UserId,
+                    User = user, // Gán navigation property
+                    SubFieldId = subField.SubFieldId,
+                    SubField = subField, // Gán navigation property
+                    BookingDate = DateTime.UtcNow.AddDays(1),
+                    TotalPrice = 450000m, // Áp dụng khuyến mãi 10%
+                    Status = "Confirmed",
+                    PaymentStatus = "Paid",
+                    Notes = "Đặt sân cho đội bóng công ty.",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    IsReminderSent = false,
+                    PromotionId = promotion?.PromotionId,
+                    TimeSlots = new List<BookingTimeSlot>
                     {
-                        UserId = user.UserId,
-                        User = user, // Gán navigation property
-                        SubFieldId = subField.SubFieldId,
-                        SubField = subField, // Gán navigation property
-                        BookingDate = DateTime.UtcNow.AddDays(1),
-                        StartTime = TimeSpan.Parse("17:00"),
-                        EndTime = TimeSpan.Parse("18:00"),
-                        TotalPrice = 450000m, // Áp dụng khuyến mãi 10%
-                        Status = "Confirmed",
-                        PaymentStatus = "Paid",
-                        Notes = "Đặt sân cho đội bóng công ty.",
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
-                        IsReminderSent = false,
-                        PromotionId = promotion?.PromotionId
+                        new BookingTimeSlot
+                        {
+                            StartTime = TimeSpan.Parse("17:00"),
+                            EndTime = TimeSpan.Parse("17:30"),
+                            Price = 225000m // Giá cho slot 30 phút đầu
+                        },
+                        new BookingTimeSlot
+                        {
+                            StartTime = TimeSpan.Parse("17:30"),
+                            EndTime = TimeSpan.Parse("18:00"),
+                            Price = 225000m // Giá cho slot 30 phút sau
+                        }
                     }
                 };
 
-                await context.Bookings.AddRangeAsync(bookings);
+                await context.Bookings.AddAsync(booking);
                 await context.SaveChangesAsync();
                 logger?.LogInformation("Bookings seeded successfully. Bookings: {Count}", await context.Bookings.CountAsync());
             }

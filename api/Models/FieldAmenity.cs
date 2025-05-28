@@ -10,17 +10,20 @@ namespace api.Models
     public class FieldAmenity
     {
         public int FieldAmenityId { get; set; }
+
+        [Required]
         public int FieldId { get; set; }
 
         [Required, StringLength(100)]
-        public required string AmenityName { get; set; }
+        public string AmenityName { get; set; } = string.Empty;
 
         [StringLength(500)]
-        public string? Description { get; set; }
+        public string? Description { get; set; } // Mô tả tiện ích
 
         [StringLength(500), Url]
         public string? IconUrl { get; set; }
 
-        public Field Field { get; set; }
+        [ForeignKey("FieldId")]
+        public Field Field { get; set; } = null!;
     }
 }

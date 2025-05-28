@@ -398,7 +398,8 @@ namespace api.Services
             IQueryable<Booking> query = _unitOfWork.Repository<Booking>()
                 .FindQueryable(b => b.UserId == userEntity.UserId && b.DeletedAt == null)
                 .Include(b => b.SubField)
-                .ThenInclude(sf => sf.Field);
+                .ThenInclude(sf => sf.Field)
+                .Include(b => b.TimeSlots);
 
             if (!string.IsNullOrEmpty(status))
             {
@@ -435,21 +436,21 @@ namespace api.Services
 
             var total = await query.CountAsync();
             var data = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(b => new BookingHistoryDto
-                {
-                    BookingId = b.BookingId,
-                    FieldName = b.SubField.Field.FieldName,
-                    SubFieldName = b.SubField.SubFieldName,
-                    BookingDate = b.BookingDate,
-                    StartTime = b.StartTime,
-                    EndTime = b.EndTime,
-                    TotalPrice = b.TotalPrice,
-                    Status = b.Status,
-                    PaymentStatus = b.PaymentStatus
-                })
-                .ToListAsync();
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(b => new BookingHistoryDto
+            {
+                BookingId = b.BookingId,
+                FieldName = b.SubField.Field.FieldName,
+                SubFieldName = b.SubField.SubFieldName,
+                BookingDate = b.BookingDate,
+                StartTime = b.TimeSlots.OrderBy(ts => ts.StartTime).Select(ts => ts.StartTime).FirstOrDefault(),
+                EndTime = b.TimeSlots.OrderByDescending(ts => ts.EndTime).Select(ts => ts.EndTime).FirstOrDefault(),
+                TotalPrice = b.TotalPrice,
+                Status = b.Status,
+                PaymentStatus = b.PaymentStatus
+            })
+            .ToListAsync();
 
             _logger.LogInformation("Lấy lịch sử đặt sân thành công cho {Email}", account.Email);
             return (data, total, page, pageSize);
@@ -734,7 +735,7 @@ namespace api.Services
         public async Task<string> UploadAvatarAsync(ClaimsPrincipal user, IFormFile file)
         {
             _logger.LogInformation("Tải lên ảnh đại diện mới");
-            
+
             if (file == null || file.Length == 0)
             {
                 _logger.LogWarning("File ảnh trống hoặc không hợp lệ");

@@ -17,8 +17,7 @@ namespace api.Data.Configurations
                 .IsRequired();
 
             builder.Property(fp => fp.DayOfWeek)
-                .IsRequired()
-                .HasDefaultValue(0);
+                .IsRequired();
 
             builder.Property(fp => fp.Price)
                 .IsRequired()
@@ -27,16 +26,14 @@ namespace api.Data.Configurations
             builder.Property(fp => fp.IsActive)
                 .HasDefaultValue(true);
 
-            builder.Property(fp => fp.DeletedAt)
-                .HasColumnType("datetime");
-
-            builder.HasQueryFilter(fp => fp.DeletedAt == null);
-
-            // Relationships
+            // Relationship
             builder.HasOne(fp => fp.SubField)
-                .WithMany(sf => sf.FieldPricings)
+                .WithMany()
                 .HasForeignKey(fp => fp.SubFieldId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Soft delete filter
+            builder.HasQueryFilter(fp => fp.DeletedAt == null);
         }
     }
 }

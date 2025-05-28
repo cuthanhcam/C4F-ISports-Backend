@@ -44,6 +44,12 @@ namespace api.Data
                 await SubFieldSeeder.SeedAsync(context, logger);
                 logger.LogInformation("SubFieldSeeder hoàn tất. SubFields: {Count}", await context.SubFields.IgnoreQueryFilters().CountAsync());
 
+                await TimeSlotSeeder.SeedAsync(context, logger);
+                logger.LogInformation("TimeSlotSeeder hoàn tất. TimeSlots: {Count}", await context.TimeSlots.IgnoreQueryFilters().CountAsync());
+
+                await PricingRuleSeeder.SeedAsync(context, logger);
+                logger.LogInformation("PricingRuleSeeder hoàn tất. PricingRules: {Count}", await context.PricingRules.IgnoreQueryFilters().CountAsync());
+
                 await FieldPricingSeeder.SeedAsync(context, logger);
                 logger.LogInformation("FieldPricingSeeder hoàn tất. FieldPricings: {Count}", await context.FieldPricings.IgnoreQueryFilters().CountAsync());
 
