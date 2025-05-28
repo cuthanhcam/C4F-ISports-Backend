@@ -21,14 +21,14 @@ namespace api.Data.Seeders
                         {
                             SportName = "Football",
                             Description = "Môn thể thao đồng đội phổ biến nhất thế giới.",
-                            IconUrl = "https://example.com/icons/football.png",
+                            ImageUrl = "https://example.com/icons/football.png",
                             IsActive = true
                         },
                         new Sport
                         {
                             SportName = "Badminton",
                             Description = "Môn thể thao đối kháng sử dụng vợt và cầu lông.",
-                            IconUrl = "https://example.com/icons/badminton.png",
+                            ImageUrl = "https://example.com/icons/badminton.png",
                             IsActive = true
                         }
                     };
