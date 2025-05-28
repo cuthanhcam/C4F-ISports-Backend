@@ -1,962 +1,463 @@
 using System;
-using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading.Tasks;
-using api.Dtos.Field;
-using api.Dtos.Field.SubFieldDtos;
-using api.Dtos.Field.FieldImageDtos;
-using api.Dtos.Field.FieldServiceDtos;
-using api.Dtos.Field.FieldAmenityDtos;
-using api.Dtos.Field.FieldDescriptionDtos;
-using api.Dtos.Field.FieldPricingDtos;
-using api.Dtos.Field.FieldAvailabilityDtos;
-using api.Dtos.Field.AddressValidationDtos;
-using api.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
+using api.Dtos.Field;
+using api.Interfaces;
+using System.Security.Claims;
 
 namespace api.Controllers
 {
-    /// <summary>
-    /// Controller xử lý các yêu cầu liên quan đến sân thể thao (fields).
-    /// </summary>
-    [Route("api/fields")]
     [ApiController]
-    [Authorize]
-    [EnableRateLimiting("fields")]
+    [Route("api/[controller]")]
     public class FieldController : ControllerBase
     {
         private readonly IFieldService _fieldService;
-        private readonly ISubFieldService _subFieldService;
         private readonly ILogger<FieldController> _logger;
 
-        public FieldController(IFieldService fieldService, ISubFieldService subFieldService, ILogger<FieldController> logger)
+        public FieldController(IFieldService fieldService, ILogger<FieldController> logger)
         {
-            _fieldService = fieldService ?? throw new ArgumentNullException(nameof(fieldService));
-            _subFieldService = subFieldService ?? throw new ArgumentNullException(nameof(subFieldService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _fieldService = fieldService;
+            _logger = logger;
         }
 
         /// <summary>
-        /// Tạo một sân thể thao mới.
+        /// Lấy danh sách sân với bộ lọc và phân trang.
+        /// </summary>
+        /// <param name="filterDto">Bộ lọc để tìm kiếm sân (thành phố, quận, môn thể thao, giá, v.v.).</param>
+        /// <returns>Danh sách sân, tổng số, trang hiện tại và kích thước trang.</returns>
+        /// <response code="200">Trả về danh sách sân và thông tin phân trang.</response>
+        /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
+        /// <response code="500">Lỗi hệ thống.</response>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetFields([FromQuery] FieldFilterDto filterDto)
+        {
+            try
+            {
+                _logger.LogInformation("Lấy danh sách sân với bộ lọc: {@Filter}", filterDto);
+                var (data, total, page, pageSize) = await _fieldService.GetFilteredFieldsAsync(filterDto);
+                _logger.LogInformation("Lấy thành công {Count} sân, trang {Page}/{TotalPages}", 
+                    data.Count, page, (int)Math.Ceiling((double)total / pageSize));
+
+                return Ok(new
+                {
+                    data,
+                    total,
+                    page,
+                    pageSize
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Dữ liệu đầu vào không hợp lệ khi lấy danh sách sân.");
+                return BadRequest(new { error = "Dữ liệu không hợp lệ", message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi hệ thống khi lấy danh sách sân.");
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new { error = "Lỗi hệ thống", message = "Đã xảy ra lỗi không mong muốn." });
+            }
+        }
+
+        /// <summary>
+        /// Lấy thông tin chi tiết của một sân theo ID.
+        /// </summary>
+        /// <param name="id">ID của sân.</param>
+        /// <param name="include">Danh sách các thông tin bổ sung (services, amenities, images).</param>
+        /// <returns>Thông tin chi tiết của sân.</returns>
+        /// <response code="200">Trả về thông tin sân.</response>
+        /// <response code="404">Sân không tồn tại.</response>
+        /// <response code="500">Lỗi hệ thống.</response>
+        [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetFieldById(int id, [FromQuery] string? include = null)
+        {
+            try
+            {
+                _logger.LogInformation("Lấy thông tin sân với ID: {Id}, include: {Include}", id, include);
+                var field = await _fieldService.GetFieldByIdAsync(id, include);
+                _logger.LogInformation("Lấy thông tin sân {Id} thành công.", id);
+                return Ok(field);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Sân với ID {Id} không tồn tại.", id);
+                return NotFound(new { error = "Không tìm thấy", message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi hệ thống khi lấy thông tin sân {Id}.", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new { error = "Lỗi hệ thống", message = "Đã xảy ra lỗi không mong muốn." });
+            }
+        }
+
+        /// <summary>
+        /// Kiểm tra tính hợp lệ của địa chỉ sân.
+        /// </summary>
+        /// <param name="validateAddressDto">Thông tin địa chỉ cần kiểm tra.</param>
+        /// <returns>Kết quả kiểm tra địa chỉ (tọa độ, tính hợp lệ).</returns>
+        /// <response code="200">Trả về kết quả kiểm tra địa chỉ.</response>
+        /// <response code="400">Địa chỉ không hợp lệ.</response>
+        /// <response code="500">Lỗi hệ thống.</response>
+        [HttpPost("validate-address")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ValidateAddress([FromBody] ValidateAddressDto validateAddressDto)
+        {
+            try
+            {
+                _logger.LogInformation("Kiểm tra địa chỉ: {@Address}", validateAddressDto);
+                var result = await _fieldService.ValidateAddressAsync(validateAddressDto);
+                _logger.LogInformation("Kiểm tra địa chỉ thành công: {IsValid}", result.IsValid);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Địa chỉ không hợp lệ.");
+                return BadRequest(new { error = "Dữ liệu không hợp lệ", message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi hệ thống khi kiểm tra địa chỉ.");
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new { error = "Lỗi hệ thống", message = "Đã xảy ra lỗi không mong muốn." });
+            }
+        }
+
+        /// <summary>
+        /// Tạo một sân mới (yêu cầu quyền Owner).
         /// </summary>
         /// <param name="createFieldDto">Thông tin sân cần tạo.</param>
         /// <returns>Thông tin sân vừa tạo.</returns>
         /// <response code="201">Sân được tạo thành công.</response>
-        /// <response code="400">Dữ liệu không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
+        /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
+        /// <response code="401">Người dùng không được xác thực.</response>
+        /// <response code="403">Người dùng không có quyền Owner.</response>
+        /// <response code="500">Lỗi hệ thống.</response>
         [HttpPost]
-        [Authorize(Policy = "OwnerOnly")]
+        [Authorize(Roles = "Owner")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateField([FromBody] CreateFieldDto createFieldDto)
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    _logger.LogWarning("Invalid model state for CreateField: {Errors}", ModelState);
-                    return BadRequest(ModelState);
-                }
-
+                _logger.LogInformation("Tạo sân mới: {@Field}", createFieldDto);
                 var field = await _fieldService.CreateFieldAsync(User, createFieldDto);
-                _logger.LogInformation("Field created successfully: FieldId={FieldId}", field.FieldId);
-                return CreatedAtAction(nameof(GetFieldById), new { fieldId = field.FieldId }, new { Message = "Tạo sân thành công", Data = field });
+                _logger.LogInformation("Tạo sân thành công với ID: {Id}", field.FieldId);
+                return CreatedAtAction(nameof(GetFieldById), new { id = field.FieldId }, field);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Không có quyền tạo sân.");
+                return StatusCode(StatusCodes.Status403Forbidden, 
+                    new { error = "Không được phép", message = ex.Message });
             }
             catch (ArgumentException ex)
             {
-                _logger.LogError(ex, "Validation error during CreateField");
-                return BadRequest(new { Error = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Unauthorized access during CreateField");
-                return Unauthorized(new { Error = ex.Message });
+                _logger.LogWarning(ex, "Dữ liệu đầu vào không hợp lệ khi tạo sân.");
+                return BadRequest(new { error = "Dữ liệu không hợp lệ", message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error during CreateField");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi tạo sân." });
+                _logger.LogError(ex, "Lỗi hệ thống khi tạo sân.");
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new { error = "Lỗi hệ thống", message = "Đã xảy ra lỗi không mong muốn." });
             }
         }
 
         /// <summary>
-        /// Cập nhật thông tin sân thể thao.
+        /// Tải ảnh lên cho sân (yêu cầu quyền Owner).
         /// </summary>
-        /// <param name="fieldId">ID của sân cần cập nhật.</param>
-        /// <param name="updateFieldDto">Thông tin cập nhật.</param>
-        /// <returns>Thông tin sân đã cập nhật.</returns>
-        /// <response code="200">Cập nhật sân thành công.</response>
-        /// <response code="400">Dữ liệu không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
-        /// <response code="404">Sân không tồn tại.</response>
-        [HttpPut("{fieldId}")]
-        [Authorize(Policy = "OwnerOnly")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateField(int fieldId, [FromBody] UpdateFieldDto updateFieldDto)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    _logger.LogWarning("Invalid model state for UpdateField: {Errors}", ModelState);
-                    return BadRequest(ModelState);
-                }
-
-                var field = await _fieldService.UpdateFieldAsync(User, fieldId, updateFieldDto);
-                _logger.LogInformation("Field updated successfully: FieldId={FieldId}", fieldId);
-                return Ok(new { Message = "Cập nhật sân thành công", Data = field });
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Validation error during UpdateField: FieldId={FieldId}", fieldId);
-                return BadRequest(new { Error = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field not found: FieldId={FieldId}", fieldId);
-                return NotFound(new { Error = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Unauthorized access during UpdateField: FieldId={FieldId}", fieldId);
-                return Unauthorized(new { Error = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during UpdateField: FieldId={FieldId}", fieldId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi cập nhật sân." });
-            }
-        }
-
-        /// <summary>
-        /// Xóa một sân thể thao.
-        /// </summary>
-        /// <param name="fieldId">ID của sân cần xóa.</param>
-        /// <returns>Thông báo xóa thành công.</returns>
-        /// <response code="200">Xóa sân thành công.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
-        /// <response code="404">Sân không tồn tại.</response>
-        [HttpDelete("{fieldId}")]
-        [Authorize(Policy = "OwnerOnly")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DeleteField(int fieldId)
-        {
-            try
-            {
-                await _fieldService.DeleteFieldAsync(User, fieldId);
-                _logger.LogInformation("Field deleted successfully: FieldId={FieldId}", fieldId);
-                return Ok(new { Message = "Xóa sân thành công" });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field not found: FieldId={FieldId}", fieldId);
-                return NotFound(new { Error = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Unauthorized access during DeleteField: FieldId={FieldId}", fieldId);
-                return Unauthorized(new { Error = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during DeleteField: FieldId={FieldId}", fieldId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi xóa sân." });
-            }
-        }
-
-        /// <summary>
-        /// Lấy thông tin sân theo ID.
-        /// </summary>
-        /// <param name="fieldId">ID của sân.</param>
-        /// <returns>Thông tin sân.</returns>
-        /// <response code="200">Trả về thông tin sân.</response>
-        /// <response code="404">Sân không tồn tại.</response>
-        [HttpGet("{fieldId}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetFieldById(int fieldId)
-        {
-            try
-            {
-                var field = await _fieldService.GetFieldByIdAsync(fieldId);
-                _logger.LogInformation("Field retrieved successfully: FieldId={FieldId}", fieldId);
-                return Ok(new { Data = field });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field not found: FieldId={FieldId}", fieldId);
-                return NotFound(new { Error = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during GetFieldById: FieldId={FieldId}", fieldId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi lấy thông tin sân." });
-            }
-        }
-
-        /// <summary>
-        /// Lấy danh sách tất cả sân thể thao.
-        /// </summary>
-        /// <returns>Danh sách sân.</returns>
-        /// <response code="200">Trả về danh sách sân.</response>
-        [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAllFields()
-        {
-            try
-            {
-                var fields = await _fieldService.GetAllFieldsAsync();
-                _logger.LogInformation("All fields retrieved successfully");
-                return Ok(new { Data = fields });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during GetAllFields");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi lấy danh sách sân." });
-            }
-        }
-
-        /*
-        /// <summary>
-        /// Thêm ảnh cho sân thể thao.
-        /// </summary>
-        /// <param name="fieldId">ID của sân.</param>
-        /// <param name="image">File ảnh cần tải lên.</param>
-        /// <returns>Thông tin ảnh vừa thêm.</returns>
-        /// <response code="201">Thêm ảnh thành công.</response>
+        /// <param name="id">ID của sân.</param>
+        /// <param name="file">File ảnh cần tải lên.</param>
+        /// <param name="isPrimary">Ảnh có phải là ảnh chính không.</param>
+        /// <returns>Thông tin ảnh vừa tải lên.</returns>
+        /// <response code="200">Ảnh được tải lên thành công.</response>
         /// <response code="400">File ảnh không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
+        /// <response code="401">Người dùng không được xác thực.</response>
+        /// <response code="403">Người dùng không có quyền Owner hoặc không sở hữu sân.</response>
         /// <response code="404">Sân không tồn tại.</response>
-        [HttpPost("{fieldId}/images")]
-        [Authorize(Policy = "OwnerOnly")]
-        [Consumes("multipart/form-data")]
-        [Produces("application/json")]
-        [ProducesResponseType(typeof(FieldImageDto), StatusCodes.Status201Created)]
+        /// <response code="500">Lỗi hệ thống.</response>
+        [HttpPost("{id}/images")]
+        [Authorize(Roles = "Owner")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> AddFieldImage(int fieldId, [FromForm] IFormFile image)
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UploadFieldImage(int id, IFormFile file, [FromQuery] bool isPrimary = false)
         {
             try
             {
-                if (image == null || image.Length == 0)
+                if (file == null || file.Length == 0)
                 {
-                    _logger.LogWarning("Invalid image file for AddFieldImage: FieldId={FieldId}", fieldId);
-                    return BadRequest(new { Error = "File ảnh không hợp lệ" });
+                    _logger.LogWarning("Không có file ảnh được cung cấp cho sân ID: {Id}", id);
+                    return BadRequest(new 
+                    { 
+                        error = "Dữ liệu không hợp lệ", 
+                        details = new[] { new { field = "file", message = "Vui lòng chọn một file ảnh." } } 
+                    });
                 }
 
-                var fieldImage = await _fieldService.AddFieldImageAsync(User, fieldId, image);
-                _logger.LogInformation("Field image added successfully: FieldId={FieldId}, FieldImageId={FieldImageId}, PublicId={PublicId}, ImageUrl={ImageUrl}", 
-                    fieldId, fieldImage.FieldImageId, fieldImage.PublicId, fieldImage.ImageUrl);
-                return CreatedAtAction(nameof(GetFieldById), new { fieldId }, new { Message = "Thêm ảnh thành công", Data = fieldImage });
+                _logger.LogInformation("Tải ảnh lên cho sân ID: {Id}, isPrimary: {IsPrimary}", id, isPrimary);
+                var imageResponse = await _fieldService.UploadFieldImageAsync(User, id, file, isPrimary);
+                _logger.LogInformation("Tải ảnh thành công cho sân ID: {Id}", id);
+                return Ok(imageResponse);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Không có quyền tải ảnh cho sân ID: {Id}", id);
+                return StatusCode(StatusCodes.Status403Forbidden, 
+                    new { error = "Không được phép", message = ex.Message });
             }
             catch (ArgumentException ex)
             {
-                _logger.LogError(ex, "Validation error during AddFieldImage: FieldId={FieldId}", fieldId);
-                return BadRequest(new { Error = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field not found: FieldId={FieldId}", fieldId);
-                return NotFound(new { Error = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Unauthorized access during AddFieldImage: FieldId={FieldId}", fieldId);
-                return Unauthorized(new { Error = ex.Message });
+                _logger.LogWarning(ex, "Sân ID {Id} không tồn tại hoặc dữ liệu không hợp lệ.", id);
+                return NotFound(new { error = "Không tìm thấy", message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error during AddFieldImage: FieldId={FieldId}", fieldId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi thêm ảnh sân." });
-            }
-        }
-        */
-
-        /// <summary>
-        /// Xóa ảnh của sân thể thao.
-        /// </summary>
-        /// <param name="fieldId">ID của sân.</param>
-        /// <param name="fieldImageId">ID của ảnh cần xóa.</param>
-        /// <returns>Thông báo xóa thành công.</returns>
-        /// <response code="200">Xóa ảnh thành công.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
-        /// <response code="404">Sân hoặc ảnh không tồn tại.</response>
-        [HttpDelete("{fieldId}/images/{fieldImageId}")]
-        [Authorize(Policy = "OwnerOnly")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DeleteFieldImage(int fieldId, int fieldImageId)
-        {
-            try
-            {
-                await _fieldService.DeleteFieldImageAsync(User, fieldId, fieldImageId);
-                _logger.LogInformation("Field image deleted successfully: FieldId={FieldId}, FieldImageId={FieldImageId}", fieldId, fieldImageId);
-                return Ok(new { Message = "Xóa ảnh thành công" });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field or image not found: FieldId={FieldId}, FieldImageId={FieldImageId}", fieldId, fieldImageId);
-                return NotFound(new { Error = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Unauthorized access during DeleteFieldImage: FieldId={FieldId}, FieldImageId={FieldImageId}", fieldId, fieldImageId);
-                return Unauthorized(new { Error = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during DeleteFieldImage: FieldId={FieldId}, FieldImageId={FieldImageId}", fieldId, fieldImageId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi xóa ảnh sân." });
+                _logger.LogError(ex, "Lỗi hệ thống khi tải ảnh cho sân ID: {Id}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new { error = "Lỗi hệ thống", message = "Đã xảy ra lỗi không mong muốn." });
             }
         }
 
         /// <summary>
-        /// Tạo dịch vụ cho sân thể thao.
+        /// Cập nhật thông tin sân (yêu cầu quyền Owner).
         /// </summary>
-        /// <param name="fieldId">ID của sân.</param>
-        /// <param name="createFieldServiceDto">Thông tin dịch vụ cần tạo.</param>
-        /// <returns>Thông tin dịch vụ vừa tạo.</returns>
-        /// <response code="201">Tạo dịch vụ thành công.</response>
-        /// <response code="400">Dữ liệu không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
+        /// <param name="id">ID của sân.</param>
+        /// <param name="updateFieldDto">Thông tin sân cần cập nhật.</param>
+        /// <returns>Thông tin sân đã cập nhật.</returns>
+        /// <response code="200">Sân được cập nhật thành công.</response>
+        /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
+        /// <response code="401">Người dùng không được xác thực.</response>
+        /// <response code="403">Người dùng không có quyền Owner hoặc không sở hữu sân.</response>
         /// <response code="404">Sân không tồn tại.</response>
-        [HttpPost("{fieldId}/services")]
-        [Authorize(Policy = "OwnerOnly")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> CreateFieldService(int fieldId, [FromBody] CreateFieldServiceDto createFieldServiceDto)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    _logger.LogWarning("Invalid model state for CreateFieldService: {Errors}", ModelState);
-                    return BadRequest(ModelState);
-                }
-
-                var fieldService = await _fieldService.CreateFieldServiceAsync(User, fieldId, createFieldServiceDto);
-                _logger.LogInformation("Field service created successfully: FieldId={FieldId}, FieldServiceId={FieldServiceId}", fieldId, fieldService.FieldServiceId);
-                return CreatedAtAction(nameof(GetFieldById), new { fieldId }, new { Message = "Tạo dịch vụ thành công", Data = fieldService });
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Validation error during CreateFieldService: FieldId={FieldId}", fieldId);
-                return BadRequest(new { Error = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field not found: FieldId={FieldId}", fieldId);
-                return NotFound(new { Error = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Unauthorized access during CreateFieldService: FieldId={FieldId}", fieldId);
-                return Unauthorized(new { Error = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during CreateFieldService: FieldId={FieldId}", fieldId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi tạo dịch vụ sân." });
-            }
-        }
-
-        /// <summary>
-        /// Cập nhật dịch vụ của sân thể thao.
-        /// </summary>
-        /// <param name="fieldId">ID của sân.</param>
-        /// <param name="fieldServiceId">ID của dịch vụ cần cập nhật.</param>
-        /// <param name="updateFieldServiceDto">Thông tin cập nhật.</param>
-        /// <returns>Thông tin dịch vụ đã cập nhật.</returns>
-        /// <response code="200">Cập nhật dịch vụ thành công.</response>
-        /// <response code="400">Dữ liệu không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
-        /// <response code="404">Sân hoặc dịch vụ không tồn tại.</response>
-        [HttpPut("{fieldId}/services/{fieldServiceId}")]
-        [Authorize(Policy = "OwnerOnly")]
+        /// <response code="500">Lỗi hệ thống.</response>
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Owner")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateFieldService(int fieldId, int fieldServiceId, [FromBody] UpdateFieldServiceDto updateFieldServiceDto)
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateField(int id, [FromBody] UpdateFieldDto updateFieldDto)
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    _logger.LogWarning("Invalid model state for UpdateFieldService: {Errors}", ModelState);
-                    return BadRequest(ModelState);
-                }
-
-                var fieldService = await _fieldService.UpdateFieldServiceAsync(User, fieldId, fieldServiceId, updateFieldServiceDto);
-                _logger.LogInformation("Field service updated successfully: FieldId={FieldId}, FieldServiceId={FieldServiceId}", fieldId, fieldServiceId);
-                return Ok(new { Message = "Cập nhật dịch vụ thành công", Data = fieldService });
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Validation error during UpdateFieldService: FieldId={FieldId}, FieldServiceId={FieldServiceId}", fieldId, fieldServiceId);
-                return BadRequest(new { Error = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field or service not found: FieldId={FieldId}, FieldServiceId={FieldServiceId}", fieldId, fieldServiceId);
-                return NotFound(new { Error = ex.Message });
+                _logger.LogInformation("Cập nhật sân ID: {Id}, dữ liệu: {@Field}", id, updateFieldDto);
+                var field = await _fieldService.UpdateFieldAsync(User, id, updateFieldDto);
+                _logger.LogInformation("Cập nhật sân ID: {Id} thành công.", id);
+                return Ok(field);
             }
             catch (UnauthorizedAccessException ex)
             {
-                _logger.LogError(ex, "Unauthorized access during UpdateFieldService: FieldId={FieldId}, FieldServiceId={FieldServiceId}", fieldId, fieldServiceId);
-                return Unauthorized(new { Error = ex.Message });
+                _logger.LogWarning(ex, "Không có quyền cập nhật sân ID: {Id}", id);
+                return StatusCode(StatusCodes.Status403Forbidden, 
+                    new { error = "Không được phép", message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Sân ID {Id} không tồn tại hoặc dữ liệu không hợp lệ.", id);
+                return BadRequest(new { error = "Dữ liệu không hợp lệ", message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error during UpdateFieldService: FieldId={FieldId}, FieldServiceId={FieldServiceId}", fieldId, fieldServiceId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi cập nhật dịch vụ sân." });
+                _logger.LogError(ex, "Lỗi hệ thống khi cập nhật sân ID: {Id}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new { error = "Lỗi hệ thống", message = "Đã xảy ra lỗi không mong muốn." });
             }
         }
 
         /// <summary>
-        /// Tạo tiện ích cho sân thể thao.
+        /// Xóa sân (yêu cầu quyền Owner).
         /// </summary>
-        /// <param name="fieldId">ID của sân.</param>
-        /// <param name="createFieldAmenityDto">Thông tin tiện ích cần tạo.</param>
-        /// <returns>Thông tin tiện ích vừa tạo.</returns>
-        /// <response code="201">Tạo tiện ích thành công.</response>
-        /// <response code="400">Dữ liệu không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
+        /// <param name="id">ID của sân.</param>
+        /// <returns>Không có nội dung trả về nếu xóa thành công.</returns>
+        /// <response code="204">Sân được xóa thành công.</response>
+        /// <response code="401">Người dùng không được xác thực.</response>
+        /// <response code="403">Người dùng không có quyền Owner hoặc không sở hữu sân.</response>
         /// <response code="404">Sân không tồn tại.</response>
-        [HttpPost("{fieldId}/amenities")]
-        [Authorize(Policy = "OwnerOnly")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        /// <response code="400">Sân có đặt lịch đang hoạt động.</response>
+        /// <response code="500">Lỗi hệ thống.</response>
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Owner")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> CreateFieldAmenity(int fieldId, [FromBody] CreateFieldAmenityDto createFieldAmenityDto)
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteField(int id)
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    _logger.LogWarning("Invalid model state for CreateFieldAmenity: {Errors}", ModelState);
-                    return BadRequest(ModelState);
-                }
-
-                var fieldAmenity = await _fieldService.CreateFieldAmenityAsync(User, fieldId, createFieldAmenityDto);
-                _logger.LogInformation("Field amenity created successfully: FieldId={FieldId}, FieldAmenityId={FieldAmenityId}", fieldId, fieldAmenity.FieldAmenityId);
-                return CreatedAtAction(nameof(GetFieldById), new { fieldId }, new { Message = "Tạo tiện ích thành công", Data = fieldAmenity });
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Validation error during CreateFieldAmenity: FieldId={FieldId}", fieldId);
-                return BadRequest(new { Error = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field not found: FieldId={FieldId}", fieldId);
-                return NotFound(new { Error = ex.Message });
+                _logger.LogInformation("Xóa sân ID: {Id}", id);
+                await _fieldService.DeleteFieldAsync(User, id);
+                _logger.LogInformation("Xóa sân ID: {Id} thành công.", id);
+                return NoContent();
             }
             catch (UnauthorizedAccessException ex)
             {
-                _logger.LogError(ex, "Unauthorized access during CreateFieldAmenity: FieldId={FieldId}", fieldId);
-                return Unauthorized(new { Error = ex.Message });
+                _logger.LogWarning(ex, "Không có quyền xóa sân ID: {Id}", id);
+                return StatusCode(StatusCodes.Status403Forbidden, 
+                    new { error = "Không được phép", message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Sân ID {Id} không tồn tại hoặc có đặt lịch đang hoạt động.", id);
+                return BadRequest(new { error = "Dữ liệu không hợp lệ", message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error during CreateFieldAmenity: FieldId={FieldId}", fieldId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi tạo tiện ích sân." });
+                _logger.LogError(ex, "Lỗi hệ thống khi xóa sân ID: {Id}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new { error = "Lỗi hệ thống", message = "Đã xảy ra lỗi không mong muốn." });
             }
         }
 
         /// <summary>
-        /// Cập nhật tiện ích của sân thể thao.
+        /// Kiểm tra lịch trống của sân.
         /// </summary>
-        /// <param name="fieldId">ID của sân.</param>
-        /// <param name="fieldAmenityId">ID của tiện ích cần cập nhật.</param>
-        /// <param name="updateFieldAmenityDto">Thông tin cập nhật.</param>
-        /// <returns>Thông tin tiện ích đã cập nhật.</returns>
-        /// <response code="200">Cập nhật tiện ích thành công.</response>
-        /// <response code="400">Dữ liệu không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
-        /// <response code="404">Sân hoặc tiện ích không tồn tại.</response>
-        [HttpPut("{fieldId}/amenities/{fieldAmenityId}")]
-        [Authorize(Policy = "OwnerOnly")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateFieldAmenity(int fieldId, int fieldAmenityId, [FromBody] UpdateFieldAmenityDto updateFieldAmenityDto)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    _logger.LogWarning("Invalid model state for UpdateFieldAmenity: {Errors}", ModelState);
-                    return BadRequest(ModelState);
-                }
-
-                var fieldAmenity = await _fieldService.UpdateFieldAmenityAsync(User, fieldId, fieldAmenityId, updateFieldAmenityDto);
-                _logger.LogInformation("Field amenity updated successfully: FieldId={FieldId}, FieldAmenityId={FieldAmenityId}", fieldId, fieldAmenityId);
-                return Ok(new { Message = "Cập nhật tiện ích thành công", Data = fieldAmenity });
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Validation error during UpdateFieldAmenity: FieldId={FieldId}, FieldAmenityId={FieldAmenityId}", fieldId, fieldAmenityId);
-                return BadRequest(new { Error = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field or amenity not found: FieldId={FieldId}, FieldAmenityId={FieldAmenityId}", fieldId, fieldAmenityId);
-                return NotFound(new { Error = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Unauthorized access during UpdateFieldAmenity: FieldId={FieldId}, FieldAmenityId={FieldAmenityId}", fieldId, fieldAmenityId);
-                return Unauthorized(new { Error = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during UpdateFieldAmenity: FieldId={FieldId}, FieldAmenityId={FieldAmenityId}", fieldId, fieldAmenityId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi cập nhật tiện ích sân." });
-            }
-        }
-
-        /// <summary>
-        /// Tạo mô tả cho sân thể thao.
-        /// </summary>
-        /// <param name="fieldId">ID của sân.</param>
-        /// <param name="createFieldDescriptionDto">Thông tin mô tả cần tạo.</param>
-        /// <returns>Thông tin mô tả vừa tạo.</returns>
-        /// <response code="201">Tạo mô tả thành công.</response>
-        /// <response code="400">Dữ liệu không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
+        /// <param name="id">ID của sân.</param>
+        /// <param name="filterDto">Bộ lọc để kiểm tra lịch trống (ngày, giờ, sân con).</param>
+        /// <returns>Danh sách lịch trống của các sân con.</returns>
+        /// <response code="200">Trả về danh sách lịch trống.</response>
         /// <response code="404">Sân không tồn tại.</response>
-        [HttpPost("{fieldId}/descriptions")]
-        [Authorize(Policy = "OwnerOnly")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> CreateFieldDescription(int fieldId, [FromBody] CreateFieldDescriptionDto createFieldDescriptionDto)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    _logger.LogWarning("Invalid model state for CreateFieldDescription: {Errors}", ModelState);
-                    return BadRequest(ModelState);
-                }
-
-                var fieldDescription = await _fieldService.CreateFieldDescriptionAsync(User, fieldId, createFieldDescriptionDto);
-                _logger.LogInformation("Field description created successfully: FieldId={FieldId}, FieldDescriptionId={FieldDescriptionId}", fieldId, fieldDescription.FieldDescriptionId);
-                return CreatedAtAction(nameof(GetFieldById), new { fieldId }, new { Message = "Tạo mô tả thành công", Data = fieldDescription });
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Validation error during CreateFieldDescription: FieldId={FieldId}", fieldId);
-                return BadRequest(new { Error = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field not found: FieldId={FieldId}", fieldId);
-                return NotFound(new { Error = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Unauthorized access during CreateFieldDescription: FieldId={FieldId}", fieldId);
-                return Unauthorized(new { Error = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during CreateFieldDescription: FieldId={FieldId}", fieldId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi tạo mô tả sân." });
-            }
-        }
-
-        /// <summary>
-        /// Cập nhật mô tả của sân thể thao.
-        /// </summary>
-        /// <param name="fieldId">ID của sân.</param>
-        /// <param name="fieldDescriptionId">ID của mô tả cần cập nhật.</param>
-        /// <param name="updateFieldDescriptionDto">Thông tin cập nhật.</param>
-        /// <returns>Thông tin mô tả đã cập nhật.</returns>
-        /// <response code="200">Cập nhật mô tả thành công.</response>
-        /// <response code="400">Dữ liệu không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
-        /// <response code="404">Sân hoặc mô tả không tồn tại.</response>
-        [HttpPut("{fieldId}/descriptions/{fieldDescriptionId}")]
-        [Authorize(Policy = "OwnerOnly")]
+        /// <response code="500">Lỗi hệ thống.</response>
+        [HttpGet("{id}/availability")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateFieldDescription(int fieldId, int fieldDescriptionId, [FromBody] UpdateFieldDescriptionDto updateFieldDescriptionDto)
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetFieldAvailability(int id, [FromQuery] AvailabilityFilterDto filterDto)
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    _logger.LogWarning("Invalid model state for UpdateFieldDescription: {Errors}", ModelState);
-                    return BadRequest(ModelState);
-                }
-
-                var fieldDescription = await _fieldService.UpdateFieldDescriptionAsync(User, fieldId, fieldDescriptionId, updateFieldDescriptionDto);
-                _logger.LogInformation("Field description updated successfully: FieldId={FieldId}, FieldDescriptionId={FieldDescriptionId}", fieldId, fieldDescriptionId);
-                return Ok(new { Message = "Cập nhật mô tả thành công", Data = fieldDescription });
+                _logger.LogInformation("Kiểm tra lịch trống cho sân ID: {Id}, bộ lọc: {@Filter}", id, filterDto);
+                var availability = await _fieldService.GetFieldAvailabilityAsync(id, filterDto);
+                _logger.LogInformation("Kiểm tra lịch trống cho sân ID: {Id} thành công.", id);
+                return Ok(availability);
             }
             catch (ArgumentException ex)
             {
-                _logger.LogError(ex, "Validation error during UpdateFieldDescription: FieldId={FieldId}, FieldDescriptionId={FieldDescriptionId}", fieldId, fieldDescriptionId);
-                return BadRequest(new { Error = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field or description not found: FieldId={FieldId}, FieldDescriptionId={FieldDescriptionId}", fieldId, fieldDescriptionId);
-                return NotFound(new { Error = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Unauthorized access during UpdateFieldDescription: FieldId={FieldId}, FieldDescriptionId={FieldDescriptionId}", fieldId, fieldDescriptionId);
-                return Unauthorized(new { Error = ex.Message });
+                _logger.LogWarning(ex, "Sân ID {Id} không tồn tại.", id);
+                return NotFound(new { error = "Không tìm thấy", message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error during UpdateFieldDescription: FieldId={FieldId}, FieldDescriptionId={FieldDescriptionId}", fieldId, fieldDescriptionId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi cập nhật mô tả sân." });
+                _logger.LogError(ex, "Lỗi hệ thống khi kiểm tra lịch trống cho sân ID: {Id}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new { error = "Lỗi hệ thống", message = "Đã xảy ra lỗi không mong muốn." });
             }
         }
 
         /// <summary>
-        /// Tạo giá cho sân thể thao.
+        /// Lấy danh sách đánh giá của sân.
         /// </summary>
-        /// <param name="fieldId">ID của sân.</param>
-        /// <param name="createFieldPricingDto">Thông tin giá cần tạo.</param>
-        /// <returns>Thông tin giá vừa tạo.</returns>
-        /// <response code="201">Tạo giá thành công.</response>
-        /// <response code="400">Dữ liệu không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
+        /// <param name="id">ID của sân.</param>
+        /// <param name="filterDto">Bộ lọc để lấy đánh giá (điểm tối thiểu, sắp xếp).</param>
+        /// <returns>Danh sách đánh giá, tổng số, trang hiện tại và kích thước trang.</returns>
+        /// <response code="200">Trả về danh sách đánh giá.</response>
         /// <response code="404">Sân không tồn tại.</response>
-        [HttpPost("{fieldId}/pricing")]
-        [Authorize(Policy = "OwnerOnly")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> CreateFieldPricing(int fieldId, [FromBody] CreateFieldPricingDto createFieldPricingDto)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    _logger.LogWarning("Invalid model state for CreateFieldPricing: {Errors}", ModelState);
-                    return BadRequest(ModelState);
-                }
-
-                var fieldPricing = await _fieldService.CreateFieldPricingAsync(User, fieldId, createFieldPricingDto);
-                _logger.LogInformation("Field pricing created successfully: FieldId={FieldId}, FieldPricingId={FieldPricingId}", fieldId, fieldPricing.FieldPricingId);
-                return CreatedAtAction(nameof(GetFieldById), new { fieldId }, new { Message = "Tạo giá thành công", Data = fieldPricing });
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Validation error during CreateFieldPricing: FieldId={FieldId}", fieldId);
-                return BadRequest(new { Error = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field not found: FieldId={FieldId}", fieldId);
-                return NotFound(new { Error = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Unauthorized access during CreateFieldPricing: FieldId={FieldId}", fieldId);
-                return Unauthorized(new { Error = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during CreateFieldPricing: FieldId={FieldId}", fieldId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi tạo giá sân." });
-            }
-        }
-
-        /// <summary>
-        /// Cập nhật giá của sân thể thao.
-        /// </summary>
-        /// <param name="fieldId">ID của sân.</param>
-        /// <param name="fieldPricingId">ID của giá cần cập nhật.</param>
-        /// <param name="updateFieldPricingDto">Thông tin cập nhật.</param>
-        /// <returns>Thông tin giá đã cập nhật.</returns>
-        /// <response code="200">Cập nhật giá thành công.</response>
-        /// <response code="400">Dữ liệu không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
-        /// <response code="404">Sân hoặc giá không tồn tại.</response>
-        [HttpPut("{fieldId}/pricing/{fieldPricingId}")]
-        [Authorize(Policy = "OwnerOnly")]
+        /// <response code="500">Lỗi hệ thống.</response>
+        [HttpGet("{id}/reviews")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateFieldPricing(int fieldId, int fieldPricingId, [FromBody] UpdateFieldPricingDto updateFieldPricingDto)
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetFieldReviews(int id, [FromQuery] ReviewFilterDto filterDto)
         {
             try
             {
-                if (!ModelState.IsValid)
+                _logger.LogInformation("Lấy đánh giá cho sân ID: {Id}, bộ lọc: {@Filter}", id, filterDto);
+                var (data, total, page, pageSize) = await _fieldService.GetFieldReviewsAsync(id, filterDto);
+                _logger.LogInformation("Lấy thành công {Count} đánh giá cho sân ID: {Id}", data.Count, id);
+                return Ok(new
                 {
-                    _logger.LogWarning("Invalid model state for UpdateFieldPricing: {Errors}", ModelState);
-                    return BadRequest(ModelState);
-                }
-
-                var fieldPricing = await _fieldService.UpdateFieldPricingAsync(User, fieldId, fieldPricingId, updateFieldPricingDto);
-                _logger.LogInformation("Field pricing updated successfully: FieldId={FieldId}, FieldPricingId={FieldPricingId}", fieldId, fieldPricingId);
-                return Ok(new { Message = "Cập nhật giá thành công", Data = fieldPricing });
+                    data,
+                    total,
+                    page,
+                    pageSize
+                });
             }
             catch (ArgumentException ex)
             {
-                _logger.LogError(ex, "Validation error during UpdateFieldPricing: FieldId={FieldId}, FieldPricingId={FieldPricingId}", fieldId, fieldPricingId);
-                return BadRequest(new { Error = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field or pricing not found: FieldId={FieldId}, FieldPricingId={FieldPricingId}", fieldId, fieldPricingId);
-                return NotFound(new { Error = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Unauthorized access during UpdateFieldPricing: FieldId={FieldId}, FieldPricingId={FieldPricingId}", fieldId, fieldPricingId);
-                return Unauthorized(new { Error = ex.Message });
+                _logger.LogWarning(ex, "Sân ID {Id} không tồn tại.", id);
+                return NotFound(new { error = "Không tìm thấy", message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error during UpdateFieldPricing: FieldId={FieldId}, FieldPricingId={FieldPricingId}", fieldId, fieldPricingId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi cập nhật giá sân." });
+                _logger.LogError(ex, "Lỗi hệ thống khi lấy đánh giá cho sân ID: {Id}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new { error = "Lỗi hệ thống", message = "Đã xảy ra lỗi không mong muốn." });
             }
         }
 
         /// <summary>
-        /// Tạo sân con (subfield) cho sân thể thao.
+        /// Lấy danh sách đặt sân (yêu cầu quyền Owner).
         /// </summary>
-        /// <param name="fieldId">ID của sân.</param>
-        /// <param name="createSubFieldDto">Thông tin sân con cần tạo.</param>
-        /// <returns>Thông tin sân con vừa tạo.</returns>
-        /// <response code="201">Tạo sân con thành công.</response>
-        /// <response code="400">Dữ liệu không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
+        /// <param name="id">ID của sân.</param>
+        /// <param name="filterDto">Bộ lọc để lấy danh sách đặt sân (trạng thái, ngày).</param>
+        /// <returns>Danh sách đặt sân, tổng số, trang hiện tại và kích thước trang.</returns>
+        /// <response code="200">Trả về danh sách đặt sân.</response>
+        /// <response code="401">Người dùng không được xác thực.</response>
+        /// <response code="403">Người dùng không có quyền Owner hoặc không sở hữu sân.</response>
         /// <response code="404">Sân không tồn tại.</response>
-        [HttpPost("{fieldId}/subfields")]
-        [Authorize(Policy = "OwnerOnly")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        /// <response code="500">Lỗi hệ thống.</response>
+        [HttpGet("{id}/bookings")]
+        [Authorize(Roles = "Owner")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> CreateSubField(int fieldId, [FromBody] CreateSubFieldDto createSubFieldDto)
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetFieldBookings(int id, [FromQuery] BookingFilterDto filterDto)
         {
             try
             {
-                if (!ModelState.IsValid)
+                _logger.LogInformation("Lấy danh sách đặt sân cho sân ID: {Id}, bộ lọc: {@Filter}", id, filterDto);
+                var (data, total, page, pageSize) = await _fieldService.GetFieldBookingsAsync(User, id, filterDto);
+                _logger.LogInformation("Lấy thành công {Count} đặt sân cho sân ID: {Id}", data.Count, id);
+                return Ok(new
                 {
-                    _logger.LogWarning("Invalid model state for CreateSubField: {Errors}", ModelState);
-                    return BadRequest(ModelState);
-                }
-
-                var subField = await _subFieldService.CreateSubFieldAsync(User, fieldId, createSubFieldDto);
-                _logger.LogInformation("SubField created successfully: FieldId={FieldId}, SubFieldId={SubFieldId}", fieldId, subField.SubFieldId);
-                return CreatedAtAction(nameof(GetFieldById), new { fieldId }, new { Message = "Tạo sân con thành công", Data = subField });
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Validation error during CreateSubField: FieldId={FieldId}", fieldId);
-                return BadRequest(new { Error = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field not found: FieldId={FieldId}", fieldId);
-                return NotFound(new { Error = ex.Message });
+                    data,
+                    total,
+                    page,
+                    pageSize
+                });
             }
             catch (UnauthorizedAccessException ex)
             {
-                _logger.LogError(ex, "Unauthorized access during CreateSubField: FieldId={FieldId}", fieldId);
-                return Unauthorized(new { Error = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during CreateSubField: FieldId={FieldId}", fieldId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi tạo sân con." });
-            }
-        }
-
-        /// <summary>
-        /// Cập nhật sân con của sân thể thao.
-        /// </summary>
-        /// <param name="fieldId">ID của sân.</param>
-        /// <param name="subFieldId">ID của sân con cần cập nhật.</param>
-        /// <param name="updateSubFieldDto">Thông tin cập nhật.</param>
-        /// <returns>Thông tin sân con đã cập nhật.</returns>
-        /// <response code="200">Cập nhật sân con thành công.</response>
-        /// <response code="400">Dữ liệu không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
-        /// <response code="404">Sân hoặc sân con không tồn tại.</response>
-        [HttpPut("{fieldId}/subfields/{subFieldId}")]
-        [Authorize(Policy = "OwnerOnly")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateSubField(int fieldId, int subFieldId, [FromBody] UpdateSubFieldDto updateSubFieldDto)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    _logger.LogWarning("Invalid model state for UpdateSubField: {Errors}", ModelState);
-                    return BadRequest(ModelState);
-                }
-
-                var subField = await _subFieldService.UpdateSubFieldAsync(User, fieldId, subFieldId, updateSubFieldDto);
-                _logger.LogInformation("SubField updated successfully: FieldId={FieldId}, SubFieldId={SubFieldId}", fieldId, subFieldId);
-                return Ok(new { Message = "Cập nhật sân con thành công", Data = subField });
+                _logger.LogWarning(ex, "Không có quyền lấy danh sách đặt sân cho sân ID: {Id}", id);
+                return StatusCode(StatusCodes.Status403Forbidden, 
+                    new { error = "Không được phép", message = ex.Message });
             }
             catch (ArgumentException ex)
             {
-                _logger.LogError(ex, "Validation error during UpdateSubField: FieldId={FieldId}, SubFieldId={SubFieldId}", fieldId, subFieldId);
-                return BadRequest(new { Error = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field or subfield not found: FieldId={FieldId}, SubFieldId={SubFieldId}", fieldId, subFieldId);
-                return NotFound(new { Error = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Unauthorized access during UpdateSubField: FieldId={FieldId}, SubFieldId={SubFieldId}", fieldId, subFieldId);
-                return Unauthorized(new { Error = ex.Message });
+                _logger.LogWarning(ex, "Sân ID {Id} không tồn tại.", id);
+                return NotFound(new { error = "Không tìm thấy", message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error during UpdateSubField: FieldId={FieldId}, SubFieldId={SubFieldId}", fieldId, subFieldId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi cập nhật sân con." });
-            }
-        }
-
-        /// <summary>
-        /// Xóa sân con của sân thể thao.
-        /// </summary>
-        /// <param name="fieldId">ID của sân.</param>
-        /// <param name="subFieldId">ID của sân con cần xóa.</param>
-        /// <returns>Thông báo xóa thành công.</returns>
-        /// <response code="200">Xóa sân con thành công.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
-        /// <response code="404">Sân hoặc sân con không tồn tại.</response>
-        [HttpDelete("{fieldId}/subfields/{subFieldId}")]
-        [Authorize(Policy = "OwnerOnly")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DeleteSubField(int fieldId, int subFieldId)
-        {
-            try
-            {
-                await _subFieldService.DeleteSubFieldAsync(User, fieldId, subFieldId);
-                _logger.LogInformation("SubField deleted successfully: FieldId={FieldId}, SubFieldId={SubFieldId}", fieldId, subFieldId);
-                return Ok(new { Message = "Xóa sân con thành công" });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogError(ex, "Field or subfield not found: FieldId={FieldId}, SubFieldId={SubFieldId}", fieldId, subFieldId);
-                return NotFound(new { Error = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Unauthorized access during DeleteSubField: FieldId={FieldId}, SubFieldId={SubFieldId}", fieldId, subFieldId);
-                return Unauthorized(new { Error = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during DeleteSubField: FieldId={FieldId}, SubFieldId={SubFieldId}", fieldId, subFieldId);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi xóa sân con." });
-            }
-        }
-
-        /// <summary>
-        /// Lấy thông tin lịch trống của sân thể thao.
-        /// </summary>
-        /// <param name="fieldId">ID của sân (tùy chọn).</param>
-        /// <param name="date">Ngày cần kiểm tra (tùy chọn).</param>
-        /// <returns>Danh sách lịch trống.</returns>
-        /// <response code="200">Trả về lịch trống.</response>
-        /// <response code="400">Tham số không hợp lệ.</response>
-        [HttpGet("availability")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetFieldAvailability([FromQuery] int? fieldId, [FromQuery] DateTime? date)
-        {
-            try
-            {
-                var availability = await _fieldService.GetFieldAvailabilityAsync(fieldId, date);
-                _logger.LogInformation("Field availability retrieved successfully: FieldId={FieldId}, Date={Date}", fieldId, date);
-                return Ok(new { Data = availability });
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Validation error during GetFieldAvailability: FieldId={FieldId}, Date={Date}", fieldId, date);
-                return BadRequest(new { Error = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during GetFieldAvailability: FieldId={FieldId}, Date={Date}", fieldId, date);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi lấy lịch trống." });
-            }
-        }
-
-        /// <summary>
-        /// Xác thực địa chỉ của sân thể thao.
-        /// </summary>
-        /// <param name="addressDto">Thông tin địa chỉ cần xác thực.</param>
-        /// <returns>Kết quả xác thực địa chỉ.</returns>
-        /// <response code="200">Xác thực địa chỉ thành công.</response>
-        /// <response code="400">Dữ liệu không hợp lệ.</response>
-        /// <response code="401">Chưa đăng nhập hoặc không có quyền Owner.</response>
-        [HttpPost("validate-address")]
-        [Authorize(Policy = "OwnerOnly")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> ValidateAddress([FromBody] ValidateAddressDto addressDto)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    _logger.LogWarning("Invalid model state for ValidateAddress: {Errors}", ModelState);
-                    return BadRequest(ModelState);
-                }
-
-                var result = await _fieldService.ValidateAddressAsync(addressDto);
-                _logger.LogInformation("Address validated successfully");
-                return Ok(new { Message = "Xác thực địa chỉ thành công", Data = result });
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Validation error during ValidateAddress");
-                return BadRequest(new { Error = ex.Message });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                _logger.LogError(ex, "Unauthorized access during ValidateAddress");
-                return Unauthorized(new { Error = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error during ValidateAddress");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { Error = "Đã xảy ra lỗi hệ thống khi xác thực địa chỉ." });
+                _logger.LogError(ex, "Lỗi hệ thống khi lấy danh sách đặt sân cho sân ID: {Id}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new { error = "Lỗi hệ thống", message = "Đã xảy ra lỗi không mong muốn." });
             }
         }
     }
