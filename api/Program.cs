@@ -276,7 +276,7 @@ void ConfigureServices(WebApplicationBuilder builder)
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IEmailSender, GmailSmtpEmailSender>();
     builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
-    builder.Services.AddScoped<IFieldService, api.Services.FieldService>();
+    // builder.Services.AddScoped<IFieldService, api.Services.FieldService>();
     builder.Services.AddScoped<ISubFieldService, SubFieldService>();
     builder.Services.AddScoped<ISportService, SportService>();
 
