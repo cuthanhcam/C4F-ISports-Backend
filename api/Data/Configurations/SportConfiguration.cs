@@ -22,7 +22,7 @@ namespace api.Data.Configurations
             builder.Property(s => s.Description)
                 .HasMaxLength(500);
 
-            builder.Property(s => s.IconUrl)
+            builder.Property(s => s.ImageUrl)
                 .HasMaxLength(500);
 
             builder.Property(s => s.IsActive)
