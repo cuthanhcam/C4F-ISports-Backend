@@ -520,5 +520,51 @@ namespace api.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal Server Error", message = "An unexpected error occurred." });
             }
         }
+
+        /// <summary>
+        /// Tải lên ảnh đại diện mới cho người dùng.
+        /// </summary>
+        /// <param name="file">File ảnh tải lên.</param>
+        /// <returns>URL của ảnh đại diện mới.</returns>
+        /// <response code="200">Tải lên ảnh đại diện thành công.</response>
+        /// <response code="400">File không hợp lệ hoặc không được cung cấp.</response>
+        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
+        /// <response code="403">Người dùng không có quyền tải lên ảnh đại diện.</response>
+        [HttpPost("avatar")]
+        [Authorize(Roles = "User")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> UploadAvatar(IFormFile file)
+        {
+            try
+            {
+                if (file == null)
+                {
+                    _logger.LogWarning("Không có file được cung cấp");
+                    return BadRequest(new { error = "Invalid input", details = new[] { new { field = "file", message = "Vui lòng chọn file ảnh." } } });
+                }
+
+                var avatarUrl = await _userService.UploadAvatarAsync(User, file);
+                _logger.LogInformation("Tải lên ảnh đại diện thành công");
+                return Ok(new { avatarUrl, message = "Avatar uploaded successfully" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Lỗi xác thực khi tải lên ảnh đại diện");
+                return Unauthorized(new { error = "Unauthorized", message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogError(ex, "Lỗi tham số khi tải lên ảnh đại diện");
+                return BadRequest(new { error = "Invalid input", details = new[] { new { field = "file", message = ex.Message } } });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi hệ thống khi tải lên ảnh đại diện");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { error = "Internal Server Error", message = "An unexpected error occurred." });
+            }
+        }
     }
 }
