@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace api.Dtos.Field.FieldPricingDtos
+namespace api.Dtos.Field
 {
-    public class FieldPricingDto
+    /// <summary>
+    /// DTO chứa thông tin khung giờ đặt sân.
+    /// </summary>
+    public class BookingTimeSlotDto
     {
-        public int FieldPricingId { get; set; }
-        public int SubFieldId { get; set; }
         public string StartTime { get; set; } = string.Empty;
         public string EndTime { get; set; } = string.Empty;
-        public int DayOfWeek { get; set; }
         public decimal Price { get; set; }
-        public bool IsActive { get; set; }
     }
 }
