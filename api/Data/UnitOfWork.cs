@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Threading.Tasks;
 using api.Interfaces;
 using api.Repositories;
@@ -12,6 +13,7 @@ namespace api.Data
         public ApplicationDbContext Context => _context;
         private bool _disposed = false;
         private IDbContextTransaction? _transaction;
+        private Hashtable _repositories;    
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -20,7 +22,14 @@ namespace api.Data
 
         public IGenericRepository<T> Repository<T>() where T : class
         {
-            return new GenericRepository<T>(_context);
+            _repositories ??= new Hashtable();
+            var type = typeof(T).Name;
+            if (!_repositories.ContainsKey(type))
+            {
+                var repository = new GenericRepository<T>(_context);
+                _repositories.Add(type, repository);
+            }
+            return (IGenericRepository<T>)_repositories[type];
         }
 
         public async Task<int> SaveChangesAsync()
