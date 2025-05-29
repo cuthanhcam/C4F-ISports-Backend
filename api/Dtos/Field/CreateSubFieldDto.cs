@@ -20,7 +20,7 @@ namespace api.Dtos.Field
         /// </summary>
         [Required(ErrorMessage = "Loại sân là bắt buộc.")]
         [StringLength(50, ErrorMessage = "Loại sân không được vượt quá 50 ký tự.")]
-        [RegularExpression("^(5-a-side|7-a-side|11-a-side)$", ErrorMessage = "Loại sân phải là '5-a-side', '7-a-side' hoặc '11-a-side'.")]
+        [RegularExpression("^(5-a-side|7-a-side|11-a-side|Badminton)$", ErrorMessage = "Loại sân phải là '5-a-side', '7-a-side', '11-a-side' hoặc 'Badminton'.")]
         public string FieldType { get; set; } = string.Empty;
 
         /// <summary>

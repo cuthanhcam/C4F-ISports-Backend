@@ -45,6 +45,12 @@ namespace api.Repositories
             return _dbSet.Where(predicate);
         }
 
+        public async Task<IQueryable<T>> FindAsQueryableAsync(Expression<Func<T, bool>> predicate)
+        {
+            // Trả về IQueryable trực tiếp, không thực thi ToListAsync
+            return await Task.FromResult(_dbSet.AsNoTracking().Where(predicate));
+        }
+
         public async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
