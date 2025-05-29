@@ -1,24 +1,95 @@
 using System;
 using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using api.Dtos.Field;
-using api.Models;
-using Microsoft.AspNetCore.Http;
+using api.Utils;
 
 namespace api.Interfaces
 {
+    /// <summary>
+    /// Interface cung cấp các dịch vụ quản lý sân thể thao.
+    /// </summary>
     public interface IFieldService
     {
-        Task<(List<FieldResponseDto> Data, int Total, int Page, int PageSize)> GetFilteredFieldsAsync(FieldFilterDto filterDto);
-        Task<FieldResponseDto> GetFieldByIdAsync(int fieldId, string? include);
-        Task<ValidateAddressResponseDto> ValidateAddressAsync(ValidateAddressDto validateAddressDto);
-        Task<FieldResponseDto> CreateFieldAsync(ClaimsPrincipal user, CreateFieldDto createFieldDto);
-        Task<FieldImageResponseDto> UploadFieldImageAsync(ClaimsPrincipal user, int fieldId, IFormFile image, bool isPrimary);
-        Task<FieldResponseDto> UpdateFieldAsync(ClaimsPrincipal user, int fieldId, UpdateFieldDto updateFieldDto);
-        Task DeleteFieldAsync(ClaimsPrincipal user, int fieldId);
-        Task<List<AvailabilityResponseDto>> GetFieldAvailabilityAsync(int fieldId, AvailabilityFilterDto filterDto);
-        Task<(List<ReviewResponseDto> Data, int Total, int Page, int PageSize)> GetFieldReviewsAsync(int fieldId, ReviewFilterDto filterDto);
-        Task<(List<BookingResponseDto> Data, int Total, int Page, int PageSize)> GetFieldBookingsAsync(ClaimsPrincipal user, int fieldId, BookingFilterDto filterDto);
+        /// <summary>
+        /// Lấy danh sách sân với các bộ lọc và sắp xếp.
+        /// </summary>
+        /// <param name="filter">Bộ lọc tìm kiếm sân.</param>
+        /// <returns>Danh sách sân phân trang.</returns>
+        Task<PagedResult<FieldResponseDto>> GetFieldsAsync(FieldFilterDto filter);
+
+        /// <summary>
+        /// Lấy thông tin chi tiết của một sân theo ID.
+        /// </summary>
+        /// <param name="fieldId">ID của sân.</param>
+        /// <param name="include">Danh sách dữ liệu liên quan cần bao gồm.</param>
+        /// <returns>Thông tin sân.</returns>
+        Task<FieldResponseDto> GetFieldByIdAsync(int fieldId, string include);
+
+        /// <summary>
+        /// Xác thực địa chỉ của sân.
+        /// </summary>
+        /// <param name="dto">Thông tin địa chỉ cần xác thực.</param>
+        /// <returns>Kết quả xác thực địa chỉ.</returns>
+        Task<ValidateAddressResponseDto> ValidateAddressAsync(ValidateAddressDto dto);
+
+        /// <summary>
+        /// Tạo mới một sân.
+        /// </summary>
+        /// <param name="dto">Thông tin sân cần tạo.</param>
+        /// <param name="token">Token xác thực.</param>
+        /// <returns>Thông tin sân vừa tạo.</returns>
+        Task<FieldResponseDto> CreateFieldAsync(CreateFieldDto dto, string token);
+
+        /// <summary>
+        /// Tải lên hình ảnh cho sân.
+        /// </summary>
+        /// <param name="fieldId">ID của sân.</param>
+        /// <param name="dto">Thông tin hình ảnh.</param>
+        /// <param name="token">Token xác thực.</param>
+        /// <returns>Thông tin hình ảnh vừa tải lên.</returns>
+        Task<FieldImageResponseDto> UploadFieldImageAsync(int fieldId, UploadFieldImageDto dto, string token);
+
+        /// <summary>
+        /// Cập nhật thông tin sân.
+        /// </summary>
+        /// <param name="fieldId">ID của sân.</param>
+        /// <param name="dto">Thông tin cập nhật.</param>
+        /// <param name="token">Token xác thực.</param>
+        /// <returns>Thông tin sân đã cập nhật.</returns>
+        Task<FieldResponseDto> UpdateFieldAsync(int fieldId, UpdateFieldDto dto, string token);
+
+        /// <summary>
+        /// Xóa mềm một sân.
+        /// </summary>
+        /// <param name="fieldId">ID của sân.</param>
+        /// <param name="token">Token xác thực.</param>
+        /// <returns>Thông tin sân đã xóa.</returns>
+        Task<DeleteFieldResponseDto> DeleteFieldAsync(int fieldId, string token);
+
+        /// <summary>
+        /// Lấy danh sách khung giờ trống của sân.
+        /// </summary>
+        /// <param name="fieldId">ID của sân.</param>
+        /// <param name="filter">Bộ lọc khung giờ.</param>
+        /// <returns>Danh sách khung giờ trống.</returns>
+        Task<List<AvailabilityResponseDto>> GetFieldAvailabilityAsync(int fieldId, AvailabilityFilterDto filter);
+
+        /// <summary>
+        /// Lấy danh sách đánh giá của sân.
+        /// </summary>
+        /// <param name="fieldId">ID của sân.</param>
+        /// <param name="filter">Bộ lọc đánh giá.</param>
+        /// <returns>Danh sách đánh giá phân trang.</returns>
+        Task<PagedResult<ReviewResponseDto>> GetFieldReviewsAsync(int fieldId, ReviewFilterDto filter);
+
+        /// <summary>
+        /// Lấy danh sách đặt sân của một sân (chỉ dành cho Owner).
+        /// </summary>
+        /// <param name="fieldId">ID của sân.</param>
+        /// <param name="filter">Bộ lọc đặt sân.</param>
+        /// <param name="token">Token xác thực.</param>
+        /// <returns>Danh sách đặt sân phân trang.</returns>
+        Task<PagedResult<BookingResponseDto>> GetFieldBookingsAsync(int fieldId, BookingFilterDto filter, string token);
     }
 }
