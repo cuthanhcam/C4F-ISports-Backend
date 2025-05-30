@@ -111,6 +111,40 @@ namespace api.Controllers
         }
 
         /// <summary>
+        /// Lấy danh sách sân thuộc quyền quản lý của owner đang đăng nhập.
+        /// </summary>
+        /// <param name="filterDto">Bộ lọc tìm kiếm sân (tên, trạng thái, v.v.).</param>
+        /// <returns>Danh sách sân thuộc owner.</returns>
+        /// <response code="200">Trả về danh sách sân với phân trang.</response>
+        /// <response code="401">Không có quyền truy cập.</response>
+        /// <response code="403">Không phải là owner.</response>
+        /// <response code="500">Lỗi server.</response>
+        [HttpGet("my-fields")]
+        [Authorize(Roles = "Owner")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetOwnerFields([FromQuery] OwnerFieldFilterDto filterDto)
+        {
+            try
+            {
+                var result = await _fieldService.GetOwnerFieldsAsync(filterDto, User);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Không có quyền truy cập: {Message}", ex.Message);
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy danh sách sân của owner: {Message}", ex.Message);
+                return StatusCode(500, new { error = "Lỗi khi lấy danh sách sân: " + ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Kiểm tra và xác thực địa chỉ của sân.
         /// </summary>
         /// <param name="validateAddressDto">Thông tin địa chỉ cần kiểm tra.</param>

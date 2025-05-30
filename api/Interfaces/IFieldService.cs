@@ -27,6 +27,9 @@ namespace api.Interfaces
         /// <returns>Thông tin sân.</returns>
         Task<FieldResponseDto> GetFieldByIdAsync(int fieldId, string include);
 
+        
+        Task<PagedResult<OwnerFieldResponseDto>> GetOwnerFieldsAsync(OwnerFieldFilterDto filter, ClaimsPrincipal user);
+
         /// <summary>
         /// Xác thực địa chỉ của sân.
         /// </summary>

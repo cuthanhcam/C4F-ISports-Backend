@@ -308,6 +308,99 @@ namespace api.Services
             }
         }
 
+        public async Task<PagedResult<OwnerFieldResponseDto>> GetOwnerFieldsAsync(OwnerFieldFilterDto filter, ClaimsPrincipal user)
+        {
+            _logger.LogInformation("Lấy danh sách sân của owner với bộ lọc: {@Filter}", filter);
+
+            try
+            {
+                // Lấy Account từ ClaimsPrincipal
+                var account = await _authService.GetCurrentUserAsync(user);
+                var owner = await _unitOfWork.Repository<Owner>()
+                    .FindSingleAsync(o => o.AccountId == account.AccountId && o.DeletedAt == null);
+                if (owner == null)
+                {
+                    _logger.LogWarning("Không tìm thấy thông tin chủ sân cho AccountId: {AccountId}", account.AccountId);
+                    throw new UnauthorizedAccessException("Không tìm thấy thông tin chủ sân.");
+                }
+
+                var query = await _unitOfWork.Repository<Field>()
+                    .FindAsQueryableAsync(f => f.OwnerId == owner.OwnerId && f.DeletedAt == null);
+
+                // Áp dụng bộ lọc
+                if (!string.IsNullOrEmpty(filter.Search))
+                    query = query.Where(f => f.FieldName.Contains(filter.Search) || f.Address.Contains(filter.Search));
+
+                if (!string.IsNullOrEmpty(filter.Status))
+                    query = query.Where(f => f.Status == filter.Status);
+
+                if (filter.SportId.HasValue)
+                    query = query.Where(f => f.SportId == filter.SportId);
+
+                // Sắp xếp
+                query = filter.SortBy switch
+                {
+                    "fieldName" => filter.SortOrder == "asc" ? query.OrderBy(f => f.FieldName) : query.OrderByDescending(f => f.FieldName),
+                    "rating" => filter.SortOrder == "asc" ? query.OrderBy(f => f.AverageRating) : query.OrderByDescending(f => f.AverageRating),
+                    "bookingCount" => filter.SortOrder == "asc"
+                        ? query.OrderBy(f => f.SubFields.SelectMany(sf => sf.Bookings).Count())
+                        : query.OrderByDescending(f => f.SubFields.SelectMany(sf => sf.Bookings).Count()),
+                    _ => filter.SortOrder == "asc" ? query.OrderBy(f => f.CreatedAt) : query.OrderByDescending(f => f.CreatedAt)
+                };
+
+                // Tính tổng số bản ghi
+                var total = await query.CountAsync();
+
+                // Lấy dữ liệu phân trang
+                var pagedFields = await query
+                    .Include(f => f.SubFields)
+                    .Include(f => f.FieldImages.Where(fi => fi.IsPrimary))
+                    .Skip((filter.Page - 1) * filter.PageSize)
+                    .Take(filter.PageSize)
+                    .Select(f => new OwnerFieldResponseDto
+                    {
+                        FieldId = f.FieldId,
+                        FieldName = f.FieldName,
+                        Address = f.Address,
+                        City = f.City,
+                        District = f.District,
+                        AverageRating = f.AverageRating,
+                        Status = f.Status,
+                        BookingCount = f.SubFields.SelectMany(sf => sf.Bookings).Count(),
+                        SubFieldCount = f.SubFields.Count,
+                        CreatedAt = f.CreatedAt,
+                        UpdatedAt = f.UpdatedAt ?? DateTime.UtcNow,
+                        PrimaryImage = f.FieldImages.Where(fi => fi.IsPrimary).Select(fi => fi.ImageUrl).FirstOrDefault() ?? "",
+                        RecentBookings = f.SubFields.SelectMany(sf => sf.Bookings)
+                            .OrderByDescending(b => b.CreatedAt)
+                            .Take(5)
+                            .Select(b => new RecentBookingDto
+                            {
+                                BookingId = b.BookingId,
+                                UserName = b.User.FullName,
+                                BookingDate = b.BookingDate,
+                                Status = b.Status,
+                                TotalPrice = b.TotalPrice,
+                                CreatedAt = b.CreatedAt
+                            }).ToList()
+                    })
+                    .ToListAsync();
+
+                return new PagedResult<OwnerFieldResponseDto>
+                {
+                    Data = pagedFields,
+                    Total = total,
+                    Page = filter.Page,
+                    PageSize = filter.PageSize
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy danh sách sân của owner: {Message}", ex.Message);
+                throw;
+            }
+        }
+
         /// <summary>
         /// Xác thực địa chỉ của sân.
         /// </summary>
