@@ -26,6 +26,8 @@ namespace api.Models
         public bool IsPrimary { get; set; }
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 
+        public DateTime? DeletedAt { get; set; }
+
         [ForeignKey("FieldId")]
         public Field Field { get; set; } = null!;
     }

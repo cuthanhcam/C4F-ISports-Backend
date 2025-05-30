@@ -10,13 +10,6 @@ namespace api.Models
     public class PricingRule
     {
         public int PricingRuleId { get; set; }
-
-        [Required]
-        public List<string> AppliesToDays { get; set; } = new List<string>(); // Monday, Tuesday, ...
-
-        [Required]
-        public List<TimeSlot> TimeSlots { get; set; } = new List<TimeSlot>();
-
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
@@ -26,5 +19,10 @@ namespace api.Models
 
         [ForeignKey("SubFieldId")]
         public SubField SubField { get; set; } = null!;
+
+        [Required]
+        public List<string> AppliesToDays { get; set; } = new List<string>(); // Monday, Tuesday, ...
+        
+        public ICollection<TimeSlot> TimeSlots { get; set; } = new List<TimeSlot>();
     }
 }

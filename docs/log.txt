@@ -1,0 +1,427 @@
+[22:21:38 INF] Starting application...
+[22:21:38 INF] Starting database migration and seeding...
+[22:21:39 WRN] Entity 'Booking' has a global query filter defined and is the required end of a relationship with the entity 'BookingService'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+[22:21:39 WRN] Entity 'Field' has a global query filter defined and is the required end of a relationship with the entity 'FavoriteField'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+[22:21:39 WRN] Entity 'Field' has a global query filter defined and is the required end of a relationship with the entity 'FieldAmenity'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+[22:21:39 WRN] Entity 'Field' has a global query filter defined and is the required end of a relationship with the entity 'FieldDescription'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+[22:21:39 WRN] Entity 'Field' has a global query filter defined and is the required end of a relationship with the entity 'FieldImage'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+[22:21:39 WRN] Entity 'Field' has a global query filter defined and is the required end of a relationship with the entity 'FieldService'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+[22:21:39 WRN] Entity 'User' has a global query filter defined and is the required end of a relationship with the entity 'Notification'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+[22:21:39 WRN] Entity 'Account' has a global query filter defined and is the required end of a relationship with the entity 'RefreshToken'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+[22:21:39 WRN] Entity 'Field' has a global query filter defined and is the required end of a relationship with the entity 'Review'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+[22:21:39 WRN] Entity 'Field' has a global query filter defined and is the required end of a relationship with the entity 'SubField'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+[22:21:39 WRN] The property 'PricingRule.AppliesToDays' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+[22:21:39 WRN] The property 'SubField.Child5aSideIds' is a collection or enumeration type with a value converter but with no value comparer. Set a value comparer to ensure the collection/enumeration elements are compared correctly.
+[22:21:39 INF] Executed DbCommand (26ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+[22:21:39 INF] Database connection status: True
+[22:21:39 INF] Executed DbCommand (13ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Accounts] AS [a]
+WHERE [a].[DeletedAt] IS NULL
+[22:21:39 INF] Accounts table has 5 records before seeding.
+[22:21:39 INF] Executed DbCommand (1ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+[22:21:39 INF] Executed DbCommand (3ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+[22:21:39 INF] Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT 1
+[22:21:39 INF] Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+[22:21:39 INF] Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+[22:21:39 INF] No migrations were applied. The database is already up to date.
+[22:21:39 INF] Migrations applied successfully.
+[22:21:39 INF] Database seeding completed successfully.
+[22:21:39 INF] Executed DbCommand (0ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Accounts] AS [a]
+WHERE [a].[DeletedAt] IS NULL
+[22:21:39 INF] Accounts table has 5 records after seeding.
+[22:21:39 INF] Application startup completed.
+[22:21:39 INF] User profile is available. Using 'C:\Users\cutha\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+[22:21:40 INF] Now listening on: http://localhost:5231
+[22:21:40 INF] Application started. Press Ctrl+C to shut down.
+[22:21:40 INF] Hosting environment: Development
+[22:21:40 INF] Content root path: D:\Workspace\C4F-ISports\C4F-ISports-Backend\api
+[22:21:45 INF] Request starting HTTP/1.1 POST http://localhost:5231/api/auth/login - application/json 73
+[22:21:45 INF] Executing endpoint 'api.Controllers.AuthController.Login (api)'
+[22:21:45 INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(api.Dtos.Auth.LoginDto) on controller api.Controllers.AuthController (api).
+[22:21:45 INF] Executed DbCommand (13ms) [Parameters=[@__loginDto_Email_0='?' (Size = 100)], CommandType='Text', CommandTimeout='30']
+SELECT [a].[AccountId], [a].[CreatedAt], [a].[DeletedAt], [a].[Email], [a].[IsActive], [a].[LastLogin], [a].[Password], [a].[ResetToken], [a].[ResetTokenExpiry], [a].[Role], [a].[UpdatedAt], [a].[VerificationToken], [a].[VerificationTokenExpiry]
+FROM [Accounts] AS [a]
+WHERE [a].[DeletedAt] IS NULL AND [a].[Email] = @__loginDto_Email_0
+[22:21:46 INF] Executed DbCommand (16ms) [Parameters=[@p12='?' (DbType = Int32), @p0='?' (DbType = DateTime2), @p1='?' (DbType = DateTime2), @p2='?' (Size = 100), @p3='?' (DbType = Boolean), @p4='?' (DbType = DateTime2), @p5='?' (Size = 256), @p6='?' (Size = 256), @p7='?' (DbType = DateTime2), @p8='?' (Size = 20), @p9='?' (DbType = DateTime2), @p10='?' (Size = 256), @p11='?' (DbType = DateTime2)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+UPDATE [Accounts] SET [CreatedAt] = @p0, [DeletedAt] = @p1, [Email] = @p2, [IsActive] = @p3, [LastLogin] = @p4, [Password] = @p5, [ResetToken] = @p6, [ResetTokenExpiry] = @p7, [Role] = @p8, [UpdatedAt] = @p9, [VerificationToken] = @p10, [VerificationTokenExpiry] = @p11
+OUTPUT 1
+WHERE [AccountId] = @p12;
+[22:21:46 INF] Executed DbCommand (3ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (DbType = DateTime2), @p2='?' (DbType = DateTime2), @p3='?' (Size = 256), @p4='?' (DbType = DateTime2), @p5='?' (Size = 256)], CommandType='Text', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [RefreshTokens] ([AccountId], [Created], [Expires], [ReplacedByToken], [Revoked], [Token])
+OUTPUT INSERTED.[RefreshTokenId]
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5);
+[22:21:46 INF] Tokens generated successfully for sspross69@gmail.com
+[22:21:46 INF] User logged in: sspross69@gmail.com
+[22:21:46 INF] User logged in: sspross69@gmail.com
+[22:21:46 INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType2`5[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+[22:21:46 INF] Executed action api.Controllers.AuthController.Login (api) in 1109.2175ms
+[22:21:46 INF] Executed endpoint 'api.Controllers.AuthController.Login (api)'
+[22:21:46 INF] Request finished HTTP/1.1 POST http://localhost:5231/api/auth/login - 200 624 application/json; charset=utf-8 1260.2429ms
+[22:21:48 INF] Request starting HTTP/1.1 GET http://localhost:5231/api/fields - null null
+[22:21:48 INF] Executing endpoint 'api.Controllers.FieldController.GetFields (api)'
+[22:21:48 INF] Route matched with {action = "GetFields", controller = "Field"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetFields(api.Dtos.Field.FieldFilterDto) on controller api.Controllers.FieldController (api).
+[22:21:48 INF] CloudinaryService initialized with CloudName: dboluzvfu
+[22:21:48 INF] Lấy danh sách sân với bộ lọc: {"Page": 1, "PageSize": 10, "City": null, "District": null, "SportId": null, "Search": null, "Latitude": null, "Longitude": null, "Radius": 10, "MinPrice": null, "MaxPrice": null, "SortBy": "fieldId", "SortOrder": "asc", "$type": "FieldFilterDto"}
+[22:21:48 INF] Lấy danh sách sân với bộ lọc: {"Page": 1, "PageSize": 10, "City": null, "District": null, "SportId": null, "Search": null, "Latitude": null, "Longitude": null, "Radius": 10, "MinPrice": null, "MaxPrice": null, "SortBy": "fieldId", "SortOrder": "asc", "$type": "FieldFilterDto"}
+[22:21:48 INF] Executed DbCommand (4ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+SELECT COUNT(*)
+FROM [Fields] AS [f]
+WHERE [f].[DeletedAt] IS NULL AND [f].[Status] <> N'Deleted' AND [f].[DeletedAt] IS NULL
+[22:21:49 WRN] Compiling a query which loads related collections for more than one collection navigation, either via 'Include' or through projection, but no 'QuerySplittingBehavior' has been configured. By default, Entity Framework will use 'QuerySplittingBehavior.SingleQuery', which can potentially result in slow query performance. See https://go.microsoft.com/fwlink/?linkid=2134277 for more information. To identify the query that's triggering this warning call 'ConfigureWarnings(w => w.Throw(RelationalEventId.MultipleCollectionIncludeWarning))'.
+[22:21:49 INF] Executed DbCommand (32ms) [Parameters=[@__p_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[FieldId], [t].[FieldName], [t].[Description], [t].[Address], [t].[City], [t].[District], [t].[Latitude], [t].[Longitude], [t].[OpenTime], [t].[CloseTime], [t].[AverageRating], [t].[SportId], [t].[c], [t].[c0], [t2].[SubFieldId], [t2].[SubFieldName], [t2].[FieldType], [t2].[Description], [t2].[Status], [t2].[Capacity], [t2].[OpenTime], [t2].[CloseTime], [t2].[DefaultPricePerSlot], [t2].[PricingRuleId], [t2].[AppliesToDays], [t2].[StartTime], [t2].[EndTime], [t2].[PricePerSlot], [t2].[TimeSlotId], [t2].[Parent7aSideId], [t2].[Child5aSideIds], [f0].[FieldServiceId], [f0].[ServiceName], [f0].[Price], [f0].[Description], [f0].[IsActive], [f1].[FieldAmenityId], [f1].[AmenityName], [f1].[Description], [f1].[IconUrl], [f2].[FieldImageId], [f2].[ImageUrl], [f2].[PublicId], [f2].[IsPrimary], [f2].[UploadedAt]
+FROM (
+    SELECT [f].[FieldId], [f].[FieldName], [f].[Description], [f].[Address], [f].[City], [f].[District], [f].[Latitude], [f].[Longitude], [f].[OpenTime], [f].[CloseTime], [f].[AverageRating], [f].[SportId], CASE
+        WHEN EXISTS (
+            SELECT 1
+            FROM [SubFields] AS [s]
+            WHERE [f].[FieldId] = [s].[FieldId]) THEN (
+            SELECT MIN([s0].[DefaultPricePerSlot])
+            FROM [SubFields] AS [s0]
+            WHERE [f].[FieldId] = [s0].[FieldId])
+        ELSE 0.0
+    END AS [c], CASE
+        WHEN EXISTS (
+            SELECT 1
+            FROM [SubFields] AS [s1]
+            WHERE [f].[FieldId] = [s1].[FieldId]) THEN (
+            SELECT MAX([s2].[DefaultPricePerSlot])
+            FROM [SubFields] AS [s2]
+            WHERE [f].[FieldId] = [s2].[FieldId])
+        ELSE 0.0
+    END AS [c0]
+    FROM [Fields] AS [f]
+    WHERE [f].[DeletedAt] IS NULL AND [f].[Status] <> N'Deleted' AND [f].[DeletedAt] IS NULL
+    ORDER BY [f].[FieldId]
+    OFFSET @__p_0 ROWS FETCH NEXT @__p_1 ROWS ONLY
+) AS [t]
+LEFT JOIN (
+    SELECT [s3].[SubFieldId], [s3].[SubFieldName], [s3].[FieldType], [s3].[Description], [s3].[Status], [s3].[Capacity], [s3].[OpenTime], [s3].[CloseTime], [s3].[DefaultPricePerSlot], [t1].[PricingRuleId], [t1].[AppliesToDays], [t1].[StartTime], [t1].[EndTime], [t1].[PricePerSlot], [t1].[TimeSlotId], [s3].[Parent7aSideId], [s3].[Child5aSideIds], [s3].[FieldId]
+    FROM [SubFields] AS [s3]
+    LEFT JOIN (
+        SELECT [p].[PricingRuleId], [p].[AppliesToDays], [t0].[StartTime], [t0].[EndTime], [t0].[PricePerSlot], [t0].[TimeSlotId], [p].[SubFieldId]
+        FROM [PricingRules] AS [p]
+        LEFT JOIN (
+            SELECT [t3].[StartTime], [t3].[EndTime], [t3].[PricePerSlot], [t3].[TimeSlotId], [t3].[PricingRuleId]
+            FROM [TimeSlots] AS [t3]
+            WHERE [t3].[DeletedAt] IS NULL
+        ) AS [t0] ON [p].[PricingRuleId] = [t0].[PricingRuleId]
+    ) AS [t1] ON [s3].[SubFieldId] = [t1].[SubFieldId]
+) AS [t2] ON [t].[FieldId] = [t2].[FieldId]
+LEFT JOIN [FieldServices] AS [f0] ON [t].[FieldId] = [f0].[FieldId]
+LEFT JOIN [FieldAmenities] AS [f1] ON [t].[FieldId] = [f1].[FieldId]
+LEFT JOIN [FieldImages] AS [f2] ON [t].[FieldId] = [f2].[FieldId]
+ORDER BY [t].[FieldId], [t2].[SubFieldId], [t2].[PricingRuleId], [t2].[TimeSlotId], [f0].[FieldServiceId], [f1].[FieldAmenityId]
+[22:21:49 INF] Lưu danh sách sân vào cache với key: fields_1_10_______10___fieldId_asc
+[22:21:49 INF] Lấy thành công 5 sân, trang 1/1
+[22:21:49 INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType9`4[[System.Collections.Generic.List`1[[api.Dtos.Field.FieldResponseDto, api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.        
+[22:21:49 INF] Executed action api.Controllers.FieldController.GetFields (api) in 778.7031ms
+[22:21:49 INF] Executed endpoint 'api.Controllers.FieldController.GetFields (api)'
+[22:21:49 INF] Request finished HTTP/1.1 GET http://localhost:5231/api/fields - 200 7334 application/json; charset=utf-8 811.2209ms
+[22:22:00 INF] Request starting HTTP/1.1 PUT http://localhost:5231/api/fields/22 - application/json 2557
+[22:22:00 INF] Executing endpoint 'api.Controllers.FieldController.UpdateField (api)'
+[22:22:00 INF] Route matched with {action = "UpdateField", controller = "Field"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] UpdateField(Int32, api.Dtos.Field.UpdateFieldDto) on controller api.Controllers.FieldController (api).
+[22:22:00 INF] CloudinaryService initialized with CloudName: dboluzvfu
+[22:22:01 INF] Cập nhật sân ID: 22, dữ liệu: {"FieldName": "Sân Bóng Cộng Hòa", "Description": "Đã nâng cấp hệ thống chiếu sáng và mặt sân chất lượng cao, phù hợp tổ chức giải đấu nhỏ.", "Address": "20 Cộng Hòa, Phường 4, Quận Tân Bình", "City": "Hồ Chí Minh", "District": "Tân Bình", "OpenTime": "07:00", "CloseTime": "23:00", "SportId": 1, "SubFields": [{"SubFieldId": null, "SubFieldName": "Sân 5.1", "FieldType": "5-a-side", "Description": "Sân chuẩn thi đấu 5 người, cỏ nhân tạo mới thay tháng 5/2025", "Capacity": 10, "OpenTime": "07:00", "CloseTime": "23:00", "DefaultPricePerSlot": 0, "PricingRules": [{"PricingRuleId": null, "AppliesToDays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "TimeSlots": [{"TimeSlotId": null, "StartTime": "07:00", "EndTime": "17:00", "PricePerSlot": 130000, "$type": "UpdateTimeSlotDto"}, {"TimeSlotId": null, "StartTime": "17:00", "EndTime": "23:00", "PricePerSlot": 160000, "$type": "UpdateTimeSlotDto"}], "$type": "UpdatePricingRuleDto"}, {"PricingRuleId": null, "AppliesToDays": ["Saturday", "Sunday"], "TimeSlots": [{"TimeSlotId": null, "StartTime": "07:00", "EndTime": "23:00", "PricePerSlot": 190000, "$type": "UpdateTimeSlotDto"}], "$type": "UpdatePricingRuleDto"}], "Parent7aSideId": null, "Child5aSideIds": [], "$type": "UpdateSubFieldDto"}], "Services": [{"FieldServiceId": null, "ServiceName": "Cho thuê bóng", "Price": 35000, "Description": "Bóng tiêu chuẩn FIFA, size 5", "$type": "UpdateFieldServiceDto"}], "Amenities": [{"FieldAmenityId": null, "AmenityName": "Phòng thay đồ", "Description": "Phòng thay đồ sạch sẽ, có điều hòa và tủ khoá an toàn", "IconUrl": "https://example.com/icons/locker-room.png", "$type": "UpdateFieldAmenityDto"}], "Images": [], "$type": "UpdateFieldDto"}
+[22:22:01 INF] Cập nhật sân với ID: 22, dữ liệu: {"FieldName": "Sân Bóng Cộng Hòa", "Description": "Đã nâng cấp hệ thống chiếu sáng và mặt sân chất lượng cao, phù hợp tổ chức giải đấu nhỏ.", "Address": "20 Cộng Hòa, Phường 4, Quận Tân Bình", "City": "Hồ Chí Minh", "District": "Tân Bình", "OpenTime": "07:00", "CloseTime": "23:00", "SportId": 1, "SubFields": [{"SubFieldId": null, "SubFieldName": "Sân 5.1", "FieldType": "5-a-side", "Description": "Sân chuẩn thi đấu 5 người, cỏ nhân tạo mới thay tháng 5/2025", "Capacity": 10, "OpenTime": "07:00", "CloseTime": "23:00", "DefaultPricePerSlot": 0, "PricingRules": [{"PricingRuleId": null, "AppliesToDays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], "TimeSlots": [{"TimeSlotId": null, "StartTime": "07:00", "EndTime": "17:00", "PricePerSlot": 130000, "$type": "UpdateTimeSlotDto"}, {"TimeSlotId": null, "StartTime": "17:00", "EndTime": "23:00", "PricePerSlot": 160000, "$type": "UpdateTimeSlotDto"}], "$type": "UpdatePricingRuleDto"}, {"PricingRuleId": null, "AppliesToDays": ["Saturday", "Sunday"], "TimeSlots": [{"TimeSlotId": null, "StartTime": "07:00", "EndTime": "23:00", "PricePerSlot": 190000, "$type": "UpdateTimeSlotDto"}], "$type": "UpdatePricingRuleDto"}], "Parent7aSideId": null, "Child5aSideIds": [], "$type": "UpdateSubFieldDto"}], "Services": [{"FieldServiceId": null, "ServiceName": "Cho thuê bóng", "Price": 35000, "Description": "Bóng tiêu chuẩn FIFA, size 5", "$type": "UpdateFieldServiceDto"}], "Amenities": [{"FieldAmenityId": null, "AmenityName": "Phòng thay đồ", "Description": "Phòng thay đồ sạch sẽ, có điều hòa và tủ khoá an toàn", "IconUrl": "https://example.com/icons/locker-room.png", "$type": "UpdateFieldAmenityDto"}], "Images": [], "$type": "UpdateFieldDto"}
+[22:22:01 INF] Executed DbCommand (3ms) [Parameters=[@__accountId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [a].[AccountId], [a].[CreatedAt], [a].[DeletedAt], [a].[Email], [a].[IsActive], [a].[LastLogin], [a].[Password], [a].[ResetToken], [a].[ResetTokenExpiry], [a].[Role], [a].[UpdatedAt], [a].[VerificationToken], [a].[VerificationTokenExpiry]
+FROM [Accounts] AS [a]
+WHERE [a].[DeletedAt] IS NULL AND [a].[AccountId] = @__accountId_0 AND [a].[DeletedAt] IS NULL AND [a].[IsActive] = CAST(1 AS bit)
+[22:22:01 INF] Executed DbCommand (2ms) [Parameters=[@__account_AccountId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [o].[OwnerId], [o].[AccountId], [o].[CreatedAt], [o].[DeletedAt], [o].[Description], [o].[FullName], [o].[Phone], [o].[UpdatedAt]
+FROM [Owners] AS [o]
+WHERE [o].[DeletedAt] IS NULL AND [o].[AccountId] = @__account_AccountId_0 AND [o].[DeletedAt] IS NULL
+[22:22:01 WRN] Compiling a query which loads related collections for more than one collection navigation, either via 'Include' or through projection, but no 'QuerySplittingBehavior' has been configured. By default, Entity Framework will use 'QuerySplittingBehavior.SingleQuery', which can potentially result in slow query performance. See https://go.microsoft.com/fwlink/?linkid=2134277 for more information. To identify the query that's triggering this warning call 'ConfigureWarnings(w => w.Throw(RelationalEventId.MultipleCollectionIncludeWarning))'.
+[22:22:01 INF] Executed DbCommand (22ms) [Parameters=[@__8__locals1_fieldId_0='?' (DbType = Int32), @__owner_OwnerId_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[FieldId], [t].[Address], [t].[AverageRating], [t].[City], [t].[CloseTime], [t].[CreatedAt], [t].[DeletedAt], [t].[Description], [t].[District], [t].[FieldName], [t].[LastCalculatedRating], [t].[Latitude], [t].[Longitude], [t].[OpenTime], [t].[OwnerId], [t].[SportId], [t].[Status], [t].[UpdatedAt], [t2].[SubFieldId], [t2].[Capacity], [t2].[Child5aSideIds], [t2].[CloseTime], [t2].[CreatedAt], [t2].[DefaultPricePerSlot], [t2].[DeletedAt], [t2].[Description], [t2].[FieldId], [t2].[FieldType], [t2].[OpenTime], [t2].[Parent7aSideId], [t2].[Status], [t2].[SubFieldName], [t2].[UpdatedAt], [t2].[PricingRuleId], [t2].[AppliesToDays], [t2].[CreatedAt0], [t2].[DeletedAt0], [t2].[SubFieldId0], [t2].[UpdatedAt0], [t2].[TimeSlotId], [t2].[CreatedAt00], [t2].[DeletedAt00], [t2].[EndTime], [t2].[IsAvailable], [t2].[PricePerSlot], [t2].[PricingRuleId0], [t2].[StartTime], [t2].[UpdatedAt00], [f0].[FieldServiceId], [f0].[CreatedAt], [f0].[DeletedAt], [f0].[Description], [f0].[FieldId], [f0].[IsActive], [f0].[Price], [f0].[ServiceName], [f0].[UpdatedAt], [f1].[FieldAmenityId], [f1].[AmenityName], [f1].[CreatedAt], [f1].[DeletedAt], [f1].[Description], [f1].[FieldId], [f1].[IconUrl], [f1].[UpdatedAt], [f2].[FieldImageId], [f2].[DeletedAt], [f2].[FieldId], [f2].[ImageUrl], [f2].[IsPrimary], [f2].[PublicId], [f2].[Thumbnail], [f2].[UploadedAt]
+FROM (
+    SELECT TOP(1) [f].[FieldId], [f].[Address], [f].[AverageRating], [f].[City], [f].[CloseTime], [f].[CreatedAt], [f].[DeletedAt], [f].[Description], [f].[District], [f].[FieldName], [f].[LastCalculatedRating], [f].[Latitude], [f].[Longitude], [f].[OpenTime], [f].[OwnerId], [f].[SportId], [f].[Status], [f].[UpdatedAt]
+    FROM [Fields] AS [f]
+    WHERE [f].[DeletedAt] IS NULL AND [f].[FieldId] = @__8__locals1_fieldId_0 AND [f].[OwnerId] = @__owner_OwnerId_1 AND [f].[Status] <> N'Deleted' AND [f].[DeletedAt] IS NULL
+) AS [t]
+LEFT JOIN (
+    SELECT [s].[SubFieldId], [s].[Capacity], [s].[Child5aSideIds], [s].[CloseTime], [s].[CreatedAt], [s].[DefaultPricePerSlot], [s].[DeletedAt], [s].[Description], [s].[FieldId], [s].[FieldType], [s].[OpenTime], [s].[Parent7aSideId], [s].[Status], [s].[SubFieldName], [s].[UpdatedAt], [t1].[PricingRuleId], [t1].[AppliesToDays], [t1].[CreatedAt] AS [CreatedAt0], [t1].[DeletedAt] AS [DeletedAt0], [t1].[SubFieldId] AS [SubFieldId0], [t1].[UpdatedAt] AS [UpdatedAt0], [t1].[TimeSlotId], [t1].[CreatedAt0] AS [CreatedAt00], [t1].[DeletedAt0] AS [DeletedAt00], [t1].[EndTime], [t1].[IsAvailable], [t1].[PricePerSlot], [t1].[PricingRuleId0], [t1].[StartTime], [t1].[UpdatedAt0] AS [UpdatedAt00]
+    FROM [SubFields] AS [s]
+    LEFT JOIN (
+        SELECT [p].[PricingRuleId], [p].[AppliesToDays], [p].[CreatedAt], [p].[DeletedAt], [p].[SubFieldId], [p].[UpdatedAt], [t0].[TimeSlotId], [t0].[CreatedAt] AS [CreatedAt0], [t0].[DeletedAt] AS [DeletedAt0], [t0].[EndTime], [t0].[IsAvailable], [t0].[PricePerSlot], [t0].[PricingRuleId] AS [PricingRuleId0], [t0].[StartTime], [t0].[UpdatedAt] AS [UpdatedAt0]
+        FROM [PricingRules] AS [p]
+        LEFT JOIN (
+            SELECT [t3].[TimeSlotId], [t3].[CreatedAt], [t3].[DeletedAt], [t3].[EndTime], [t3].[IsAvailable], [t3].[PricePerSlot], [t3].[PricingRuleId], [t3].[StartTime], [t3].[UpdatedAt]
+            FROM [TimeSlots] AS [t3]
+            WHERE [t3].[DeletedAt] IS NULL
+        ) AS [t0] ON [p].[PricingRuleId] = [t0].[PricingRuleId]
+    ) AS [t1] ON [s].[SubFieldId] = [t1].[SubFieldId]
+) AS [t2] ON [t].[FieldId] = [t2].[FieldId]
+LEFT JOIN [FieldServices] AS [f0] ON [t].[FieldId] = [f0].[FieldId]
+LEFT JOIN [FieldAmenities] AS [f1] ON [t].[FieldId] = [f1].[FieldId]
+LEFT JOIN [FieldImages] AS [f2] ON [t].[FieldId] = [f2].[FieldId]
+ORDER BY [t].[FieldId], [t2].[SubFieldId], [t2].[PricingRuleId], [t2].[TimeSlotId], [f0].[FieldServiceId], [f1].[FieldAmenityId]
+[22:22:01 INF] Executed DbCommand (2ms) [Parameters=[@__8__locals1_dto_SportId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT TOP(1) [s].[SportId], [s].[CreatedAt], [s].[DeletedAt], [s].[Description], [s].[ImageUrl], [s].[IsActive], [s].[SportName], [s].[UpdatedAt]
+FROM [Sports] AS [s]
+WHERE [s].[DeletedAt] IS NULL AND [s].[SportId] = @__8__locals1_dto_SportId_0 AND [s].[IsActive] = CAST(1 AS bit) AND [s].[DeletedAt] IS NULL
+[22:22:01 INF] Xác thực địa chỉ: {"FieldName": "Sân Bóng Cộng Hòa", "Address": "20 Cộng Hòa, Phường 4, Quận Tân Bình", "City": "Hồ Chí Minh", "District": "Tân Bình", "$type": "ValidateAddressDto"}
+[22:22:01 INF] Trả về kết quả xác thực địa chỉ từ cache.
+[22:22:01 INF] Bắt đầu cập nhật Field với ID: 22
+[22:22:01 INF] Executed DbCommand (6ms) [Parameters=[@__8__locals1_fieldId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [s].[SubFieldId], [s].[Capacity], [s].[Child5aSideIds], [s].[CloseTime], [s].[CreatedAt], [s].[DefaultPricePerSlot], [s].[DeletedAt], [s].[Description], [s].[FieldId], [s].[FieldType], [s].[OpenTime], [s].[Parent7aSideId], [s].[Status], [s].[SubFieldName], [s].[UpdatedAt]
+FROM [SubFields] AS [s]
+WHERE [s].[FieldId] = @__8__locals1_fieldId_0 AND [s].[DeletedAt] IS NULL
+[22:22:01 INF] Đánh dấu xóa SubField: Sân 5.1, SubFieldId: 22
+[22:22:01 INF] Thêm mới SubField: Sân 5.1
+[22:22:01 INF] Executed DbCommand (7ms) [Parameters=[@__subField_SubFieldId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [p].[PricingRuleId], [p].[AppliesToDays], [p].[CreatedAt], [p].[DeletedAt], [p].[SubFieldId], [p].[UpdatedAt]
+FROM [PricingRules] AS [p]
+WHERE [p].[SubFieldId] = @__subField_SubFieldId_0 AND [p].[DeletedAt] IS NULL
+[22:22:01 INF] Thêm mới PricingRule cho SubFieldId: 0
+[22:22:01 INF] Executed DbCommand (2ms) [Parameters=[@__pricingRule_PricingRuleId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[TimeSlotId], [t].[CreatedAt], [t].[DeletedAt], [t].[EndTime], [t].[IsAvailable], [t].[PricePerSlot], [t].[PricingRuleId], [t].[StartTime], [t].[UpdatedAt]
+FROM [TimeSlots] AS [t]
+WHERE [t].[DeletedAt] IS NULL AND [t].[PricingRuleId] = @__pricingRule_PricingRuleId_0 AND [t].[DeletedAt] IS NULL
+[22:22:01 INF] Thêm mới TimeSlot cho PricingRuleId: 0
+[22:22:01 INF] Thêm mới TimeSlot cho PricingRuleId: 0
+[22:22:01 INF] Thêm mới PricingRule cho SubFieldId: 0
+[22:22:01 INF] Executed DbCommand (1ms) [Parameters=[@__pricingRule_PricingRuleId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [t].[TimeSlotId], [t].[CreatedAt], [t].[DeletedAt], [t].[EndTime], [t].[IsAvailable], [t].[PricePerSlot], [t].[PricingRuleId], [t].[StartTime], [t].[UpdatedAt]
+FROM [TimeSlots] AS [t]
+WHERE [t].[DeletedAt] IS NULL AND [t].[PricingRuleId] = @__pricingRule_PricingRuleId_0 AND [t].[DeletedAt] IS NULL
+[22:22:01 INF] Thêm mới TimeSlot cho PricingRuleId: 0
+[22:22:01 INF] Executed DbCommand (5ms) [Parameters=[@__8__locals1_fieldId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [f].[FieldServiceId], [f].[CreatedAt], [f].[DeletedAt], [f].[Description], [f].[FieldId], [f].[IsActive], [f].[Price], [f].[ServiceName], [f].[UpdatedAt]
+FROM [FieldServices] AS [f]
+WHERE [f].[FieldId] = @__8__locals1_fieldId_0 AND [f].[DeletedAt] IS NULL
+[22:22:01 INF] Đánh dấu xóa FieldService: Cho thuê bóng, FieldServiceId: 19
+[22:22:01 INF] Thêm mới FieldService: Cho thuê bóng
+[22:22:01 INF] Executed DbCommand (5ms) [Parameters=[@__8__locals1_fieldId_0='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+SELECT [f].[FieldAmenityId], [f].[AmenityName], [f].[CreatedAt], [f].[DeletedAt], [f].[Description], [f].[FieldId], [f].[IconUrl], [f].[UpdatedAt]
+FROM [FieldAmenities] AS [f]
+WHERE [f].[FieldId] = @__8__locals1_fieldId_0 AND [f].[DeletedAt] IS NULL
+[22:22:01 INF] Đánh dấu xóa FieldAmenity: Phòng thay đồ, FieldAmenityId: 19
+[22:22:01 INF] Thêm mới FieldAmenity: Phòng thay đồ
+[22:22:01 INF] Executed DbCommand (48ms) [Parameters=[@p7='?' (DbType = Int32), @p0='?' (Size = 100), @p1='?' (DbType = DateTime2), @p2='?' (DbType = DateTime2), @p3='?' (Size = 500), @p4='?' (DbType = Int32), @p5='?' (Size = 500), @p6='?' (DbType = DateTime2), @p8='?' (Size = 100), @p9='?' (DbType = DateTime2), @p10='?' (DbType = DateTime2), @p11='?' (Size = 500), @p12='?' (DbType = Int32), @p13='?' (Size = 500), @p14='?' (DbType = DateTime2), @p23='?' (DbType = Int32), @p15='?' (DbType = DateTime2), @p16='?' (DbType = DateTime2), @p17='?' (Size = 500), @p18='?' (DbType = Int32), @p19='?' (DbType = Boolean), @p20='?' (Precision = 18) (Scale = 2) (DbType = Decimal), @p21='?' (Size = 100), @p22='?' (DbType = DateTime2), @p24='?' (DbType = DateTime2), @p25='?' (DbType = DateTime2), @p26='?' (Size = 500), @p27='?' (DbType = Int32), @p28='?' (Precision = 18) (Scale = 2) (DbType = Decimal), @p29='?' (Size = 100), @p30='?' (DbType = DateTime2), @p48='?' (DbType = Int32), @p31='?' (Size = 500), @p32='?' (Precision = 3) (Scale = 2) (DbType = Decimal), @p33='?' (Size = 100), @p34='?' (DbType = Time), @p35='?' (DbType = DateTime2), @p36='?' (DbType = DateTime2), @p37='?' (Size = 500), @p38='?' (Size = 100), @p39='?' (Size = 100), @p40='?' (DbType = DateTime2), @p41='?' (DbType = Double), @p42='?' (DbType = Double), @p43='?' (DbType = Time), @p44='?' (DbType = Int32), @p45='?' (DbType = Int32), @p46='?' (Size = 20), @p47='?' (DbType = DateTime2), @p49='?' (Size = 4000), @p50='?' (DbType = DateTime2), @p51='?' (DbType = DateTime2), @p52='?' (DbType = Int32), @p53='?' (DbType = DateTime2), @p54='?' (Size = 4000), @p55='?' (DbType = DateTime2), @p56='?' (DbType = DateTime2), @p57='?' (DbType = Int32), @p58='?' (DbType = DateTime2), @p73='?' (DbType = Int32), @p59='?' (DbType = Int32), @p60='?' (Size = 4000), @p61='?' (DbType = Time), @p62='?' (DbType = DateTime2), @p63='?' (Precision = 18) (Scale = 2) (DbType = Decimal), @p64='?' (DbType = DateTime2), @p65='?' (Size = 500), @p66='?' (DbType = Int32), @p67='?' (Size = 50), @p68='?' (DbType = Time), @p69='?' (DbType = Int32), @p70='?' (Size = 20), @p71='?' (Size = 100), @p72='?' (DbType = DateTime2), @p74='?' (DbType = Int32), @p75='?' (Size = 4000), @p76='?' (DbType = Time), @p77='?' (DbType = DateTime2), @p78='?' (Precision = 18) (Scale = 2) (DbType = Decimal), @p79='?' (DbType = DateTime2), @p80='?' (Size = 500), @p81='?' (DbType = Int32), @p82='?' (Size = 50), @p83='?' (DbType = Time), @p84='?' (DbType = Int32), @p85='?' (Size = 20), @p86='?' (Size = 100), @p87='?' (DbType = DateTime2), @p88='?' (DbType = DateTime2), @p89='?' (DbType = DateTime2), @p90='?' (DbType = Time), @p91='?' (DbType = Boolean), @p92='?' (Precision = 18) (Scale = 2) (DbType = Decimal), @p93='?' (DbType = Int32), @p94='?' (DbType = Time), @p95='?' (DbType = DateTime2), @p96='?' (DbType = DateTime2), @p97='?' (DbType = DateTime2), @p98='?' (DbType = Time), @p99='?' (DbType = Boolean), @p100='?' (Precision = 18) (Scale = 2) (DbType = Decimal), @p101='?' (DbType = Int32), @p102='?' (DbType = Time), @p103='?' (DbType = DateTime2), @p104='?' (DbType = DateTime2), @p105='?' (DbType = DateTime2), @p106='?' (DbType = Time), @p107='?' (DbType = Boolean), @p108='?' (Precision = 18) (Scale = 2) (DbType = Decimal), @p109='?' (DbType = Int32), @p110='?' (DbType = Time), @p111='?' (DbType = DateTime2)], CommandType='Text', CommandTimeout='30']
+SET NOCOUNT ON;
+UPDATE [FieldAmenities] SET [AmenityName] = @p0, [CreatedAt] = @p1, [DeletedAt] = @p2, [Description] = @p3, [FieldId] = @p4, [IconUrl] = @p5, [UpdatedAt] = @p6
+OUTPUT 1
+WHERE [FieldAmenityId] = @p7;
+INSERT INTO [FieldAmenities] ([AmenityName], [CreatedAt], [DeletedAt], [Description], [FieldId], [IconUrl], [UpdatedAt])
+OUTPUT INSERTED.[FieldAmenityId]
+VALUES (@p8, @p9, @p10, @p11, @p12, @p13, @p14);
+UPDATE [FieldServices] SET [CreatedAt] = @p15, [DeletedAt] = @p16, [Description] = @p17, [FieldId] = @p18, [IsActive] = @p19, [Price] = @p20, [ServiceName] = @p21, [UpdatedAt] = @p22
+OUTPUT 1
+WHERE [FieldServiceId] = @p23;
+INSERT INTO [FieldServices] ([CreatedAt], [DeletedAt], [Description], [FieldId], [Price], [ServiceName], [UpdatedAt])
+OUTPUT INSERTED.[FieldServiceId], INSERTED.[IsActive]
+VALUES (@p24, @p25, @p26, @p27, @p28, @p29, @p30);
+UPDATE [Fields] SET [Address] = @p31, [AverageRating] = @p32, [City] = @p33, [CloseTime] = @p34, [CreatedAt] = @p35, [DeletedAt] = @p36, [Description] = @p37, [District] = @p38, [FieldName] = @p39, [LastCalculatedRating] = @p40, [Latitude] = @p41, [Longitude] = @p42, [OpenTime] = @p43, [OwnerId] = @p44, [SportId] = @p45, [Status] = @p46, [UpdatedAt] = @p47
+OUTPUT 1
+WHERE [FieldId] = @p48;
+MERGE [PricingRules] USING (
+VALUES (@p49, @p50, @p51, @p52, @p53, 0),
+(@p54, @p55, @p56, @p57, @p58, 1)) AS i ([AppliesToDays], [CreatedAt], [DeletedAt], [SubFieldId], [UpdatedAt], _Position) ON 1=0
+WHEN NOT MATCHED THEN
+INSERT ([AppliesToDays], [CreatedAt], [DeletedAt], [SubFieldId], [UpdatedAt])
+VALUES (i.[AppliesToDays], i.[CreatedAt], i.[DeletedAt], i.[SubFieldId], i.[UpdatedAt])
+OUTPUT INSERTED.[PricingRuleId], i._Position;
+UPDATE [SubFields] SET [Capacity] = @p59, [Child5aSideIds] = @p60, [CloseTime] = @p61, [CreatedAt] = @p62, [DefaultPricePerSlot] = @p63, [DeletedAt] = @p64, [Description] = @p65, [FieldId] = @p66, [FieldType] = @p67, [OpenTime] = @p68, [Parent7aSideId] = @p69, [Status] = @p70, [SubFieldName] = @p71, [UpdatedAt] = @p72
+OUTPUT 1
+WHERE [SubFieldId] = @p73;
+INSERT INTO [SubFields] ([Capacity], [Child5aSideIds], [CloseTime], [CreatedAt], [DefaultPricePerSlot], [DeletedAt], [Description], [FieldId], [FieldType], [OpenTime], [Parent7aSideId], [Status], [SubFieldName], [UpdatedAt])
+OUTPUT INSERTED.[SubFieldId]
+VALUES (@p74, @p75, @p76, @p77, @p78, @p79, @p80, @p81, @p82, @p83, @p84, @p85, @p86, @p87);
+MERGE [TimeSlots] USING (
+VALUES (@p88, @p89, @p90, @p91, @p92, @p93, @p94, @p95, 0),
+(@p96, @p97, @p98, @p99, @p100, @p101, @p102, @p103, 1),
+(@p104, @p105, @p106, @p107, @p108, @p109, @p110, @p111, 2)) AS i ([CreatedAt], [DeletedAt], [EndTime], [IsAvailable], [PricePerSlot], [PricingRuleId], [StartTime], [UpdatedAt], _Position) ON 1=0
+WHEN NOT MATCHED THEN
+INSERT ([CreatedAt], [DeletedAt], [EndTime], [IsAvailable], [PricePerSlot], [PricingRuleId], [StartTime], [UpdatedAt])
+VALUES (i.[CreatedAt], i.[DeletedAt], i.[EndTime], i.[IsAvailable], i.[PricePerSlot], i.[PricingRuleId], i.[StartTime], i.[UpdatedAt])
+OUTPUT INSERTED.[TimeSlotId], i._Position;
+[22:22:01 ERR] An exception occurred in the database while saving changes for context type 'api.Data.ApplicationDbContext'.
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): The MERGE statement conflicted with the FOREIGN KEY constraint "FK_PricingRules_SubFields_SubFieldId". The conflict occurred in database "c4fisportsv2", table "dbo.SubFields", column 'SubFieldId'.
+   at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryHasMoreRows(Boolean& moreRows)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryReadInternal(Boolean setTimeout, Boolean& more)
+   at Microsoft.Data.SqlClient.SqlDataReader.ReadAsyncExecute(Task task, Object state)
+   at Microsoft.Data.SqlClient.SqlDataReader.InvokeAsyncCall[T](SqlDataReaderBaseAsyncCallContext`1 context)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSetAsync(Int32 startCommandIndex, RelationalDataReader reader, CancellationToken cancellationToken)
+ClientConnectionId:19b5b683-4223-4670-b093-309a6741b598
+Error Number:547,State:0,Class:16
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSetAsync(Int32 startCommandIndex, RelationalDataReader reader, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeAsync(RelationalDataReader reader, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)  
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)  
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): The MERGE statement conflicted with the FOREIGN KEY constraint "FK_PricingRules_SubFields_SubFieldId". The conflict occurred in database "c4fisportsv2", table "dbo.SubFields", column 'SubFieldId'.
+   at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryHasMoreRows(Boolean& moreRows)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryReadInternal(Boolean setTimeout, Boolean& more)
+   at Microsoft.Data.SqlClient.SqlDataReader.ReadAsyncExecute(Task task, Object state)
+   at Microsoft.Data.SqlClient.SqlDataReader.InvokeAsyncCall[T](SqlDataReaderBaseAsyncCallContext`1 context)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSetAsync(Int32 startCommandIndex, RelationalDataReader reader, CancellationToken cancellationToken)
+ClientConnectionId:19b5b683-4223-4670-b093-309a6741b598
+Error Number:547,State:0,Class:16
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSetAsync(Int32 startCommandIndex, RelationalDataReader reader, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeAsync(RelationalDataReader reader, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)  
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)  
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+[22:22:02 ERR] Lỗi khi cập nhật sân trong giao dịch. FieldId: 22
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): The MERGE statement conflicted with the FOREIGN KEY constraint "FK_PricingRules_SubFields_SubFieldId". The conflict occurred in database "c4fisportsv2", table "dbo.SubFields", column 'SubFieldId'.
+   at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryHasMoreRows(Boolean& moreRows)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryReadInternal(Boolean setTimeout, Boolean& more)
+   at Microsoft.Data.SqlClient.SqlDataReader.ReadAsyncExecute(Task task, Object state)
+   at Microsoft.Data.SqlClient.SqlDataReader.InvokeAsyncCall[T](SqlDataReaderBaseAsyncCallContext`1 context)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSetAsync(Int32 startCommandIndex, RelationalDataReader reader, CancellationToken cancellationToken)
+ClientConnectionId:19b5b683-4223-4670-b093-309a6741b598
+Error Number:547,State:0,Class:16
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSetAsync(Int32 startCommandIndex, RelationalDataReader reader, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeAsync(RelationalDataReader reader, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)  
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)  
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at api.Data.UnitOfWork.SaveChangesAsync() in D:\Workspace\C4F-ISports\C4F-ISports-Backend\api\Data\UnitOfWork.cs:line 41
+   at api.Services.FieldService.<>c__DisplayClass12_1.<<UpdateFieldAsync>b__11>d.MoveNext() in D:\Workspace\C4F-ISports\C4F-ISports-Backend\api\Services\FieldService.cs:line 1200
+[22:22:02 ERR] Lỗi khi cập nhật sân với ID: 22
+System.InvalidOperationException: Không thể cập nhật sân: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): The MERGE statement conflicted with the FOREIGN KEY constraint "FK_PricingRules_SubFields_SubFieldId". The conflict occurred in database "c4fisportsv2", table "dbo.SubFields", column 'SubFieldId'.
+   at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryHasMoreRows(Boolean& moreRows)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryReadInternal(Boolean setTimeout, Boolean& more)
+   at Microsoft.Data.SqlClient.SqlDataReader.ReadAsyncExecute(Task task, Object state)
+   at Microsoft.Data.SqlClient.SqlDataReader.InvokeAsyncCall[T](SqlDataReaderBaseAsyncCallContext`1 context)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSetAsync(Int32 startCommandIndex, RelationalDataReader reader, CancellationToken cancellationToken)
+ClientConnectionId:19b5b683-4223-4670-b093-309a6741b598
+Error Number:547,State:0,Class:16
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSetAsync(Int32 startCommandIndex, RelationalDataReader reader, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeAsync(RelationalDataReader reader, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)  
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)  
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at api.Data.UnitOfWork.SaveChangesAsync() in D:\Workspace\C4F-ISports\C4F-ISports-Backend\api\Data\UnitOfWork.cs:line 41
+   at api.Services.FieldService.<>c__DisplayClass12_1.<<UpdateFieldAsync>b__11>d.MoveNext() in D:\Workspace\C4F-ISports\C4F-ISports-Backend\api\Services\FieldService.cs:line 1200
+   --- End of inner exception stack trace ---
+   at api.Services.FieldService.<>c__DisplayClass12_1.<<UpdateFieldAsync>b__11>d.MoveNext() in D:\Workspace\C4F-ISports\C4F-ISports-Backend\api\Services\FieldService.cs:line 1208
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at api.Services.FieldService.UpdateFieldAsync(Int32 fieldId, UpdateFieldDto dto, ClaimsPrincipal user) in D:\Workspace\C4F-ISports\C4F-ISports-Backend\api\Services\FieldService.cs:line 872
+[22:22:02 WRN] Dữ liệu không hợp lệ khi cập nhật sân ID: 22.
+System.InvalidOperationException: Không thể cập nhật sân: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): The MERGE statement conflicted with the FOREIGN KEY constraint "FK_PricingRules_SubFields_SubFieldId". The conflict occurred in database "c4fisportsv2", table "dbo.SubFields", column 'SubFieldId'.
+   at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryHasMoreRows(Boolean& moreRows)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryReadInternal(Boolean setTimeout, Boolean& more)
+   at Microsoft.Data.SqlClient.SqlDataReader.ReadAsyncExecute(Task task, Object state)
+   at Microsoft.Data.SqlClient.SqlDataReader.InvokeAsyncCall[T](SqlDataReaderBaseAsyncCallContext`1 context)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSetAsync(Int32 startCommandIndex, RelationalDataReader reader, CancellationToken cancellationToken)
+ClientConnectionId:19b5b683-4223-4670-b093-309a6741b598
+Error Number:547,State:0,Class:16
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeResultSetAsync(Int32 startCommandIndex, RelationalDataReader reader, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.AffectedCountModificationCommandBatch.ConsumeAsync(RelationalDataReader reader, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)  
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)  
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at api.Data.UnitOfWork.SaveChangesAsync() in D:\Workspace\C4F-ISports\C4F-ISports-Backend\api\Data\UnitOfWork.cs:line 41
+   at api.Services.FieldService.<>c__DisplayClass12_1.<<UpdateFieldAsync>b__11>d.MoveNext() in D:\Workspace\C4F-ISports\C4F-ISports-Backend\api\Services\FieldService.cs:line 1200
+   --- End of inner exception stack trace ---
+   at api.Services.FieldService.<>c__DisplayClass12_1.<<UpdateFieldAsync>b__11>d.MoveNext() in D:\Workspace\C4F-ISports\C4F-ISports-Backend\api\Services\FieldService.cs:line 1208
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at api.Services.FieldService.UpdateFieldAsync(Int32 fieldId, UpdateFieldDto dto, ClaimsPrincipal user) in D:\Workspace\C4F-ISports\C4F-ISports-Backend\api\Services\FieldService.cs:line 872
+   at api.Controllers.FieldController.UpdateField(Int32 id, UpdateFieldDto updateFieldDto) in D:\Workspace\C4F-ISports\C4F-ISports-Backend\api\Controllers\FieldController.cs:line 322
+[22:22:02 INF] Executing BadRequestObjectResult, writing value of type '<>f__AnonymousType10`2[[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.       
+[22:22:02 INF] Executed action api.Controllers.FieldController.UpdateField (api) in 1101.5717ms
+[22:22:02 INF] Executed endpoint 'api.Controllers.FieldController.UpdateField (api)'
+[22:22:02 INF] Request finished HTTP/1.1 PUT http://localhost:5231/api/fields/22 - 400 157 application/json; charset=utf-8 1168.3258ms

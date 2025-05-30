@@ -111,6 +111,40 @@ namespace api.Controllers
         }
 
         /// <summary>
+        /// Lấy danh sách sân thuộc quyền quản lý của owner đang đăng nhập.
+        /// </summary>
+        /// <param name="filterDto">Bộ lọc tìm kiếm sân (tên, trạng thái, v.v.).</param>
+        /// <returns>Danh sách sân thuộc owner.</returns>
+        /// <response code="200">Trả về danh sách sân với phân trang.</response>
+        /// <response code="401">Không có quyền truy cập.</response>
+        /// <response code="403">Không phải là owner.</response>
+        /// <response code="500">Lỗi server.</response>
+        [HttpGet("my-fields")]
+        [Authorize(Roles = "Owner")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetOwnerFields([FromQuery] OwnerFieldFilterDto filterDto)
+        {
+            try
+            {
+                var result = await _fieldService.GetOwnerFieldsAsync(filterDto, User);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Không có quyền truy cập: {Message}", ex.Message);
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy danh sách sân của owner: {Message}", ex.Message);
+                return StatusCode(500, new { error = "Lỗi khi lấy danh sách sân: " + ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Kiểm tra và xác thực địa chỉ của sân.
         /// </summary>
         /// <param name="validateAddressDto">Thông tin địa chỉ cần kiểm tra.</param>
@@ -298,60 +332,60 @@ namespace api.Controllers
         /// <response code="403">Không có quyền cập nhật sân.</response>
         /// <response code="404">Sân không tồn tại.</response>
         /// <response code="429">Vượt quá giới hạn yêu cầu geocoding.</response>
-        // [HttpPut("{id}")]
-        // [Authorize(Roles = "Owner")]
-        // [ProducesResponseType(StatusCodes.Status200OK)]
-        // [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        // [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        // [ProducesResponseType(StatusCodes.Status404NotFound)]
-        // [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
-        // public async Task<IActionResult> UpdateField(int id, [FromBody] UpdateFieldDto updateFieldDto)
-        // {
-        //     try
-        //     {
-        //         if (!ModelState.IsValid)
-        //         {
-        //             _logger.LogWarning("Dữ liệu đầu vào không hợp lệ khi cập nhật sân: {Errors}", ModelState);
-        //             var errors = ModelState.Values.SelectMany(v => v.Errors)
-        //                 .Select(e => new { field = e.ErrorMessage.Contains("FieldName") ? "fieldName" : "unknown", message = e.ErrorMessage });
-        //             return BadRequest(new { error = "Invalid input", details = errors });
-        //         }
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Owner")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+        public async Task<IActionResult> UpdateField(int id, [FromBody] UpdateFieldDto updateFieldDto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    _logger.LogWarning("Dữ liệu đầu vào không hợp lệ khi cập nhật sân ID: {Id}. Errors: {Errors}", id, ModelState);
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                        .Select(e => new { field = e.ErrorMessage.Contains("FieldName") ? "fieldName" : "unknown", message = e.ErrorMessage });
+                    return BadRequest(new { error = "Invalid input", details = errors });
+                }
 
-        //         _logger.LogInformation("Cập nhật sân ID: {Id}, dữ liệu: {@Field}", id, updateFieldDto);
-        //         var field = await _fieldService.UpdateFieldAsync(id, updateFieldDto, User);
-        //         _logger.LogInformation("Cập nhật sân ID: {Id} thành công.", id);
-        //         return Ok(field);
-        //     }
-        //     catch (UnauthorizedAccessException ex)
-        //     {
-        //         _logger.LogWarning(ex, "Không có quyền cập nhật sân ID: {Id}", id);
-        //         return StatusCode(StatusCodes.Status403Forbidden,
-        //             new { error = "Forbidden", message = ex.Message });
-        //     }
-        //     catch (KeyNotFoundException ex)
-        //     {
-        //         _logger.LogWarning(ex, "Sân ID {Id} không tồn tại.", id);
-        //         return NotFound(new { error = "Resource not found", message = ex.Message });
-        //     }
-        //     catch (InvalidOperationException ex) when (ex.Message.Contains("Rate limit exceeded"))
-        //     {
-        //         _logger.LogWarning(ex, "Vượt quá giới hạn yêu cầu geocoding.");
-        //         return StatusCode(StatusCodes.Status429TooManyRequests,
-        //             new { error = "Rate limit exceeded", message = "Geocoding service rate limit exceeded. Please try again later." });
-        //     }
-        //     catch (InvalidOperationException ex)
-        //     {
-        //         _logger.LogWarning(ex, "Dữ liệu không hợp lệ khi cập nhật sân ID: {Id}", id);
-        //         return BadRequest(new { error = "Invalid input", message = ex.Message });
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         _logger.LogError(ex, "Lỗi hệ thống khi cập nhật sân ID: {Id}", id);
-        //         return StatusCode(StatusCodes.Status500InternalServerError,
-        //             new { error = "Internal server error", message = "An unexpected error occurred." });
-        //     }
-        // }
+                _logger.LogInformation("Cập nhật sân ID: {Id}, dữ liệu: {@Field}", id, updateFieldDto);
+                var field = await _fieldService.UpdateFieldAsync(id, updateFieldDto, User);
+                _logger.LogInformation("Cập nhật sân ID: {Id} thành công.", id);
+                return Ok(field);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Không có quyền cập nhật sân ID: {Id}.", id);
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    new { error = "Forbidden", message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Sân ID {Id} không tồn tại.", id);
+                return NotFound(new { error = "Resource not found", message = ex.Message });
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("Rate limit exceeded"))
+            {
+                _logger.LogWarning(ex, "Vượt quá giới hạn yêu cầu geocoding khi cập nhật sân ID: {Id}.", id);
+                return StatusCode(StatusCodes.Status429TooManyRequests,
+                    new { error = "Rate limit exceeded", message = "Geocoding service rate limit exceeded. Please try again later." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Dữ liệu không hợp lệ khi cập nhật sân ID: {Id}.", id);
+                return BadRequest(new { error = "Invalid input", message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi hệ thống khi cập nhật sân ID: {Id}.", id);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { error = "Internal server error", message = "An unexpected error occurred." });
+            }
+        }
 
         /// <summary>
         /// Xóa mềm sân thể thao (yêu cầu quyền Owner).
@@ -363,45 +397,45 @@ namespace api.Controllers
         /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
         /// <response code="403">Không có quyền xóa sân.</response>
         /// <response code="404">Sân không tồn tại.</response>
-        // [HttpDelete("{id}")]
-        // [Authorize(Roles = "Owner")]
-        // [ProducesResponseType(StatusCodes.Status200OK)]
-        // [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        // [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        // [ProducesResponseType(StatusCodes.Status404NotFound)]
-        // public async Task<IActionResult> DeleteField(int id)
-        // {
-        //     try
-        //     {
-        //         _logger.LogInformation("Xóa sân ID: {Id}", id);
-        //         var result = await _fieldService.DeleteFieldAsync(id, User);
-        //         _logger.LogInformation("Xóa sân ID: {Id} thành công.", id);
-        //         return Ok(new { message = "Field deleted successfully", result });
-        //     }
-        //     catch (UnauthorizedAccessException ex)
-        //     {
-        //         _logger.LogWarning(ex, "Không có quyền xóa sân ID: {Id}", id);
-        //         return StatusCode(StatusCodes.Status403Forbidden,
-        //             new { error = "Forbidden", message = ex.Message });
-        //     }
-        //     catch (KeyNotFoundException ex)
-        //     {
-        //         _logger.LogWarning(ex, "Sân ID {Id} không tồn tại.", id);
-        //         return NotFound(new { error = "Resource not found", message = ex.Message });
-        //     }
-        //     catch (InvalidOperationException ex)
-        //     {
-        //         _logger.LogWarning(ex, "Không thể xóa sân ID {Id} do có đặt lịch đang hoạt động.", id);
-        //         return BadRequest(new { error = "Invalid operation", message = ex.Message });
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         _logger.LogError(ex, "Lỗi hệ thống khi xóa sân ID: {Id}", id);
-        //         return StatusCode(StatusCodes.Status500InternalServerError,
-        //             new { error = "Internal server error", message = "An unexpected error occurred." });
-        //     }
-        // }
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Owner")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteField(int id)
+        {
+            try
+            {
+                _logger.LogInformation("Xóa sân ID: {Id}", id);
+                var result = await _fieldService.DeleteFieldAsync(id, User);
+                _logger.LogInformation("Xóa sân ID: {Id} thành công.", id);
+                return Ok(new { message = "Field deleted successfully", data = result });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Không có quyền xóa sân ID: {Id}.", id);
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    new { error = "Forbidden", message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Sân ID {Id} không tồn tại.", id);
+                return NotFound(new { error = "Resource not found", message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Không thể xóa sân ID {Id} do có đặt lịch đang hoạt động.", id);
+                return BadRequest(new { error = "Invalid operation", message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi hệ thống khi xóa sân ID: {Id}.", id);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { error = "Internal server error", message = "An unexpected error occurred." });
+            }
+        }
 
         /// <summary>
         /// Kiểm tra lịch trống của sân thể thao.

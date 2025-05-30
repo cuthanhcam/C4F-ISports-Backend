@@ -100,6 +100,7 @@ namespace api.Models
         public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
         public ICollection<RescheduleRequest> RescheduleRequests { get; set; } = new List<RescheduleRequest>();
+        
     }
 }
 namespace api.Models
@@ -264,6 +265,10 @@ namespace api.Models
         [StringLength(500), Url]
         public string? IconUrl { get; set; }
 
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
+
         [ForeignKey("FieldId")]
         public Field Field { get; set; } = null!;
     }
@@ -301,6 +306,7 @@ namespace api.Models
 
         public bool IsPrimary { get; set; }
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? DeletedAt { get; set; }
 
         [ForeignKey("FieldId")]
         public Field Field { get; set; } = null!;
@@ -328,7 +334,7 @@ namespace api.Models
 
         public bool IsActive { get; set; } = true;
 
-        public SubField SubField { get; set; }
+        public SubField SubField { get; set; } = null;
     }
 }
 namespace api.Models
@@ -350,6 +356,10 @@ namespace api.Models
         public string? Description { get; set; }
 
         public bool IsActive { get; set; } = true;
+
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
 
         [ForeignKey("FieldId")]
         public Field Field { get; set; } = null!;
@@ -437,18 +447,20 @@ namespace api.Models
     public class PricingRule
     {
         public int PricingRuleId { get; set; }
-
-        [Required]
-        public List<string> AppliesToDays { get; set; } = new List<string>(); // Monday, Tuesday, ...
-
-        [Required]
-        public List<TimeSlot> TimeSlots { get; set; } = new List<TimeSlot>();
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
 
         [Required]
         public int SubFieldId { get; set; }
 
         [ForeignKey("SubFieldId")]
         public SubField SubField { get; set; } = null!;
+
+        [Required]
+        public List<string> AppliesToDays { get; set; } = new List<string>(); // Monday, Tuesday, ...
+        
+        public ICollection<TimeSlot> TimeSlots { get; set; } = new List<TimeSlot>();
     }
 }
 namespace api.Models
@@ -676,27 +688,19 @@ namespace api.Models
 
         public List<int> Child5aSideIds { get; set; } = new List<int>(); // Danh sách sân 5 thuộc sân 7
 
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
+
+
         [ForeignKey("FieldId")]
         public Field Field { get; set; } = null!;
 
+
+        public ICollection<SubField> Child5aSides { get; set; } = new List<SubField>();
         public ICollection<PricingRule> PricingRules { get; set; } = new List<PricingRule>();
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
-    }
-}
-namespace api.Models
-{
-    public class TimeSlot
-    {
-        public int TimeSlotId { get; set; }
-
-        [Required]
-        public TimeSpan StartTime { get; set; }
-
-        [Required]
-        public TimeSpan EndTime { get; set; }
-
-        [Required]
-        public decimal PricePerSlot { get; set; } // Giá cho slot 30 phút
+        public ICollection<FieldPricing> PricingSchedules { get; set; } = new List<FieldPricing>();
     }
 }
 namespace api.Models
