@@ -52,7 +52,8 @@ namespace api.Dtos.Field
         public List<CreateFieldAmenityDto> Amenities { get; set; } = new();
 
         [MaxLength(20, ErrorMessage = "Tối đa 20 hình ảnh được phép.")]
-        public List<CreateFieldImageDto> Images { get; set; } = new();
+        // public List<CreateFieldImageDto> Images { get; set; } = new();
+        public List<IFormFile> Images { get; set; } = new();
 
 
         public static ValidationResult ValidateCloseTime(string closeTime, ValidationContext context)
