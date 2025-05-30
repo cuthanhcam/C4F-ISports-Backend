@@ -25,6 +25,10 @@ namespace api.Models
 
         public bool IsActive { get; set; } = true;
 
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
+
         [ForeignKey("FieldId")]
         public Field Field { get; set; } = null!;
         public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
