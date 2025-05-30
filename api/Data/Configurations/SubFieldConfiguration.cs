@@ -46,6 +46,11 @@ namespace api.Data.Configurations
                 .WithMany(sf => sf.Child5aSides)
                 .HasForeignKey(sf => sf.Parent7aSideId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(sf => sf.PricingRules)
+                .WithOne(pr => pr.SubField)
+                .HasForeignKey(pr => pr.SubFieldId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

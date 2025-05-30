@@ -19,6 +19,15 @@ namespace api.Data.Configurations
             builder.Property(ts => ts.PricePerSlot)
                 .IsRequired()
                 .HasPrecision(18, 2);
+
+            // Thêm relationship với PricingRule
+            builder.HasOne(ts => ts.PricingRule)
+                .WithMany(pr => pr.TimeSlots)
+                .HasForeignKey(ts => ts.PricingRuleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Thêm soft delete filter nếu cần
+            builder.HasQueryFilter(ts => ts.DeletedAt == null);
         }
     }
 }

@@ -23,15 +23,21 @@ namespace api.Data.Configurations
                 .HasForeignKey(pr => pr.SubFieldId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Relationship with TimeSlots - một PricingRule có nhiều TimeSlot
+            builder.HasMany(pr => pr.TimeSlots)
+                .WithOne(ts => ts.PricingRule)
+                .HasForeignKey(ts => ts.PricingRuleId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
             // Defining the many-to-many relationship between PricingRule and TimeSlot
             // You'll need a join entity to represent this relationship in the database
-            builder.HasMany(pr => pr.TimeSlots)
-                .WithMany()
-                .UsingEntity<Dictionary<string, object>>(
-                    "PricingRuleTimeSlot",
-                    j => j.HasOne<TimeSlot>().WithMany().OnDelete(DeleteBehavior.Cascade),
-                    j => j.HasOne<PricingRule>().WithMany().OnDelete(DeleteBehavior.Cascade)
-                );
+            // builder.HasMany(pr => pr.TimeSlots)
+            //     .WithMany()
+            //     .UsingEntity<Dictionary<string, object>>(
+            //         "PricingRuleTimeSlot",
+            //         j => j.HasOne<TimeSlot>().WithMany().OnDelete(DeleteBehavior.Cascade),
+            //         j => j.HasOne<PricingRule>().WithMany().OnDelete(DeleteBehavior.Cascade)
+            //     );
         }
     }
 }
