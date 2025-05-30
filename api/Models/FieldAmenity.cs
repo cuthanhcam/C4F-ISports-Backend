@@ -23,6 +23,10 @@ namespace api.Models
         [StringLength(500), Url]
         public string? IconUrl { get; set; }
 
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
+
         [ForeignKey("FieldId")]
         public Field Field { get; set; } = null!;
     }

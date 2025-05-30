@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace api.Dtos.Field
 {
-    public class FieldServiceResponseDto
+    public class UpdateFieldServiceDto
     {
-        public int FieldServiceId { get; set; }
+        public int? FieldServiceId { get; set; } // ID của FieldService, dùng để xác định thực thể cần cập nhật
 
         [Required(ErrorMessage = "Tên dịch vụ là bắt buộc.")]
         [StringLength(100, ErrorMessage = "Tên dịch vụ không được vượt quá 100 ký tự.")]
@@ -20,7 +20,5 @@ namespace api.Dtos.Field
 
         [StringLength(500, ErrorMessage = "Mô tả không được vượt quá 500 ký tự.")]
         public string? Description { get; set; }
-
-        public bool IsActive { get; set; }
     }
 }

@@ -250,6 +250,7 @@ namespace api.Services
         public async Task<Account> GetCurrentUserAsync(ClaimsPrincipal user)
         {
             var accountIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // var accountIdClaim = user.FindFirst("sub")?.Value; // Sử dụng "sub" thay vì ClaimTypes.NameIdentifier
             if (string.IsNullOrEmpty(accountIdClaim) || !int.TryParse(accountIdClaim, out var accountId))
             {
                 _logger.LogWarning("Invalid or missing account ID in token");

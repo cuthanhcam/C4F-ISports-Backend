@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace api.Dtos.Field
 {
-    public class SubFieldResponseDto
+    public class UpdateSubFieldDto
     {
-        public int SubFieldId { get; set; }
+        public int? SubFieldId { get; set; } // ID của SubField, dùng để xác định thực thể cần cập nhật
 
         [Required(ErrorMessage = "Tên sân con là bắt buộc.")]
         [StringLength(100, ErrorMessage = "Tên sân con không được vượt quá 100 ký tự.")]
@@ -16,14 +16,11 @@ namespace api.Dtos.Field
 
         [Required(ErrorMessage = "Loại sân là bắt buộc.")]
         [StringLength(50, ErrorMessage = "Loại sân không được vượt quá 50 ký tự.")]
+        [RegularExpression("^(5-a-side|7-a-side|11-a-side|Badminton)$", ErrorMessage = "Loại sân phải là '5-a-side', '7-a-side', '11-a-side' hoặc 'Badminton'.")]
         public string FieldType { get; set; } = string.Empty;
 
         [StringLength(500, ErrorMessage = "Mô tả không được vượt quá 500 ký tự.")]
         public string? Description { get; set; }
-
-        [Required(ErrorMessage = "Trạng thái là bắt buộc.")]
-        [RegularExpression("^(Active|Inactive|Maintenance)$", ErrorMessage = "Trạng thái phải là 'Active', 'Inactive' hoặc 'Maintenance'.")]
-        public string Status { get; set; } = "Active";
 
         [Required(ErrorMessage = "Sức chứa là bắt buộc.")]
         [Range(1, int.MaxValue, ErrorMessage = "Sức chứa phải là số nguyên dương.")]
@@ -41,8 +38,8 @@ namespace api.Dtos.Field
         [Range(0, double.MaxValue, ErrorMessage = "Giá mặc định mỗi khung giờ phải là số không âm.")]
         public decimal DefaultPricePerSlot { get; set; }
 
-        [Required(ErrorMessage = "Danh sách quy tắc giá là bắt buộc.")]
-        public List<PricingRuleResponseDto> PricingRules { get; set; } = new();
+        [MaxLength(20, ErrorMessage = "Tối đa 20 quy tắc giá được phép.")]
+        public List<UpdatePricingRuleDto> PricingRules { get; set; } = new();
 
         [Range(1, int.MaxValue, ErrorMessage = "ID sân 7-a-side cha phải là số nguyên dương.")]
         public int? Parent7aSideId { get; set; }

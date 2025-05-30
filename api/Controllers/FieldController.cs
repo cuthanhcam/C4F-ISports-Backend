@@ -111,6 +111,40 @@ namespace api.Controllers
         }
 
         /// <summary>
+        /// Lấy danh sách sân thuộc quyền quản lý của owner đang đăng nhập.
+        /// </summary>
+        /// <param name="filterDto">Bộ lọc tìm kiếm sân (tên, trạng thái, v.v.).</param>
+        /// <returns>Danh sách sân thuộc owner.</returns>
+        /// <response code="200">Trả về danh sách sân với phân trang.</response>
+        /// <response code="401">Không có quyền truy cập.</response>
+        /// <response code="403">Không phải là owner.</response>
+        /// <response code="500">Lỗi server.</response>
+        [HttpGet("my-fields")]
+        [Authorize(Roles = "Owner")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetOwnerFields([FromQuery] OwnerFieldFilterDto filterDto)
+        {
+            try
+            {
+                var result = await _fieldService.GetOwnerFieldsAsync(filterDto, User);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Không có quyền truy cập: {Message}", ex.Message);
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy danh sách sân của owner: {Message}", ex.Message);
+                return StatusCode(500, new { error = "Lỗi khi lấy danh sách sân: " + ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Kiểm tra và xác thực địa chỉ của sân.
         /// </summary>
         /// <param name="validateAddressDto">Thông tin địa chỉ cần kiểm tra.</param>
@@ -183,8 +217,7 @@ namespace api.Controllers
                 }
 
                 _logger.LogInformation("Tạo sân mới: {@Field}", createFieldDto);
-                var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                var field = await _fieldService.CreateFieldAsync(createFieldDto, token);
+                var field = await _fieldService.CreateFieldAsync(createFieldDto, User);
                 _logger.LogInformation("Tạo sân thành công với ID: {Id}", field.FieldId);
                 return CreatedAtAction(nameof(GetFieldById), new { id = field.FieldId }, field);
             }
@@ -259,8 +292,7 @@ namespace api.Controllers
                 }
 
                 _logger.LogInformation("Tải ảnh lên cho sân ID: {Id}, isPrimary: {IsPrimary}", id, uploadFieldImageDto.IsPrimary);
-                var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                var imageResponse = await _fieldService.UploadFieldImageAsync(id, uploadFieldImageDto, token);
+                var imageResponse = await _fieldService.UploadFieldImageAsync(id, uploadFieldImageDto, User);
                 _logger.LogInformation("Tải ảnh thành công cho sân ID: {Id}", id);
                 return StatusCode(StatusCodes.Status201Created, imageResponse);
             }
@@ -314,21 +346,20 @@ namespace api.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogWarning("Dữ liệu đầu vào không hợp lệ khi cập nhật sân: {Errors}", ModelState);
+                    _logger.LogWarning("Dữ liệu đầu vào không hợp lệ khi cập nhật sân ID: {Id}. Errors: {Errors}", id, ModelState);
                     var errors = ModelState.Values.SelectMany(v => v.Errors)
                         .Select(e => new { field = e.ErrorMessage.Contains("FieldName") ? "fieldName" : "unknown", message = e.ErrorMessage });
                     return BadRequest(new { error = "Invalid input", details = errors });
                 }
 
                 _logger.LogInformation("Cập nhật sân ID: {Id}, dữ liệu: {@Field}", id, updateFieldDto);
-                var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                var field = await _fieldService.UpdateFieldAsync(id, updateFieldDto, token);
+                var field = await _fieldService.UpdateFieldAsync(id, updateFieldDto, User);
                 _logger.LogInformation("Cập nhật sân ID: {Id} thành công.", id);
                 return Ok(field);
             }
             catch (UnauthorizedAccessException ex)
             {
-                _logger.LogWarning(ex, "Không có quyền cập nhật sân ID: {Id}", id);
+                _logger.LogWarning(ex, "Không có quyền cập nhật sân ID: {Id}.", id);
                 return StatusCode(StatusCodes.Status403Forbidden,
                     new { error = "Forbidden", message = ex.Message });
             }
@@ -339,18 +370,18 @@ namespace api.Controllers
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("Rate limit exceeded"))
             {
-                _logger.LogWarning(ex, "Vượt quá giới hạn yêu cầu geocoding.");
+                _logger.LogWarning(ex, "Vượt quá giới hạn yêu cầu geocoding khi cập nhật sân ID: {Id}.", id);
                 return StatusCode(StatusCodes.Status429TooManyRequests,
                     new { error = "Rate limit exceeded", message = "Geocoding service rate limit exceeded. Please try again later." });
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning(ex, "Dữ liệu không hợp lệ khi cập nhật sân ID: {Id}", id);
+                _logger.LogWarning(ex, "Dữ liệu không hợp lệ khi cập nhật sân ID: {Id}.", id);
                 return BadRequest(new { error = "Invalid input", message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi hệ thống khi cập nhật sân ID: {Id}", id);
+                _logger.LogError(ex, "Lỗi hệ thống khi cập nhật sân ID: {Id}.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     new { error = "Internal server error", message = "An unexpected error occurred." });
             }
@@ -378,14 +409,13 @@ namespace api.Controllers
             try
             {
                 _logger.LogInformation("Xóa sân ID: {Id}", id);
-                var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                var result = await _fieldService.DeleteFieldAsync(id, token);
+                var result = await _fieldService.DeleteFieldAsync(id, User);
                 _logger.LogInformation("Xóa sân ID: {Id} thành công.", id);
-                return Ok(new { message = "Field deleted successfully", result });
+                return Ok(new { message = "Field deleted successfully", data = result });
             }
             catch (UnauthorizedAccessException ex)
             {
-                _logger.LogWarning(ex, "Không có quyền xóa sân ID: {Id}", id);
+                _logger.LogWarning(ex, "Không có quyền xóa sân ID: {Id}.", id);
                 return StatusCode(StatusCodes.Status403Forbidden,
                     new { error = "Forbidden", message = ex.Message });
             }
@@ -401,7 +431,7 @@ namespace api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi hệ thống khi xóa sân ID: {Id}", id);
+                _logger.LogError(ex, "Lỗi hệ thống khi xóa sân ID: {Id}.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     new { error = "Internal server error", message = "An unexpected error occurred." });
             }
@@ -535,8 +565,7 @@ namespace api.Controllers
                 }
 
                 _logger.LogInformation("Lấy danh sách đặt sân cho sân ID: {Id}, bộ lọc: {@Filter}", id, filterDto);
-                var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-                var result = await _fieldService.GetFieldBookingsAsync(id, filterDto, token);
+                var result = await _fieldService.GetFieldBookingsAsync(id, filterDto, User);
                 _logger.LogInformation("Lấy thành công {Count} đặt sân cho sân ID: {Id}", result.Data.Count, id);
                 return Ok(new
                 {

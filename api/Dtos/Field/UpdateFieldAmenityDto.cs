@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace api.Dtos.Field
 {
-    public class FieldAmenityResponseDto
+    public class UpdateFieldAmenityDto
     {
-        public int FieldAmenityId { get; set; }
+        public int? FieldAmenityId { get; set; } // ID của FieldAmenity, dùng để xác định thực thể cần cập nhật
 
         [Required(ErrorMessage = "Tên tiện ích là bắt buộc.")]
         [StringLength(100, ErrorMessage = "Tên tiện ích không được vượt quá 100 ký tự.")]

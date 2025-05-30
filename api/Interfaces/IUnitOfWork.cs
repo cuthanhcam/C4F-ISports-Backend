@@ -13,5 +13,6 @@ namespace api.Interfaces
         Task CommitTransactionAsync();
         Task RollbackTransactionAsync();
         Task<int> SaveChangesAsync();
+        IExecutionStrategy CreateExecutionStrategy();
     }
 }

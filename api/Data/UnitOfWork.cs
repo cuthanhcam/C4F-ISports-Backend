@@ -3,6 +3,7 @@ using System.Collections;
 using System.Threading.Tasks;
 using api.Interfaces;
 using api.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace api.Data
@@ -12,13 +13,16 @@ namespace api.Data
         private readonly ApplicationDbContext _context;
         public ApplicationDbContext Context => _context;
         private bool _disposed = false;
-        private IDbContextTransaction? _transaction;
-        private Hashtable _repositories;    
+        private IDbContextTransaction _transaction;
+        private Hashtable _repositories;
+        private readonly ILogger<UnitOfWork> _logger;
 
-        public UnitOfWork(ApplicationDbContext context)
+        public UnitOfWork(ApplicationDbContext context, ILogger<UnitOfWork> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
 
         public IGenericRepository<T> Repository<T>() where T : class
         {
@@ -47,22 +51,33 @@ namespace api.Data
         {
             if (_transaction == null)
             {
-                throw new InvalidOperationException("No transaction is active.");
+                throw new InvalidOperationException("No active transaction to commit.");
             }
             await _transaction.CommitAsync();
-            await _transaction.DisposeAsync();
-            _transaction = null;
+            await DisposeTransactionAsync();
         }
 
         public async Task RollbackTransactionAsync()
         {
-            if (_transaction == null)
+            if (_transaction != null)
             {
-                throw new InvalidOperationException("No transaction is active.");
+                await _transaction.RollbackAsync();
+                await DisposeTransactionAsync();
             }
-            await _transaction.RollbackAsync();
-            await _transaction.DisposeAsync();
-            _transaction = null;
+        }
+
+        private async Task DisposeTransactionAsync()
+        {
+            if (_transaction != null)
+            {
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+        }
+
+        public IExecutionStrategy CreateExecutionStrategy()
+        {
+            return _context.Database.CreateExecutionStrategy();
         }
 
         protected virtual void Dispose(bool disposing)
@@ -84,8 +99,25 @@ namespace api.Data
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            if (!_disposed)
+            {
+                _transaction?.Dispose();
+                _context.Dispose();
+                _disposed = true;
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (!_disposed)
+            {
+                if (_transaction != null)
+                {
+                    await _transaction.DisposeAsync();
+                }
+                await _context.DisposeAsync();
+                _disposed = true;
+            }
         }
     }
 }
