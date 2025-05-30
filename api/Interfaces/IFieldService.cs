@@ -58,7 +58,7 @@ namespace api.Interfaces
         /// <param name="dto">Thông tin cập nhật.</param>
         /// <param name="user">Thông tin người dùng đang đăng nhập.</param>
         /// <returns>Thông tin sân đã cập nhật.</returns>
-        // Task<FieldResponseDto> UpdateFieldAsync(int fieldId, UpdateFieldDto dto, ClaimsPrincipal user);
+        Task<FieldResponseDto> UpdateFieldAsync(int fieldId, UpdateFieldDto dto, ClaimsPrincipal user);
 
         /// <summary>
         /// Xóa mềm một sân.
@@ -66,7 +66,7 @@ namespace api.Interfaces
         /// <param name="fieldId">ID của sân.</param>
         /// <param name="user">Thông tin người dùng đang đăng nhập.</param>
         /// <returns>Thông tin sân đã xóa.</returns>
-        // Task<DeleteFieldResponseDto> DeleteFieldAsync(int fieldId, ClaimsPrincipal user);
+        Task<DeleteFieldResponseDto> DeleteFieldAsync(int fieldId, ClaimsPrincipal user);
 
         /// <summary>
         /// Lấy danh sách khung giờ trống của sân.

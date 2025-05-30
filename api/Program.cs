@@ -378,7 +378,7 @@ async Task SeedDatabaseAsync(WebApplication app)
         await context.Database.MigrateAsync();
         logger.LogInformation("Migrations applied successfully.");
 
-        await SeedData.InitializeAsync(services);
+        // await SeedData.InitializeAsync(services);
         logger.LogInformation("Database seeding completed successfully.");
 
         accountCount = await context.Accounts.CountAsync();
