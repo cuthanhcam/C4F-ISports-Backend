@@ -38,12 +38,12 @@ namespace api.Data.Configurations
 
             // Relationships
             builder.HasOne(sf => sf.Field)
-                .WithMany()
+                .WithMany(f => f.SubFields)
                 .HasForeignKey(sf => sf.FieldId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(sf => sf.Parent7aSide)
-                .WithMany()
+                .WithMany(sf => sf.Child5aSides)
                 .HasForeignKey(sf => sf.Parent7aSideId)
                 .OnDelete(DeleteBehavior.Restrict);
         }

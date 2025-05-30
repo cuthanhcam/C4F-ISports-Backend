@@ -17,6 +17,10 @@ namespace api.Models
         [Required]
         public List<TimeSlot> TimeSlots { get; set; } = new List<TimeSlot>();
 
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
+
         [Required]
         public int SubFieldId { get; set; }
 

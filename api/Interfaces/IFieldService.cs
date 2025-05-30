@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using api.Dtos.Field;
 using api.Utils;
@@ -37,35 +38,35 @@ namespace api.Interfaces
         /// Tạo mới một sân.
         /// </summary>
         /// <param name="dto">Thông tin sân cần tạo.</param>
-        /// <param name="token">Token xác thực.</param>
+        /// <param name="user">Thông tin người dùng đang đăng nhập.</param>
         /// <returns>Thông tin sân vừa tạo.</returns>
-        Task<FieldResponseDto> CreateFieldAsync(CreateFieldDto dto, string token);
+        Task<FieldResponseDto> CreateFieldAsync(CreateFieldDto dto, ClaimsPrincipal user);
 
         /// <summary>
         /// Tải lên hình ảnh cho sân.
         /// </summary>
         /// <param name="fieldId">ID của sân.</param>
         /// <param name="dto">Thông tin hình ảnh.</param>
-        /// <param name="token">Token xác thực.</param>
+        /// <param name="user">Thông tin người dùng đang đăng nhập.</param>
         /// <returns>Thông tin hình ảnh vừa tải lên.</returns>
-        Task<FieldImageResponseDto> UploadFieldImageAsync(int fieldId, UploadFieldImageDto dto, string token);
+        Task<FieldImageResponseDto> UploadFieldImageAsync(int fieldId, UploadFieldImageDto dto, ClaimsPrincipal user);
 
         /// <summary>
         /// Cập nhật thông tin sân.
         /// </summary>
         /// <param name="fieldId">ID của sân.</param>
         /// <param name="dto">Thông tin cập nhật.</param>
-        /// <param name="token">Token xác thực.</param>
+        /// <param name="user">Thông tin người dùng đang đăng nhập.</param>
         /// <returns>Thông tin sân đã cập nhật.</returns>
-        Task<FieldResponseDto> UpdateFieldAsync(int fieldId, UpdateFieldDto dto, string token);
+        // Task<FieldResponseDto> UpdateFieldAsync(int fieldId, UpdateFieldDto dto, ClaimsPrincipal user);
 
         /// <summary>
         /// Xóa mềm một sân.
         /// </summary>
         /// <param name="fieldId">ID của sân.</param>
-        /// <param name="token">Token xác thực.</param>
+        /// <param name="user">Thông tin người dùng đang đăng nhập.</param>
         /// <returns>Thông tin sân đã xóa.</returns>
-        Task<DeleteFieldResponseDto> DeleteFieldAsync(int fieldId, string token);
+        // Task<DeleteFieldResponseDto> DeleteFieldAsync(int fieldId, ClaimsPrincipal user);
 
         /// <summary>
         /// Lấy danh sách khung giờ trống của sân.
@@ -88,8 +89,8 @@ namespace api.Interfaces
         /// </summary>
         /// <param name="fieldId">ID của sân.</param>
         /// <param name="filter">Bộ lọc đặt sân.</param>
-        /// <param name="token">Token xác thực.</param>
+        /// <param name="user">Thông tin người dùng đang đăng nhập.</param>
         /// <returns>Danh sách đặt sân phân trang.</returns>
-        Task<PagedResult<BookingResponseDto>> GetFieldBookingsAsync(int fieldId, BookingFilterDto filter, string token);
+        Task<PagedResult<BookingResponseDto>> GetFieldBookingsAsync(int fieldId, BookingFilterDto filter, ClaimsPrincipal user);
     }
 }

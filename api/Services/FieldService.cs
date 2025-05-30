@@ -344,20 +344,77 @@ namespace api.Services
         /// <param name="dto">Thông tin sân cần tạo.</param>
         /// <param name="token">Token xác thực.</param>
         /// <returns>Thông tin sân vừa tạo.</returns>
-        public async Task<FieldResponseDto> CreateFieldAsync(CreateFieldDto dto, string token)
+        public async Task<FieldResponseDto> CreateFieldAsync(CreateFieldDto dto, ClaimsPrincipal user)
         {
             _logger.LogInformation("Tạo sân mới: {@Dto}", dto);
 
             try
             {
                 // Lấy Account từ token
-                var principal = await GetClaimsPrincipalFromTokenAsync(token);
-                var account = await _authService.GetCurrentUserAsync(principal);
+                var account = await _authService.GetCurrentUserAsync(user);
                 var owner = await _unitOfWork.Repository<Owner>()
                     .FindSingleAsync(o => o.AccountId == account.AccountId && o.DeletedAt == null);
                 if (owner == null)
                 {
+                    _logger.LogWarning("Không tìm thấy thông tin chủ sân cho AccountId: {AccountId}", account.AccountId);
                     throw new UnauthorizedAccessException("Không tìm thấy thông tin chủ sân.");
+                }
+
+                // Kiểm tra DTO và các điều kiện khác
+                if (dto == null)
+                {
+                    _logger.LogError("DTO là null.");
+                    throw new ArgumentNullException(nameof(dto), "Thông tin sân không được để trống.");
+                }
+
+                var sport = await _unitOfWork.Repository<Sport>()
+                    .FindSingleAsync(s => s.SportId == dto.SportId && s.IsActive && s.DeletedAt == null);
+                if (sport == null)
+                {
+                    _logger.LogWarning("SportId {SportId} không tồn tại hoặc không hoạt động.", dto.SportId);
+                    throw new InvalidOperationException($"SportId {dto.SportId} không tồn tại hoặc không hoạt động.");
+                }
+
+                if (dto.SubFields == null || !dto.SubFields.Any())
+                {
+                    _logger.LogWarning("Danh sách SubFields không được để trống.");
+                    throw new InvalidOperationException("Phải có ít nhất một SubField.");
+                }
+
+                foreach (var sf in dto.SubFields.Where(sf => sf.Parent7aSideId.HasValue))
+                {
+                    var parentExists = await _unitOfWork.Repository<SubField>()
+                        .FindSingleAsync(s => s.SubFieldId == sf.Parent7aSideId);
+                    if (parentExists == null)
+                    {
+                        _logger.LogWarning("Parent7aSideId {Parent7aSideId} không tồn tại.", sf.Parent7aSideId);
+                        throw new InvalidOperationException($"Parent7aSideId {sf.Parent7aSideId} không tồn tại.");
+                    }
+                }
+
+                if (!TimeSpan.TryParse(dto.OpenTime, out var openTime) || !TimeSpan.TryParse(dto.CloseTime, out var closeTime))
+                {
+                    _logger.LogWarning("Định dạng OpenTime hoặc CloseTime không hợp lệ: OpenTime={OpenTime}, CloseTime={CloseTime}", dto.OpenTime, dto.CloseTime);
+                    throw new InvalidOperationException("Định dạng OpenTime hoặc CloseTime không hợp lệ.");
+                }
+                if (openTime >= closeTime)
+                {
+                    _logger.LogWarning("OpenTime phải nhỏ hơn CloseTime: OpenTime={OpenTime}, CloseTime={CloseTime}", dto.OpenTime, dto.CloseTime);
+                    throw new InvalidOperationException("OpenTime phải nhỏ hơn CloseTime.");
+                }
+
+                foreach (var sf in dto.SubFields)
+                {
+                    if (!TimeSpan.TryParse(sf.OpenTime, out var sfOpenTime) || !TimeSpan.TryParse(sf.CloseTime, out var sfCloseTime))
+                    {
+                        _logger.LogWarning("Định dạng thời gian của SubField không hợp lệ: SubFieldName={SubFieldName}, OpenTime={OpenTime}, CloseTime={CloseTime}", sf.SubFieldName, sf.OpenTime, sf.CloseTime);
+                        throw new InvalidOperationException($"Định dạng thời gian của sân con {sf.SubFieldName} không hợp lệ.");
+                    }
+                    if (sfOpenTime < openTime || sfCloseTime > closeTime)
+                    {
+                        _logger.LogWarning("Thời gian của SubField nằm ngoài thời gian của Field: SubFieldName={SubFieldName}, OpenTime={OpenTime}, CloseTime={CloseTime}", sf.SubFieldName, sf.OpenTime, sf.CloseTime);
+                        throw new InvalidOperationException($"Thời gian hoạt động của sân con {sf.SubFieldName} phải nằm trong thời gian hoạt động của sân chính.");
+                    }
                 }
 
                 var addressValidation = await ValidateAddressAsync(new ValidateAddressDto
@@ -370,16 +427,18 @@ namespace api.Services
 
                 if (!addressValidation.IsValid)
                 {
+                    _logger.LogWarning("Địa chỉ không hợp lệ: {@Address}", addressValidation);
                     throw new InvalidOperationException("Địa chỉ không hợp lệ.");
                 }
 
-                // Sử dụng execution strategy của DbContext
-                var strategy = _unitOfWork.Context.Database.CreateExecutionStrategy();
-                return await strategy.ExecuteAsync(async () =>
+                var strategy = _unitOfWork.CreateExecutionStrategy();
+                int fieldId = await strategy.ExecuteAsync(async () =>
                 {
-                    await using var transaction = await _unitOfWork.Context.Database.BeginTransactionAsync();
+                    await _unitOfWork.BeginTransactionAsync(); // Bắt đầu giao dịch
                     try
                     {
+                        _logger.LogInformation("Bắt đầu lưu Field với {SubFieldCount} SubFields.", dto.SubFields.Count);
+
                         var field = new Field
                         {
                             FieldName = dto.FieldName,
@@ -395,139 +454,184 @@ namespace api.Services
                             Longitude = addressValidation.Longitude,
                             Status = "Active",
                             CreatedAt = DateTime.UtcNow,
-                            SubFields = dto.SubFields.Select(sf => new SubField
-                            {
-                                SubFieldName = sf.SubFieldName,
-                                FieldType = sf.FieldType,
-                                Description = sf.Description,
-                                Capacity = sf.Capacity,
-                                OpenTime = TimeSpan.Parse(sf.OpenTime),
-                                CloseTime = TimeSpan.Parse(sf.CloseTime),
-                                DefaultPricePerSlot = sf.DefaultPricePerSlot,
-                                Parent7aSideId = sf.Parent7aSideId,
-                                Child5aSideIds = sf.Child5aSideIds,
-                                PricingRules = sf.PricingRules.Select(pr => new PricingRule
-                                {
-                                    AppliesToDays = pr.AppliesToDays,
-                                    TimeSlots = pr.TimeSlots.Select(ts => new TimeSlot
-                                    {
-                                        StartTime = TimeSpan.Parse(ts.StartTime),
-                                        EndTime = TimeSpan.Parse(ts.EndTime),
-                                        PricePerSlot = ts.PricePerSlot
-                                    }).ToList()
-                                }).ToList()
-                            }).ToList(),
-                            FieldServices = dto.Services.Select(s => new api.Models.FieldService
-                            {
-                                ServiceName = s.ServiceName,
-                                Price = s.Price,
-                                Description = s.Description,
-                                IsActive = true
-                            }).ToList(),
-                            FieldAmenities = dto.Amenities.Select(a => new FieldAmenity
-                            {
-                                AmenityName = a.AmenityName,
-                                Description = a.Description,
-                                IconUrl = a.IconUrl
-                            }).ToList(),
-                            FieldImages = dto.Images.Select(i => new FieldImage
-                            {
-                                ImageUrl = i.ImageUrl,
-                                PublicId = i.PublicId,
-                                IsPrimary = i.IsPrimary,
-                                UploadedAt = DateTime.UtcNow
-                            }).ToList()
+                            UpdatedAt = DateTime.UtcNow,
+                            AverageRating = 0
                         };
 
-                        // Kiểm tra ràng buộc
-                        if (field.SubFields.Count > 10 || field.FieldServices.Count > 50 || field.FieldAmenities.Count > 50 || field.FieldImages.Count > 50)
+                        _logger.LogInformation("Chuẩn bị lưu Field với FieldName: {FieldName}", field.FieldName);
+                        await _unitOfWork.Repository<Field>().AddAsync(field);
+                        await _unitOfWork.SaveChangesAsync(); // Lưu Field trước để có FieldId hợp lệ
+                        _logger.LogInformation("Đã lưu Field với FieldId: {FieldId}", field.FieldId);
+
+                        fieldId = field.FieldId;
+
+                        if (dto.SubFields.Count > 10)
                         {
-                            throw new InvalidOperationException("Vượt quá số lượng tối đa cho subfields, services, amenities hoặc images.");
+                            _logger.LogWarning("Số lượng SubFields vượt quá giới hạn: {SubFieldCount}", dto.SubFields.Count);
+                            throw new InvalidOperationException("Số lượng sân con không được vượt quá 10.");
                         }
 
-                        await _unitOfWork.Repository<Field>().AddAsync(field);
-                        await _unitOfWork.SaveChangesAsync();
-                        await transaction.CommitAsync();
-
-                        var result = new FieldResponseDto
+                        foreach (var subFieldDto in dto.SubFields)
                         {
-                            FieldId = field.FieldId,
-                            FieldName = field.FieldName,
-                            Description = field.Description,
-                            Address = field.Address,
-                            City = field.City,
-                            District = field.District,
-                            Latitude = field.Latitude,
-                            Longitude = field.Longitude,
-                            OpenTime = field.OpenTime.ToString(@"hh\:mm"),
-                            CloseTime = field.CloseTime.ToString(@"hh\:mm"),
-                            AverageRating = field.AverageRating,
-                            SportId = field.SportId,
-                            Distance = null,
-                            MinPricePerSlot = field.SubFields.Any() ? field.SubFields.Min(sf => sf.DefaultPricePerSlot) : 0,
-                            MaxPricePerSlot = field.SubFields.Any() ? field.SubFields.Max(sf => sf.DefaultPricePerSlot) : 0,
-                            SubFields = field.SubFields.Select(sf => new SubFieldResponseDto
+                            var subField = new SubField
                             {
-                                SubFieldId = sf.SubFieldId,
-                                SubFieldName = sf.SubFieldName,
-                                FieldType = sf.FieldType,
-                                Description = sf.Description,
-                                Status = sf.Status,
-                                Capacity = sf.Capacity,
-                                OpenTime = sf.OpenTime.ToString(@"hh\:mm"),
-                                CloseTime = sf.CloseTime.ToString(@"hh\:mm"),
-                                DefaultPricePerSlot = sf.DefaultPricePerSlot,
-                                PricingRules = sf.PricingRules.Select(pr => new PricingRuleResponseDto
+                                SubFieldName = subFieldDto.SubFieldName,
+                                FieldType = subFieldDto.FieldType,
+                                Description = subFieldDto.Description,
+                                Capacity = subFieldDto.Capacity,
+                                OpenTime = TimeSpan.Parse(subFieldDto.OpenTime),
+                                CloseTime = TimeSpan.Parse(subFieldDto.CloseTime),
+                                DefaultPricePerSlot = subFieldDto.DefaultPricePerSlot,
+                                FieldId = field.FieldId,
+                                Parent7aSideId = subFieldDto.Parent7aSideId,
+                                Child5aSideIds = subFieldDto.Child5aSideIds ?? new List<int>(),
+                                Status = "Active",
+                                CreatedAt = DateTime.UtcNow,
+                                UpdatedAt = DateTime.UtcNow
+                            };
+
+                            _logger.LogInformation("Chuẩn bị lưu SubField với SubFieldName: {SubFieldName}, FieldId: {FieldId}", subField.SubFieldName, subField.FieldId);
+                            await _unitOfWork.Repository<SubField>().AddAsync(subField);
+                            await _unitOfWork.SaveChangesAsync(); // Lưu SubField để có SubFieldId hợp lệ
+
+                            foreach (var pricingRuleDto in subFieldDto.PricingRules)
+                            {
+                                var pricingRule = new PricingRule
                                 {
-                                    PricingRuleId = pr.PricingRuleId,
-                                    AppliesToDays = pr.AppliesToDays,
-                                    TimeSlots = pr.TimeSlots.Select(ts => new TimeSlotResponseDto
+                                    SubFieldId = subField.SubFieldId,
+                                    AppliesToDays = pricingRuleDto.AppliesToDays,
+                                    CreatedAt = DateTime.UtcNow,
+                                    UpdatedAt = DateTime.UtcNow
+                                };
+
+                                await _unitOfWork.Repository<PricingRule>().AddAsync(pricingRule);
+                                await _unitOfWork.SaveChangesAsync(); // Lưu PricingRule để có PricingRuleId hợp lệ
+
+                                foreach (var timeSlotDto in pricingRuleDto.TimeSlots)
+                                {
+                                    var timeSlot = new TimeSlot
                                     {
-                                        StartTime = ts.StartTime.ToString(@"hh\:mm"),
-                                        EndTime = ts.EndTime.ToString(@"hh\:mm"),
-                                        PricePerSlot = ts.PricePerSlot
-                                    }).ToList()
-                                }).ToList(),
-                                Parent7aSideId = sf.Parent7aSideId,
-                                Child5aSideIds = sf.Child5aSideIds
-                            }).ToList(),
-                            Services = field.FieldServices.Select(fs => new FieldServiceResponseDto
-                            {
-                                FieldServiceId = fs.FieldServiceId,
-                                ServiceName = fs.ServiceName,
-                                Price = fs.Price,
-                                Description = fs.Description,
-                                IsActive = fs.IsActive
-                            }).ToList(),
-                            Amenities = field.FieldAmenities.Select(fa => new FieldAmenityResponseDto
-                            {
-                                FieldAmenityId = fa.FieldAmenityId,
-                                AmenityName = fa.AmenityName,
-                                Description = fa.Description,
-                                IconUrl = fa.IconUrl
-                            }).ToList(),
-                            Images = field.FieldImages.Select(fi => new FieldImageResponseDto
-                            {
-                                FieldImageId = fi.FieldImageId,
-                                ImageUrl = fi.ImageUrl,
-                                PublicId = fi.PublicId,
-                                IsPrimary = fi.IsPrimary,
-                                UploadedAt = fi.UploadedAt
-                            }).ToList()
-                        };
+                                        PricingRuleId = pricingRule.PricingRuleId,
+                                        StartTime = TimeSpan.Parse(timeSlotDto.StartTime),
+                                        EndTime = TimeSpan.Parse(timeSlotDto.EndTime),
+                                        PricePerSlot = timeSlotDto.PricePerSlot,
+                                        CreatedAt = DateTime.UtcNow,
+                                        UpdatedAt = DateTime.UtcNow
+                                    };
 
-                        await _cache.SetRecordAsync($"field_{field.FieldId}", result, TimeSpan.FromMinutes(5));
-                        _logger.LogInformation("Tạo sân mới thành công với ID: {FieldId}", field.FieldId);
+                                    await _unitOfWork.Repository<TimeSlot>().AddAsync(timeSlot);
+                                }
+                            }
+                        }
 
-                        return result;
+                        if (dto.Services != null && dto.Services.Any())
+                        {
+                            if (dto.Services.Count > 50)
+                            {
+                                _logger.LogWarning("Số lượng Services vượt quá giới hạn: {ServiceCount}", dto.Services.Count);
+                                throw new InvalidOperationException("Số lượng dịch vụ không được vượt quá 50.");
+                            }
+
+                            foreach (var serviceDto in dto.Services)
+                            {
+                                var service = new Models.FieldService
+                                {
+                                    FieldId = field.FieldId,
+                                    ServiceName = serviceDto.ServiceName,
+                                    Price = serviceDto.Price,
+                                    Description = serviceDto.Description,
+                                    IsActive = true,
+                                    CreatedAt = DateTime.UtcNow,
+                                    UpdatedAt = DateTime.UtcNow
+                                };
+
+                                await _unitOfWork.Repository<Models.FieldService>().AddAsync(service);
+                            }
+                        }
+
+                        if (dto.Amenities != null && dto.Amenities.Any())
+                        {
+                            if (dto.Amenities.Count > 50)
+                            {
+                                _logger.LogWarning("Số lượng Amenities vượt quá giới hạn: {AmenityCount}", dto.Amenities.Count);
+                                throw new InvalidOperationException("Số lượng tiện ích không được vượt quá 50.");
+                            }
+
+                            foreach (var amenityDto in dto.Amenities)
+                            {
+                                var amenity = new FieldAmenity
+                                {
+                                    FieldId = field.FieldId,
+                                    AmenityName = amenityDto.AmenityName,
+                                    Description = amenityDto.Description,
+                                    IconUrl = amenityDto.IconUrl,
+                                    CreatedAt = DateTime.UtcNow,
+                                    UpdatedAt = DateTime.UtcNow
+                                };
+
+                                await _unitOfWork.Repository<FieldAmenity>().AddAsync(amenity);
+                            }
+                        }
+
+                        await _unitOfWork.SaveChangesAsync();
+                        _logger.LogInformation("Đã lưu tất cả SubFields, Services, và Amenities cho FieldId: {FieldId}", field.FieldId);
+
+                        if (dto.Images.Any())
+                        {
+                            foreach (var image in dto.Images)
+                            {
+                                if (image == null || image.Length == 0)
+                                {
+                                    _logger.LogWarning("Hình ảnh không hợp lệ trong danh sách Images.");
+                                    throw new InvalidOperationException("Một hoặc nhiều hình ảnh không hợp lệ.");
+                                }
+                                var uploadDto = new UploadFieldImageDto { Image = image, IsPrimary = false };
+                                await UploadFieldImageAsync(field.FieldId, uploadDto, user);
+                            }
+                        }
+
+                        await _unitOfWork.SaveChangesAsync();
+                        await _unitOfWork.CommitTransactionAsync(); // Commit giao dịch
+                        _logger.LogInformation("Commit transaction thành công cho FieldId: {FieldId}", field.FieldId);
+                        return field.FieldId;
                     }
                     catch (Exception ex)
                     {
-                        await transaction.RollbackAsync();
+                        await _unitOfWork.RollbackTransactionAsync();
                         _logger.LogError(ex, "Lỗi khi tạo sân mới trong giao dịch. StackTrace: {StackTrace}", ex.StackTrace);
-                        throw;
+                        throw new InvalidOperationException("Không thể tạo sân: " + ex.Message, ex);
                     }
                 });
+
+                // Lấy lại Field sau khi commit
+                try
+                {
+                    var repository = _unitOfWork.Repository<Field>();
+                    var query = await repository.FindAsQueryableAsync(f => f.FieldId == fieldId);
+                    var savedField = await query
+                        .Include(f => f.SubFields).ThenInclude(sf => sf.PricingRules).ThenInclude(pr => pr.TimeSlots)
+                        .Include(f => f.FieldServices)
+                        .Include(f => f.FieldAmenities)
+                        .Include(f => f.FieldImages)
+                        .FirstOrDefaultAsync();
+
+                    if (savedField == null)
+                    {
+                        _logger.LogWarning("Không tìm thấy Field vừa tạo với FieldId: {FieldId}", fieldId);
+                        throw new InvalidOperationException("Không tìm thấy sân vừa tạo.");
+                    }
+
+                    var result = MapToFieldResponseDto(savedField, null, null);
+                    await _cache.SetRecordAsync($"field_{fieldId}", result, TimeSpan.FromMinutes(5));
+                    _logger.LogInformation("Tạo sân mới thành công với ID: {FieldId}", fieldId);
+
+                    return result;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Lỗi khi lấy lại thông tin sân hoặc lưu cache cho FieldId: {FieldId}. StackTrace: {StackTrace}", fieldId, ex.StackTrace);
+                    throw new InvalidOperationException("Tạo sân thành công nhưng lỗi khi lấy thông tin: " + ex.Message, ex);
+                }
             }
             catch (Exception ex)
             {
@@ -541,21 +645,21 @@ namespace api.Services
         /// </summary>
         /// <param name="fieldId">ID của sân.</param>
         /// <param name="dto">Thông tin hình ảnh.</param>
-        /// <param name="token">Token xác thực.</param>
+        /// <param name="user">Thông tin người dùng đang đăng nhập.</param>
         /// <returns>Thông tin hình ảnh vừa tải lên.</returns>
-        public async Task<FieldImageResponseDto> UploadFieldImageAsync(int fieldId, UploadFieldImageDto dto, string token)
+        public async Task<FieldImageResponseDto> UploadFieldImageAsync(int fieldId, UploadFieldImageDto dto, ClaimsPrincipal user)
         {
             _logger.LogInformation("Tải lên hình ảnh cho sân với ID: {FieldId}", fieldId);
 
             try
             {
-                // Lấy Account từ token
-                var principal = await GetClaimsPrincipalFromTokenAsync(token);
-                var account = await _authService.GetCurrentUserAsync(principal);
+                // Lấy Account từ ClaimsPrincipal
+                var account = await _authService.GetCurrentUserAsync(user);
                 var owner = await _unitOfWork.Repository<Owner>()
                     .FindSingleAsync(o => o.AccountId == account.AccountId && o.DeletedAt == null);
                 if (owner == null)
                 {
+                    _logger.LogWarning("Không tìm thấy thông tin chủ sân cho AccountId: {AccountId}", account.AccountId);
                     throw new UnauthorizedAccessException("Không tìm thấy thông tin chủ sân.");
                 }
 
@@ -563,53 +667,45 @@ namespace api.Services
                     .FindSingleAsync(f => f.FieldId == fieldId && f.OwnerId == owner.OwnerId && f.Status != "Deleted" && f.DeletedAt == null);
                 if (field == null)
                 {
+                    _logger.LogWarning("Sân với FieldId {FieldId} không tồn tại hoặc không thuộc OwnerId {OwnerId}", fieldId, owner.OwnerId);
                     throw new KeyNotFoundException("Sân không tồn tại hoặc bạn không có quyền truy cập.");
                 }
 
                 var imageCount = await (await _unitOfWork.Repository<FieldImage>()
                     .FindAsQueryableAsync(i => i.FieldId == fieldId))
                     .CountAsync();
-                if (imageCount >= 50)
+                if (imageCount >= 20)
                 {
-                    throw new InvalidOperationException("Số lượng hình ảnh đã đạt tối đa (50 hình ảnh).");
+                    _logger.LogWarning("Số lượng hình ảnh đã đạt tối đa (20) cho FieldId: {FieldId}", fieldId);
+                    throw new InvalidOperationException("Số lượng hình ảnh đã đạt tối đa (20 hình ảnh).");
                 }
 
-                await using var transaction = await _unitOfWork.BeginTransactionAsync();
-                try
+                var uploadResult = await _cloudinaryService.UploadImageAsync(dto.Image);
+                var fieldImage = new FieldImage
                 {
-                    var uploadResult = await _cloudinaryService.UploadImageAsync(dto.Image);
-                    var fieldImage = new FieldImage
-                    {
-                        FieldId = fieldId,
-                        ImageUrl = uploadResult.Url,
-                        PublicId = uploadResult.PublicId,
-                        IsPrimary = dto.IsPrimary,
-                        UploadedAt = DateTime.UtcNow
-                    };
+                    FieldId = fieldId,
+                    ImageUrl = uploadResult.Url,
+                    PublicId = uploadResult.PublicId,
+                    IsPrimary = dto.IsPrimary,
+                    UploadedAt = DateTime.UtcNow
+                };
 
-                    await _unitOfWork.Repository<FieldImage>().AddAsync(fieldImage);
-                    await _unitOfWork.SaveChangesAsync();
-                    await _unitOfWork.CommitTransactionAsync();
+                await _unitOfWork.Repository<FieldImage>().AddAsync(fieldImage);
+                await _unitOfWork.SaveChangesAsync();
 
-                    var result = new FieldImageResponseDto
-                    {
-                        FieldImageId = fieldImage.FieldImageId,
-                        ImageUrl = fieldImage.ImageUrl,
-                        PublicId = fieldImage.PublicId,
-                        IsPrimary = fieldImage.IsPrimary,
-                        UploadedAt = fieldImage.UploadedAt
-                    };
-
-                    await _cache.RemoveAsync($"field_{fieldId}");
-                    _logger.LogInformation("Tải lên hình ảnh thành công cho sân ID: {FieldId}", fieldId);
-
-                    return result;
-                }
-                catch
+                var result = new FieldImageResponseDto
                 {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    throw;
-                }
+                    FieldImageId = fieldImage.FieldImageId,
+                    ImageUrl = fieldImage.ImageUrl,
+                    PublicId = fieldImage.PublicId,
+                    IsPrimary = fieldImage.IsPrimary,
+                    UploadedAt = fieldImage.UploadedAt
+                };
+
+                await _cache.RemoveAsync($"field_{fieldId}");
+                _logger.LogInformation("Tải lên hình ảnh thành công cho sân ID: {FieldId}", fieldId);
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -625,87 +721,86 @@ namespace api.Services
         /// <param name="dto">Thông tin cập nhật.</param>
         /// <param name="token">Token xác thực.</param>
         /// <returns>Thông tin sân đã cập nhật.</returns>
-        public async Task<FieldResponseDto> UpdateFieldAsync(int fieldId, UpdateFieldDto dto, string token)
-        {
-            _logger.LogInformation("Cập nhật sân với ID: {FieldId}", fieldId);
+        // public async Task<FieldResponseDto> UpdateFieldAsync(int fieldId, UpdateFieldDto dto, ClaimsPrincipal user)
+        // {
+        //     _logger.LogInformation("Cập nhật sân với ID: {FieldId}", fieldId);
 
-            try
-            {
-                // Lấy Account từ token
-                var principal = await GetClaimsPrincipalFromTokenAsync(token);
-                var account = await _authService.GetCurrentUserAsync(principal);
-                var owner = await _unitOfWork.Repository<Owner>()
-                    .FindSingleAsync(o => o.AccountId == account.AccountId && o.DeletedAt == null);
-                if (owner == null)
-                {
-                    throw new UnauthorizedAccessException("Không tìm thấy thông tin chủ sân.");
-                }
+        //     try
+        //     {
+        //         // Lấy Account từ ClaimsPrincipal
+        //         var account = await _authService.GetCurrentUserAsync(user);
+        //         var owner = await _unitOfWork.Repository<Owner>()
+        //             .FindSingleAsync(o => o.AccountId == account.AccountId && o.DeletedAt == null);
+        //         if (owner == null)
+        //         {
+        //             throw new UnauthorizedAccessException("Không tìm thấy thông tin chủ sân.");
+        //         }
 
-                var query = await _unitOfWork.Repository<Field>()
-                    .FindAsQueryableAsync(f => f.FieldId == fieldId && f.OwnerId == owner.OwnerId && f.Status != "Deleted" && f.DeletedAt == null);
-                var field = await query
-                    .Include(f => f.SubFields)
-                    .Include(f => f.FieldServices)
-                    .Include(f => f.FieldAmenities)
-                    .Include(f => f.FieldImages)
-                    .FirstOrDefaultAsync();
+        //         var query = await _unitOfWork.Repository<Field>()
+        //             .FindAsQueryableAsync(f => f.FieldId == fieldId && f.OwnerId == owner.OwnerId && f.Status != "Deleted" && f.DeletedAt == null);
+        //         var field = await query
+        //             .Include(f => f.SubFields)
+        //             .Include(f => f.FieldServices)
+        //             .Include(f => f.FieldAmenities)
+        //             .Include(f => f.FieldImages)
+        //             .FirstOrDefaultAsync();
 
-                if (field == null)
-                {
-                    throw new KeyNotFoundException("Sân không tồn tại hoặc bạn không có quyền truy cập.");
-                }
+        //         if (field == null)
+        //         {
+        //             throw new KeyNotFoundException("Sân không tồn tại hoặc bạn không có quyền truy cập.");
+        //         }
 
-                var addressValidation = await ValidateAddressAsync(new ValidateAddressDto
-                {
-                    FieldName = dto.FieldName,
-                    Address = dto.Address,
-                    City = dto.City,
-                    District = dto.District
-                });
+        //         var addressValidation = await ValidateAddressAsync(new ValidateAddressDto
+        //         {
+        //             FieldName = dto.FieldName,
+        //             Address = dto.Address,
+        //             City = dto.City,
+        //             District = dto.District
+        //         });
 
-                if (!addressValidation.IsValid)
-                {
-                    throw new InvalidOperationException("Địa chỉ không hợp lệ.");
-                }
+        //         if (!addressValidation.IsValid)
+        //         {
+        //             throw new InvalidOperationException("Địa chỉ không hợp lệ.");
+        //         }
 
-                await using var transaction = await _unitOfWork.BeginTransactionAsync();
-                try
-                {
-                    field.FieldName = dto.FieldName;
-                    field.Description = dto.Description;
-                    field.Address = dto.Address;
-                    field.City = dto.City;
-                    field.District = dto.District;
-                    field.OpenTime = TimeSpan.Parse(dto.OpenTime);
-                    field.CloseTime = TimeSpan.Parse(dto.CloseTime);
-                    field.SportId = dto.SportId;
-                    field.Latitude = addressValidation.Latitude;
-                    field.Longitude = addressValidation.Longitude;
-                    field.UpdatedAt = DateTime.UtcNow;
+        //         await using var transaction = await _unitOfWork.BeginTransactionAsync();
+        //         try
+        //         {
+        //             field.FieldName = dto.FieldName;
+        //             field.Description = dto.Description;
+        //             field.Address = dto.Address;
+        //             field.City = dto.City;
+        //             field.District = dto.District;
+        //             field.OpenTime = TimeSpan.Parse(dto.OpenTime);
+        //             field.CloseTime = TimeSpan.Parse(dto.CloseTime);
+        //             field.SportId = dto.SportId;
+        //             field.Latitude = addressValidation.Latitude;
+        //             field.Longitude = addressValidation.Longitude;
+        //             field.UpdatedAt = DateTime.UtcNow;
 
-                    _unitOfWork.Repository<Field>().Update(field);
-                    await _unitOfWork.SaveChangesAsync();
-                    await _unitOfWork.CommitTransactionAsync();
+        //             _unitOfWork.Repository<Field>().Update(field);
+        //             await _unitOfWork.SaveChangesAsync();
+        //             await _unitOfWork.CommitTransactionAsync();
 
-                    var result = MapToFieldResponseDto(field, null, null);
-                    await _cache.SetRecordAsync($"field_{field.FieldId}", result, TimeSpan.FromMinutes(5));
-                    await _cache.RemoveAsync($"fields_*");
-                    _logger.LogInformation("Cập nhật sân thành công với ID: {FieldId}", fieldId);
+        //             var result = MapToFieldResponseDto(field, null, null);
+        //             await _cache.SetRecordAsync($"field_{field.FieldId}", result, TimeSpan.FromMinutes(5));
+        //             await _cache.RemoveAsync($"fields_*");
+        //             _logger.LogInformation("Cập nhật sân thành công với ID: {FieldId}", fieldId);
 
-                    return result;
-                }
-                catch
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    throw;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi khi cập nhật sân ID: {FieldId}. StackTrace: {StackTrace}", fieldId, ex.StackTrace);
-                throw new InvalidOperationException("Không thể cập nhật sân: " + ex.Message, ex);
-            }
-        }
+        //             return result;
+        //         }
+        //         catch
+        //         {
+        //             await _unitOfWork.RollbackTransactionAsync();
+        //             throw;
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         _logger.LogError(ex, "Lỗi khi cập nhật sân ID: {FieldId}. StackTrace: {StackTrace}", fieldId, ex.StackTrace);
+        //         throw new InvalidOperationException("Không thể cập nhật sân: " + ex.Message, ex);
+        //     }
+        // }
 
         /// <summary>
         /// Xóa mềm một sân.
@@ -713,74 +808,73 @@ namespace api.Services
         /// <param name="fieldId">ID của sân.</param>
         /// <param name="token">Token xác thực.</param>
         /// <returns>Thông tin sân đã xóa.</returns>
-        public async Task<DeleteFieldResponseDto> DeleteFieldAsync(int fieldId, string token)
-        {
-            _logger.LogInformation("Xóa sân với ID: {FieldId}", fieldId);
+        // public async Task<DeleteFieldResponseDto> DeleteFieldAsync(int fieldId, ClaimsPrincipal user)
+        // {
+        //     _logger.LogInformation("Xóa sân với ID: {FieldId}", fieldId);
 
-            try
-            {
-                // Lấy Account từ token
-                var principal = await GetClaimsPrincipalFromTokenAsync(token);
-                var account = await _authService.GetCurrentUserAsync(principal);
-                var owner = await _unitOfWork.Repository<Owner>()
-                    .FindSingleAsync(o => o.AccountId == account.AccountId && o.DeletedAt == null);
-                if (owner == null)
-                {
-                    throw new UnauthorizedAccessException("Không tìm thấy thông tin chủ sân.");
-                }
+        //     try
+        //     {
+        //         // Lấy Account từ ClaimsPrincipal
+        //         var account = await _authService.GetCurrentUserAsync(user);
+        //         var owner = await _unitOfWork.Repository<Owner>()
+        //             .FindSingleAsync(o => o.AccountId == account.AccountId && o.DeletedAt == null);
+        //         if (owner == null)
+        //         {
+        //             throw new UnauthorizedAccessException("Không tìm thấy thông tin chủ sân.");
+        //         }
 
-                var query = await _unitOfWork.Repository<Field>()
-                    .FindAsQueryableAsync(f => f.FieldId == fieldId && f.OwnerId == owner.OwnerId && f.Status != "Deleted" && f.DeletedAt == null);
-                var field = await query
-                    .Include(f => f.SubFields).ThenInclude(sf => sf.Bookings)
-                    .FirstOrDefaultAsync();
+        //         var query = await _unitOfWork.Repository<Field>()
+        //             .FindAsQueryableAsync(f => f.FieldId == fieldId && f.OwnerId == owner.OwnerId && f.Status != "Deleted" && f.DeletedAt == null);
+        //         var field = await query
+        //             .Include(f => f.SubFields).ThenInclude(sf => sf.Bookings)
+        //             .FirstOrDefaultAsync();
 
-                if (field == null)
-                {
-                    throw new KeyNotFoundException("Sân không tồn tại hoặc bạn không có quyền truy cập.");
-                }
+        //         if (field == null)
+        //         {
+        //             throw new KeyNotFoundException("Sân không tồn tại hoặc bạn không có quyền truy cập.");
+        //         }
 
-                var hasActiveBookings = field.SubFields.Any(sf => sf.Bookings.Any(b => (b.Status == "Confirmed" || b.Status == "Pending") && b.DeletedAt == null));
-                if (hasActiveBookings)
-                {
-                    throw new InvalidOperationException("Không thể xóa sân vì còn đặt sân đang hoạt động.");
-                }
+        //         var hasActiveBookings = field.SubFields.Any(sf => sf.Bookings.Any(b => (b.Status == "Confirmed" || b.Status == "Pending") && b.DeletedAt == null));
+        //         if (hasActiveBookings)
+        //         {
+        //             throw new InvalidOperationException("Không thể xóa sân vì còn đặt sân đang hoạt động.");
+        //         }
 
-                await using var transaction = await _unitOfWork.BeginTransactionAsync();
-                try
-                {
-                    field.Status = "Deleted";
-                    field.DeletedAt = DateTime.UtcNow;
-                    _unitOfWork.Repository<Field>().Update(field);
-                    await _unitOfWork.SaveChangesAsync();
-                    await _unitOfWork.CommitTransactionAsync();
+        //         await using var transaction = await _unitOfWork.BeginTransactionAsync();
+        //         try
+        //         {
+        //             field.Status = "Deleted";
+        //             field.DeletedAt = DateTime.UtcNow;
+        //             _unitOfWork.Repository<Field>().Update(field);
+        //             await _unitOfWork.SaveChangesAsync();
+        //             await _unitOfWork.CommitTransactionAsync();
 
-                    var result = new DeleteFieldResponseDto
-                    {
-                        FieldId = field.FieldId,
-                        Status = field.Status,
-                        DeletedAt = field.DeletedAt.Value,
-                        Message = "Sân đã được xóa thành công."
-                    };
+        //             var result = new DeleteFieldResponseDto
+        //             {
+        //                 FieldId = field.FieldId,
+        //                 Status = field.Status,
+        //                 DeletedAt = field.DeletedAt.Value,
+        //                 Message = "Sân đã được xóa thành công."
+        //             };
 
-                    await _cache.RemoveAsync($"field_{fieldId}");
-                    await _cache.RemoveAsync($"fields_*");
-                    _logger.LogInformation("Xóa sân thành công với ID: {FieldId}", fieldId);
+        //             await _cache.RemoveAsync($"field_{fieldId}");
+        //             await _cache.RemoveAsync($"fields_*");
+        //             _logger.LogInformation("Xóa sân thành công với ID: {FieldId}", fieldId);
 
-                    return result;
-                }
-                catch
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    throw;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi khi xóa sân ID: {FieldId}. StackTrace: {StackTrace}", fieldId, ex.StackTrace);
-                throw new InvalidOperationException("Không thể xóa sân: " + ex.Message, ex);
-            }
-        }
+        //             return result;
+        //         }
+        //         catch
+        //         {
+        //             await _unitOfWork.RollbackTransactionAsync();
+        //             throw;
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         _logger.LogError(ex, "Lỗi khi xóa sân ID: {FieldId}. StackTrace: {StackTrace}", fieldId, ex.StackTrace);
+        //         throw new InvalidOperationException("Không thể xóa sân: " + ex.Message, ex);
+        //     }
+        // }
 
         /// <summary>
         /// Lấy danh sách khung giờ trống của sân.
@@ -887,14 +981,14 @@ namespace api.Services
         /// <param name="filter">Bộ lọc đặt sân.</param>
         /// <param name="token">Token xác thực.</param>
         /// <returns>Danh sách đặt sân phân trang.</returns>
-        public async Task<PagedResult<BookingResponseDto>> GetFieldBookingsAsync(int fieldId, BookingFilterDto filter, string token)
+        public async Task<PagedResult<BookingResponseDto>> GetFieldBookingsAsync(int fieldId, BookingFilterDto filter, ClaimsPrincipal user)
         {
             _logger.LogInformation("Lấy danh sách đặt sân cho sân ID: {FieldId}, bộ lọc: {@Filter}", fieldId, filter);
 
             try
             {
-                var principal = await GetClaimsPrincipalFromTokenAsync(token);
-                var account = await _authService.GetCurrentUserAsync(principal);
+                // Lấy Account từ ClaimsPrincipal
+                var account = await _authService.GetCurrentUserAsync(user);
                 var owner = await _unitOfWork.Repository<Owner>()
                     .FindSingleAsync(o => o.AccountId == account.AccountId && o.DeletedAt == null);
                 if (owner == null)
@@ -1084,11 +1178,19 @@ namespace api.Services
             var (isValid, role) = await _authService.VerifyTokenAsync(token);
             if (!isValid)
             {
+                _logger.LogWarning("Token không hợp lệ.");
                 throw new UnauthorizedAccessException("Token không hợp lệ.");
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token);
+            var accountId = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "nameid")?.Value;
+            if (string.IsNullOrEmpty(accountId))
+            {
+                _logger.LogWarning("Không tìm thấy AccountId trong token. Claims: {Claims}", string.Join(", ", jwtToken.Claims.Select(c => $"{c.Type}: {c.Value}")));
+                throw new UnauthorizedAccessException("Token không chứa AccountId hợp lệ.");
+            }
+            _logger.LogInformation("AccountId từ token: {AccountId}, Role: {Role}", accountId, role);
             var claimsIdentity = new ClaimsIdentity(jwtToken.Claims, "jwt");
             return new ClaimsPrincipal(claimsIdentity);
         }

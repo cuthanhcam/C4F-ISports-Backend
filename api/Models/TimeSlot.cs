@@ -16,7 +16,13 @@ namespace api.Models
         [Required]
         public TimeSpan EndTime { get; set; }
 
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
+
         [Required]
         public decimal PricePerSlot { get; set; } // Giá cho slot 30 phút
+        
+        public int PricingRuleId { get; set; }
     }
 }

@@ -19,7 +19,7 @@ namespace api.Data.Configurations
 
             // Relationship with SubField
             builder.HasOne(pr => pr.SubField)
-                .WithMany()
+                .WithMany(sf => sf.PricingRules)
                 .HasForeignKey(pr => pr.SubFieldId)
                 .OnDelete(DeleteBehavior.Cascade);
 
