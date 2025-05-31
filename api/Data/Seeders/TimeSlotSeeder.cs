@@ -10,17 +10,17 @@ namespace api.Data.Seeders
 {
     public static class TimeSlotSeeder
     {
-        public static async Task SeedAsync(ApplicationDbContext context, ILogger logger)
+        public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
             try
             {
                 if (await context.TimeSlots.AnyAsync())
                 {
-                    logger.LogInformation("TimeSlots đã tồn tại, bỏ qua seeding.");
+                    logger?.LogInformation("TimeSlots đã tồn tại, bỏ qua seeding.");
                     return;
                 }
 
-                logger.LogInformation("Bắt đầu seeding TimeSlots...");
+                logger?.LogInformation("Bắt đầu seeding TimeSlots...");
 
                 // Create standard time slots from 5:00 to 23:00 with 30-minute intervals
                 var timeSlots = new List<TimeSlot>();
@@ -82,11 +82,11 @@ namespace api.Data.Seeders
                 await context.TimeSlots.AddRangeAsync(timeSlots);
                 await context.SaveChangesAsync();
 
-                logger.LogInformation("Đã seed {Count} TimeSlots thành công.", timeSlots.Count);
+                logger?.LogInformation("Đã seed {Count} TimeSlots thành công.", timeSlots.Count);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Lỗi khi seed TimeSlots: {Message}", ex.Message);
+                logger?.LogError(ex, "Lỗi khi seed TimeSlots: {Message}", ex.Message);
                 throw;
             }
         }

@@ -40,6 +40,18 @@ namespace api.Repositories
             return await _dbSet.Where(predicate).FirstOrDefaultAsync();
         }
 
+        public async Task<T?> FindSingleAsync(
+            Expression<Func<T, bool>> predicate,
+            Func<IQueryable<T>, IQueryable<T>>? include = null)
+        {
+            IQueryable<T> query = _dbSet.Where(predicate);
+            if (include != null)
+            {
+                query = include(query);
+            }
+            return await query.FirstOrDefaultAsync();
+        }
+
         public IQueryable<T> FindQueryable(Expression<Func<T, bool>> predicate)
         {
             return _dbSet.Where(predicate);
@@ -47,7 +59,6 @@ namespace api.Repositories
 
         public async Task<IQueryable<T>> FindAsQueryableAsync(Expression<Func<T, bool>> predicate)
         {
-            // Trả về IQueryable trực tiếp, không thực thi ToListAsync
             return await Task.FromResult(_dbSet.AsNoTracking().Where(predicate));
         }
 

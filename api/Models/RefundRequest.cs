@@ -17,6 +17,9 @@ namespace api.Models
         [StringLength(20), RegularExpression("^(Pending|Approved|Rejected)$")]
         public string Status { get; set; } = "Pending";
 
+        [StringLength(1000)]
+        public string? Note { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; } // Hỗ trợ soft delete

@@ -20,10 +20,12 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
 using api.Models;
+using Microsoft.AspNetCore.Builder;
+using VNPAY.NET;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Cấu hình Serilog
+// Cấu hình Serilog
 builder.Host.UseSerilog((context, services, configuration) =>
 {
     configuration
@@ -34,16 +36,16 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day);
 });
 
-// 2. Cấu hình các dịch vụ
+// Cấu hình các dịch vụ
 ConfigureServices(builder);
 
-// 3. Xây dựng ứng dụng
+// Xây dựng ứng dụng
 var app = builder.Build();
 
-// 4. Cấu hình middleware
+// Cấu hình middleware
 ConfigureMiddleware(app);
 
-// 5. Áp dụng migrations và seed dữ liệu
+// Áp dụng migrations và seed dữ liệu
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("Starting application...");
 
@@ -53,10 +55,9 @@ logger.LogInformation("Application startup completed.");
 
 app.Run();
 
-// Hàm cấu hình các dịch vụ
 void ConfigureServices(WebApplicationBuilder builder)
 {
-    // 2.1. Cấu hình DbContext với SQL Server
+    // DbContext với SQL Server
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlServer(
             builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -65,7 +66,7 @@ void ConfigureServices(WebApplicationBuilder builder)
                 maxRetryDelay: TimeSpan.FromSeconds(30),
                 errorNumbersToAdd: null)));
 
-    // 2.2. Cấu hình Authentication (JWT)
+    // Authentication (JWT)
     var jwtSettings = builder.Configuration.GetSection("JwtSettings");
     builder.Services.AddAuthentication(options =>
     {
@@ -88,7 +89,7 @@ void ConfigureServices(WebApplicationBuilder builder)
         };
     });
 
-    // 2.3. Cấu hình Authorization Policies
+    // Authorization Policies
     builder.Services.AddAuthorization(options =>
     {
         options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
@@ -96,17 +97,17 @@ void ConfigureServices(WebApplicationBuilder builder)
         options.AddPolicy("UserOnly", policy => policy.RequireRole("User"));
     });
 
-    // 2.4. Cấu hình CloudinaryService
+    // CloudinaryService
     builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
     builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
-    // 2.5. Cấu hình GeocodingService
+    // GeocodingService
     builder.Services.AddHttpClient<IGeocodingService, GeocodingService>(client =>
     {
         client.Timeout = TimeSpan.FromSeconds(60);
     });
 
-    // 2.6. Cấu hình Email Sender
+    // Email Sender
     var retryPolicy = HttpPolicyExtensions
         .HandleTransientHttpError()
         .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
@@ -116,7 +117,7 @@ void ConfigureServices(WebApplicationBuilder builder)
         client.Timeout = TimeSpan.FromSeconds(30);
     }).AddPolicyHandler(retryPolicy);
 
-    // 2.7. Cấu hình CORS
+    // CORS
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowSpecificOrigins", corsBuilder =>
@@ -137,7 +138,7 @@ void ConfigureServices(WebApplicationBuilder builder)
         });
     });
 
-    // 2.8. Cấu hình Rate Limiting
+    // Rate Limiting
     builder.Services.AddRateLimiter(options =>
     {
         options.AddPolicy("auth", httpContext =>
@@ -197,7 +198,7 @@ void ConfigureServices(WebApplicationBuilder builder)
         };
     });
 
-    // 2.9. Cấu hình Redis Cache (tùy chọn)
+    // Redis Cache
     if (!string.IsNullOrEmpty(builder.Configuration.GetConnectionString("Redis")))
     {
         builder.Services.AddStackExchangeRedisCache(options =>
@@ -207,12 +208,12 @@ void ConfigureServices(WebApplicationBuilder builder)
         });
     }
 
-    // 2.10. Cấu hình Health Checks
+    // Health Checks
     builder.Services.AddHealthChecks()
         .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
         .AddCheck("API", () => HealthCheckResult.Healthy("API is running"));
 
-    // 2.11. Cấu hình Controllers
+    // Controllers
     builder.Services.AddControllers()
         .AddNewtonsoftJson(options =>
         {
@@ -220,7 +221,7 @@ void ConfigureServices(WebApplicationBuilder builder)
             options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
         });
 
-    // 2.12. Cấu hình Swagger
+    // Swagger
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
     {
@@ -270,7 +271,10 @@ void ConfigureServices(WebApplicationBuilder builder)
         options.DocumentFilter<SwaggerDocumentFilter>();
     });
 
-    // 2.13. Cấu hình Services và Repositories
+    builder.Services.AddHttpContextAccessor();
+
+    // Services và Repositories
+    builder.Services.AddHttpContextAccessor();
     builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
     builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
     builder.Services.AddScoped<IAuthService, AuthService>();
@@ -280,8 +284,13 @@ void ConfigureServices(WebApplicationBuilder builder)
     builder.Services.AddScoped<IFieldService, api.Services.FieldService>();
     builder.Services.AddScoped<ISportService, SportService>();
     builder.Services.AddScoped<IPromotionService, PromotionService>();
+    builder.Services.AddScoped<IBookingService, api.Services.BookingService>();
+    builder.Services.Configure<VNPaySettings>(builder.Configuration.GetSection("VNPay"));
+    builder.Services.AddSingleton<IVnpay, Vnpay>(); // Đăng ký IVnpayService
+    builder.Services.AddScoped<IPaymentService, PaymentService>();
+    
 
-    // 2.14. Cấu hình Logging
+    // Logging
     builder.Services.AddLogging(logging =>
     {
         logging.ClearProviders();
@@ -358,7 +367,7 @@ void ConfigureMiddleware(WebApplication app)
     app.MapControllers();
 }
 
-// Hàm áp dụng migrations và seed dữ liệu
+// Hàm khởi tạo và seed dữ liệu vào database
 async Task SeedDatabaseAsync(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
@@ -379,7 +388,7 @@ async Task SeedDatabaseAsync(WebApplication app)
         await context.Database.MigrateAsync();
         logger.LogInformation("Migrations applied successfully.");
 
-        // await SeedData.InitializeAsync(services);
+        await SeedData.InitializeAsync(services);
         logger.LogInformation("Database seeding completed successfully.");
 
         accountCount = await context.Accounts.CountAsync();
@@ -392,7 +401,6 @@ async Task SeedDatabaseAsync(WebApplication app)
     }
 }
 
-// Filter để hỗ trợ IFormFile trong Swagger
 public class FormFileOperationFilter : IOperationFilter
 {
     private readonly ILogger<FormFileOperationFilter> _logger;
@@ -440,7 +448,6 @@ public class FormFileOperationFilter : IOperationFilter
     }
 }
 
-// Swagger Document Filter để log lỗi
 public class SwaggerDocumentFilter : IDocumentFilter
 {
     private readonly ILogger<SwaggerDocumentFilter> _logger;

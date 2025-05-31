@@ -1,6 +1,7 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
@@ -28,7 +29,9 @@ namespace api.Data.Seeders
                         ServiceName = "Nước uống",
                         Price = 10000,
                         Description = "Nước suối đóng chai 500ml",
-                        IsActive = true
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     }
                 };
 

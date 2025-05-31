@@ -1,6 +1,7 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 
@@ -26,7 +27,6 @@ namespace api.Data.Seeders
                     new SearchHistory
                     {
                         UserId = user.UserId,
-                        Account = user,
                         Keyword = "Sân bóng Quận 1",
                         SearchDateTime = DateTime.UtcNow,
                         FieldId = field?.FieldId,

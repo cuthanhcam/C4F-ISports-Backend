@@ -10,23 +10,23 @@ namespace api.Data.Seeders
 {
     public static class PricingRuleSeeder
     {
-        public static async Task SeedAsync(ApplicationDbContext context, ILogger logger)
+        public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
             try
             {
                 if (await context.PricingRules.AnyAsync())
                 {
-                    logger.LogInformation("PricingRules đã tồn tại, bỏ qua seeding.");
+                    logger?.LogInformation("PricingRules đã tồn tại, bỏ qua seeding.");
                     return;
                 }
 
-                logger.LogInformation("Bắt đầu seeding PricingRules...");
+                logger?.LogInformation("Bắt đầu seeding PricingRules...");
 
                 // Get all subfields
                 var subFields = await context.SubFields.ToListAsync();
                 if (!subFields.Any())
                 {
-                    logger.LogWarning("Không tìm thấy SubFields để tạo PricingRules.");
+                    logger?.LogWarning("Không tìm thấy SubFields để tạo PricingRules.");
                     return;
                 }
 
@@ -34,7 +34,7 @@ namespace api.Data.Seeders
                 var timeSlots = await context.TimeSlots.ToListAsync();
                 if (!timeSlots.Any())
                 {
-                    logger.LogWarning("Không tìm thấy TimeSlots để tạo PricingRules.");
+                    logger?.LogWarning("Không tìm thấy TimeSlots để tạo PricingRules.");
                     return;
                 }
 
@@ -48,7 +48,9 @@ namespace api.Data.Seeders
                     {
                         SubFieldId = subField.SubFieldId,
                         AppliesToDays = new List<string> { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" },
-                        TimeSlots = timeSlots.Where(ts => ts.StartTime.Hours >= 17 && ts.StartTime.Hours < 23).ToList()
+                        TimeSlots = timeSlots.Where(ts => ts.StartTime.Hours >= 17 && ts.StartTime.Hours < 23).ToList(),
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     };
                     pricingRules.Add(weekdayRule);
 
@@ -57,7 +59,9 @@ namespace api.Data.Seeders
                     {
                         SubFieldId = subField.SubFieldId,
                         AppliesToDays = new List<string> { "Saturday", "Sunday" },
-                        TimeSlots = timeSlots.ToList() // All time slots
+                        TimeSlots = timeSlots.ToList(), // All time slots
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     };
                     pricingRules.Add(weekendRule);
 
@@ -66,7 +70,9 @@ namespace api.Data.Seeders
                     {
                         SubFieldId = subField.SubFieldId,
                         AppliesToDays = new List<string> { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" },
-                        TimeSlots = timeSlots.Where(ts => ts.StartTime.Hours >= 5 && ts.StartTime.Hours < 12).ToList()
+                        TimeSlots = timeSlots.Where(ts => ts.StartTime.Hours >= 5 && ts.StartTime.Hours < 12).ToList(),
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     };
                     pricingRules.Add(morningRule);
                 }
@@ -74,11 +80,11 @@ namespace api.Data.Seeders
                 await context.PricingRules.AddRangeAsync(pricingRules);
                 await context.SaveChangesAsync();
 
-                logger.LogInformation("Đã seed {Count} PricingRules thành công.", pricingRules.Count);
+                logger?.LogInformation("Đã seed {Count} PricingRules thành công.", pricingRules.Count);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Lỗi khi seed PricingRules: {Message}", ex.Message);
+                logger?.LogError(ex, "Lỗi khi seed PricingRules: {Message}", ex.Message);
                 throw;
             }
         }
