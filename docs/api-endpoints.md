@@ -3462,6 +3462,7 @@ Authorization: Bearer {token}
   ```
 
 - **401 Unauthorized**:
+
   ```json
   {
     "error": "Unauthorized",
@@ -3474,6 +3475,8 @@ Authorization: Bearer {token}
 - Validates `SubField` availability and `Promotion.Code`.
 - `services` and `promotionCode` are optional.
 - Does not create a `Booking` record.
+- Base price is calculated using `FieldPricing.PricePerHour` or `SubField.DefaultPricePerSlot` if no pricing schedule is found.
+- Time format must be `HH:mm`.
 
 ### 6.2 Create Simple Booking
 
@@ -3507,7 +3510,7 @@ Authorization: Bearer {token}
     "endTime": "15:00",
     "totalPrice": 500000,
     "status": "Pending",
-    "paymentStatus": "Unpaid",
+    "paymentStatus": "Pending",
     "createdAt": "2025-06-01T10:00:00Z",
     "message": "Booking created successfully"
   }
@@ -3528,6 +3531,7 @@ Authorization: Bearer {token}
   ```
 
 - **401 Unauthorized**:
+
   ```json
   {
     "error": "Unauthorized",
@@ -3540,6 +3544,8 @@ Authorization: Bearer {token}
 - Validates `SubField` availability.
 - Sets `Booking.UserId` to the authenticated user’s ID.
 - `createdAt` reflects `Booking.CreatedAt`.
+- Time format must be `HH:mm`.
+- Base price is calculated using `FieldPricing.PricePerHour` or `SubField.DefaultPricePerSlot`.
 
 ### 6.3 Create Booking
 
@@ -3650,7 +3656,7 @@ Authorization: Bearer {token}
   "totalPrice": 840000.0,
   "discount": 100000.0,
   "finalPrice": 740000.0,
-  "paymentUrl": "https://payment-gateway.com/pay/123",
+  "paymentUrl": "https://sandbox.vnpay.vn/pay/123",
   "message": "Bookings created successfully"
 }
 ```
@@ -3717,11 +3723,13 @@ Authorization: Bearer {token}
 **Note**:
 
 - Creates multiple `Booking` records linked by `Booking.MainBookingId`.
+- `MainBookingId` is a separate `Booking` record to group bookings for payment.
 - `timeSlots` are stored in `BookingTimeSlot` and support 30-minute increments.
 - `services` are stored in `BookingService`.
 - `promotionCode` applies a discount to the `totalPrice`, stored in `Promotion.Code`.
-- Prices are calculated based on `FieldPricing.PricePerHour` and `FieldService.Price`.
-- Returns a `paymentUrl` for unified payment processing, valid until `validUntil`.
+- Prices are calculated based on `FieldPricing.PricePerHour` or `SubField.DefaultPricePerSlot` if no pricing schedule is found.
+- Returns a `paymentUrl` for VNPay payment processing.
+- `bookingId` and `subFieldId` are strings in JSON but map to integers in the database.
 - Validates:
   - Time slot availability against existing `Booking` and `BookingTimeSlot` records.
   - `timeSlots` within `Field.OpenTime` and `Field.CloseTime`.
@@ -3732,6 +3740,7 @@ Authorization: Bearer {token}
   - 10 time slots per booking.
   - 20 services per booking.
 - Operation is atomic: if any booking fails validation, no bookings are created.
+- Time format must be `HH:mm`.
 
 ### 6.4 Add Booking Service
 
@@ -3803,6 +3812,7 @@ Authorization: Bearer {token}
   ```
 
 - **404 Not Found**:
+
   ```json
   {
     "error": "Resource not found",
@@ -3851,6 +3861,11 @@ Authorization: Bearer {token}
       "startTime": "16:30",
       "endTime": "17:00",
       "price": 250000.0
+    },
+    {
+      "startTime": "17:30",
+      "endTime": "18:00",
+      "price": 250000.0
     }
   ],
   "services": [
@@ -3861,7 +3876,7 @@ Authorization: Bearer {token}
       "price": 20000.0
     }
   ],
-  "totalPrice": 290000.0,
+  "totalPrice": 540000.0,
   "status": "Pending",
   "paymentStatus": "Pending",
   "message": "Booking details retrieved successfully"
@@ -3899,6 +3914,8 @@ Authorization: Bearer {token}
 
 - Returns `Booking`, `BookingTimeSlot`, and `BookingService` records.
 - Only the booking user or field owner can access.
+- Multiple `timeSlots` may be returned if the booking has multiple slots.
+- Time format is `HH:mm`.
 
 ### 6.6 Get User Bookings
 
@@ -3963,6 +3980,7 @@ Authorization: Bearer {token}
   ```
 
 - **401 Unauthorized**:
+
   ```json
   {
     "error": "Unauthorized",
@@ -3973,8 +3991,10 @@ Authorization: Bearer {token}
 **Note**:
 
 - Filters bookings by `Booking.UserId` and optional parameters.
+- Only returns bookings with `MainBookingId == null` (main bookings, not sub-bookings).
 - `fieldName` and `subFieldName` are derived from `Booking.SubField.Field.FieldName` and `Booking.SubField.SubFieldName`.
-- `paymentStatus` reflects `Booking.PaymentStatus` (Paid|Unpaid|Refunded).
+- `paymentStatus` reflects `Booking.PaymentStatus` (Paid|Pending|Refunded).
+- Time format is `HH:mm`.
 
 ### 6.7 Get Booking Services
 
@@ -4040,6 +4060,7 @@ Authorization: Bearer {token}
   ```
 
 - **404 Not Found**:
+
   ```json
   {
     "error": "Resource not found",
@@ -4118,6 +4139,7 @@ Authorization: Bearer {token}
   ```
 
 - **404 Not Found**:
+
   ```json
   {
     "error": "Resource not found",
@@ -4189,6 +4211,7 @@ Authorization: Bearer {token}
   ```
 
 - **404 Not Found**:
+
   ```json
   {
     "error": "Resource not found",
@@ -4265,6 +4288,7 @@ Authorization: Bearer {token}
   ```
 
 - **404 Not Found**:
+
   ```json
   {
     "error": "Resource not found",
@@ -4275,7 +4299,9 @@ Authorization: Bearer {token}
 **Note**:
 
 - Validates `SubField` availability for the new time slot.
-- Updates `Booking.BookingDate`, `Booking.StartTime`, and `Booking.EndTime`.
+- Updates `Booking.BookingDate` and all `BookingTimeSlot` records.
+- `newDate` must be in `YYYY-MM-DD` format.
+- Time format must be `HH:mm`.
 
 ### 6.11 Cancel Booking
 
@@ -4341,6 +4367,7 @@ Authorization: Bearer {token}
   ```
 
 - **404 Not Found**:
+
   ```json
   {
     "error": "Resource not found",
@@ -4364,7 +4391,7 @@ Authorization: Bearer {token}
 {
   "mainBookingId": "1",
   "amount": 740000.0,
-  "paymentMethod": "CreditCard"
+  "paymentMethod": "VNPay"
 }
 ```
 
@@ -4378,7 +4405,7 @@ Authorization: Bearer {token}
   "mainBookingId": "1",
   "amount": 740000.0,
   "status": "Pending",
-  "paymentUrl": "https://payment-gateway.com/pay/123",
+  "paymentUrl": "https://sandbox.vnpay.vn/pay/123",
   "message": "Payment initiated successfully"
 }
 ```
@@ -4428,7 +4455,9 @@ Authorization: Bearer {token}
 
 - Creates a `Payment` record linked to `Booking.MainBookingId`.
 - Validates `amount` against the total of all bookings with the same `mainBookingId`.
-- `paymentUrl` is generated by the payment gateway.
+- `mainBookingId` is a string representing the `BookingId` (integer).
+- `paymentUrl` is generated by the VNPay payment gateway (e.g., sandbox URL).
+- Currently supports `VNPay` as the only `paymentMethod`.
 
 ### 7.2 Get Payment Status
 
@@ -4482,6 +4511,7 @@ Authorization: Bearer {token}
   ```
 
 - **404 Not Found**:
+
   ```json
   {
     "error": "Resource not found",
@@ -4552,6 +4582,7 @@ Authorization: Bearer {token}
   ```
 
 - **401 Unauthorized**:
+
   ```json
   {
     "error": "Unauthorized",
@@ -4562,7 +4593,7 @@ Authorization: Bearer {token}
 **Note**:
 
 - For `User`, returns payments linked to their bookings.
-- For `Owner`, returns payments linked to their fields’ bookings.
+- For `Owner`, returns payments linked to bookings on their fields.
 
 ### 7.4 Payment Webhook
 
@@ -4577,12 +4608,16 @@ Authorization: Bearer {token}
 ```json
 {
   "paymentId": 1,
-  "status": "Completed",
+  "status": "Success",
   "transactionId": "txn_123",
   "amount": 500000,
   "timestamp": "2025-06-01T10:00:00Z"
 }
 ```
+
+**Query Parameters**:
+
+- `vnp_SecureHash` (required, string): Signature to verify the webhook.
 
 **Response**:
 
@@ -4609,6 +4644,7 @@ Authorization: Bearer {token}
   ```
 
 - **401 Unauthorized**:
+
   ```json
   {
     "error": "Unauthorized",
@@ -4619,7 +4655,8 @@ Authorization: Bearer {token}
 **Note**:
 
 - Updates `Payment.Status` and `Booking.PaymentStatus`.
-- Secured by a signature verified by the payment gateway.
+- Secured by `vnp_SecureHash` verified by the VNPay payment gateway.
+- `status` is either `"Success"` or `"Failed"`.
 
 ### 7.5 Request Refund
 
@@ -4689,6 +4726,7 @@ Authorization: Bearer {token}
   ```
 
 - **404 Not Found**:
+
   ```json
   {
     "error": "Resource not found",
@@ -4700,14 +4738,15 @@ Authorization: Bearer {token}
 
 - Creates a `RefundRequest` record.
 - Validates `Payment.Status` is Completed and refund eligibility.
+- `amount` must not exceed the original `Payment.Amount`.
 
 ### 7.6 Process Refund
 
-**Description**: Processes a refund request (Owner or Admin only).
+**Description**: Processes a refund request (Owner only).
 
 **HTTP Method**: POST  
 **Endpoint**: `/api/payments/refunds/{refundId}/process`  
-**Authorization**: Bearer Token (Owner or Admin)
+**Authorization**: Bearer Token (Owner)
 
 **Path Parameters**:
 
@@ -4762,11 +4801,12 @@ Authorization: Bearer {token}
   ```json
   {
     "error": "Forbidden",
-    "message": "Only the field owner or admin can process refunds"
+    "message": "Only the field owner can process refunds"
   }
   ```
 
 - **404 Not Found**:
+
   ```json
   {
     "error": "Resource not found",
@@ -4778,6 +4818,86 @@ Authorization: Bearer {token}
 
 - Updates `RefundRequest.Status` (Approved|Rejected).
 - If approved, updates `Payment.Status` and `Booking.PaymentStatus` to Refunded.
+
+### 7.7 Payment Return
+
+**Description**: Handles callback from the VNPay payment gateway after payment completion.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/payments/return`  
+**Authorization**: None
+
+**Query Parameters**:
+
+- VNPay-specific parameters (e.g., `vnp_TxnRef`, `vnp_Amount`, `vnp_ResponseCode`, `vnp_SecureHash`).
+
+**Request Example**:
+
+```http
+GET /api/payments/return?vnp_TxnRef=1&vnp_Amount=50000000&vnp_ResponseCode=00&vnp_SecureHash=abc123
+```
+
+**Response**:
+
+- **200 OK**: Redirects to frontend success page (`/payment/success`) or failure page (`/payment/failed`) with query parameters `paymentId` and optional `message`.
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Invalid query",
+    "message": "Không tìm thấy thông tin thanh toán"
+  }
+  ```
+
+**Note**:
+
+- Redirects to `{frontendUrl}/payment/success?paymentId={paymentId}` if payment is successful.
+- Redirects to `{frontendUrl}/payment/failed?paymentId={paymentId}&message={error}` if payment fails.
+- `frontendUrl` is configured in `appsettings.json` (defaults to `http://localhost:5173`).
+
+### 7.8 Payment IPN
+
+**Description**: Handles Instant Payment Notification (IPN) from the VNPay payment gateway to update payment status.
+
+**HTTP Method**: GET  
+**Endpoint**: `/api/payments/ipn`  
+**Authorization**: None
+
+**Query Parameters**:
+
+- VNPay-specific parameters (e.g., `vnp_TxnRef`, `vnp_Amount`, `vnp_ResponseCode`, `vnp_SecureHash`).
+
+**Request Example**:
+
+```http
+GET /api/payments/ipn?vnp_TxnRef=1&vnp_Amount=50000000&vnp_ResponseCode=00&vnp_SecureHash=abc123
+```
+
+**Response**:
+
+- **200 OK**:
+
+  ```json
+  {
+    "message": "IPN processed successfully"
+  }
+  ```
+
+- **400 Bad Request**:
+
+  ```json
+  {
+    "error": "Payment failed",
+    "message": "Transaction failed"
+  }
+  ```
+
+**Note**:
+
+- Updates `Payment.Status` and `Booking.PaymentStatus` via webhook processing.
+- Secured by `vnp_SecureHash` verified by VNPay.
+- `vnp_Amount` is divided by 100 to convert to VND.
 
 ## 8. Review System
 
