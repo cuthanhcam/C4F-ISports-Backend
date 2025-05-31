@@ -1,6 +1,7 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 using api.Interfaces;
 
@@ -30,6 +31,7 @@ namespace api.Data.Seeders
                         OwnerId = owner.OwnerId,
                         Owner = owner,
                         FieldName = "Sân ABC",
+                        Description = "Sân bóng đá chất lượng cao",
                         Address = "123 Đường ABC, Quận 1, TP.HCM",
                         OpenTime = new TimeSpan(6, 0, 0),
                         CloseTime = new TimeSpan(22, 0, 0),
@@ -39,7 +41,8 @@ namespace api.Data.Seeders
                         City = "Ho Chi Minh",
                         District = "Quan 1",
                         AverageRating = 4.5m,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     }
                 };
 

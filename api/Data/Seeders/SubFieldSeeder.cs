@@ -1,6 +1,7 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
@@ -29,7 +30,9 @@ namespace api.Data.Seeders
                         FieldType = "5-a-side",
                         Status = "Active",
                         Capacity = 10,
-                        Description = "Sân bóng đá 5 người với cỏ nhân tạo"
+                        Description = "Sân bóng đá 5 người với cỏ nhân tạo",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     },
                     new SubField
                     {
@@ -39,7 +42,9 @@ namespace api.Data.Seeders
                         FieldType = "7-a-side",
                         Status = "Active",
                         Capacity = 14,
-                        Description = "Sân bóng đá 7 người với cỏ nhân tạo"
+                        Description = "Sân bóng đá 7 người với cỏ nhân tạo",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     }
                 };
 

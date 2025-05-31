@@ -1,6 +1,7 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
@@ -27,7 +28,9 @@ namespace api.Data.Seeders
                         Field = field,
                         AmenityName = "Phòng thay đồ",
                         Description = "Phòng thay đồ sạch sẽ với tủ khóa",
-                        IconUrl = "https://example.com/icons/dressing-room.png"
+                        IconUrl = "https://example.com/icons/dressing-room.png",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     },
                     new FieldAmenity
                     {
@@ -35,7 +38,9 @@ namespace api.Data.Seeders
                         Field = field,
                         AmenityName = "Bãi đỗ xe",
                         Description = "Bãi đỗ xe rộng rãi",
-                        IconUrl = "https://example.com/icons/parking.png"
+                        IconUrl = "https://example.com/icons/parking.png",
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
                     }
                 };
 

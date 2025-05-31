@@ -1,6 +1,7 @@
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
@@ -31,6 +32,7 @@ namespace api.Data.Seeders
                         Rating = 5,
                         Comment = "Sân rất đẹp, dịch vụ tốt, sẽ quay lại!",
                         CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
                         IsVisible = true
                     }
                 };
