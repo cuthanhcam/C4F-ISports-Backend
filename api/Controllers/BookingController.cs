@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
 {
+    /// <summary>
+    /// Controller xử lý các yêu cầu liên quan đến quản lý đặt sân.
+    /// </summary>
     [Route("api/bookings")]
     [ApiController]
     [Authorize]
@@ -15,13 +18,25 @@ namespace api.Controllers
         private readonly IBookingService _bookingService;
         private readonly ILogger<BookingController> _logger;
 
+        /// <summary>
+        /// Khởi tạo BookingController với các dependencies cần thiết.
+        /// </summary>
+        /// <param name="bookingService">Service xử lý logic đặt sân.</param>
+        /// <param name="logger">Logger để ghi log hệ thống.</param>
         public BookingController(IBookingService bookingService, ILogger<BookingController> logger)
         {
             _bookingService = bookingService;
             _logger = logger;
         }
 
-        // 6.1 Preview Booking
+        /// <summary>
+        /// Xem trước thông tin đặt sân bao gồm giá và tính khả dụng.
+        /// </summary>
+        /// <param name="request">Thông tin đặt sân cần xem trước.</param>
+        /// <returns>Thông tin giá và tính khả dụng của đặt sân.</returns>
+        /// <response code="200">Trả về thông tin xem trước đặt sân.</response>
+        /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
+        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
         [HttpPost("preview")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -59,7 +74,14 @@ namespace api.Controllers
             }
         }
 
-        // 6.2 Create Simple Booking
+        /// <summary>
+        /// Tạo đặt sân đơn giản không kèm dịch vụ hoặc mã khuyến mãi.
+        /// </summary>
+        /// <param name="request">Thông tin đặt sân cần tạo.</param>
+        /// <returns>Thông tin đặt sân đã tạo.</returns>
+        /// <response code="201">Tạo đặt sân thành công.</response>
+        /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
+        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
         [HttpPost("simple")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -97,7 +119,16 @@ namespace api.Controllers
             }
         }
 
-        // 6.3 Create Booking
+        /// <summary>
+        /// Tạo một hoặc nhiều đặt sân cho nhiều sân con với nhiều khung giờ, có thể kèm dịch vụ và mã khuyến mãi.
+        /// </summary>
+        /// <param name="request">Thông tin các đặt sân cần tạo.</param>
+        /// <returns>Thông tin các đặt sân đã tạo và URL thanh toán.</returns>
+        /// <response code="201">Tạo đặt sân thành công.</response>
+        /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
+        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
+        /// <response code="404">Không tìm thấy sân con hoặc dịch vụ.</response>
+        /// <response code="409">Khung giờ đã được đặt.</response>
         [HttpPost]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -136,7 +167,17 @@ namespace api.Controllers
             }
         }
 
-        // 6.4 Add Booking Service
+        /// <summary>
+        /// Thêm dịch vụ vào đặt sân đã tạo.
+        /// </summary>
+        /// <param name="bookingId">ID của đặt sân cần thêm dịch vụ.</param>
+        /// <param name="request">Thông tin dịch vụ cần thêm.</param>
+        /// <returns>Thông tin dịch vụ đã thêm.</returns>
+        /// <response code="201">Thêm dịch vụ thành công.</response>
+        /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
+        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
+        /// <response code="403">Không có quyền thêm dịch vụ.</response>
+        /// <response code="404">Không tìm thấy đặt sân.</response>
         [HttpPost("{bookingId}/services")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -176,7 +217,15 @@ namespace api.Controllers
             }
         }
 
-        // 6.5 Get Booking By Id
+        /// <summary>
+        /// Lấy thông tin chi tiết của một đặt sân.
+        /// </summary>
+        /// <param name="bookingId">ID của đặt sân cần lấy thông tin.</param>
+        /// <returns>Thông tin chi tiết đặt sân.</returns>
+        /// <response code="200">Trả về thông tin chi tiết đặt sân.</response>
+        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
+        /// <response code="403">Không có quyền xem đặt sân.</response>
+        /// <response code="404">Không tìm thấy đặt sân.</response>
         [HttpGet("{bookingId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -207,7 +256,18 @@ namespace api.Controllers
             }
         }
 
-        // 6.6 Get User Bookings
+        /// <summary>
+        /// Lấy danh sách đặt sân của người dùng hiện tại.
+        /// </summary>
+        /// <param name="status">Lọc theo trạng thái (Confirmed, Pending, Cancelled).</param>
+        /// <param name="startDate">Ngày bắt đầu lọc.</param>
+        /// <param name="endDate">Ngày kết thúc lọc.</param>
+        /// <param name="page">Số trang (mặc định: 1).</param>
+        /// <param name="pageSize">Số mục mỗi trang (mặc định: 10).</param>
+        /// <returns>Danh sách đặt sân của người dùng.</returns>
+        /// <response code="200">Trả về danh sách đặt sân.</response>
+        /// <response code="400">Tham số không hợp lệ.</response>
+        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
         [HttpGet]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -255,7 +315,18 @@ namespace api.Controllers
             }
         }
 
-        // 6.7 Get Booking Services
+        /// <summary>
+        /// Lấy danh sách dịch vụ của đặt sân.
+        /// </summary>
+        /// <param name="bookingId">ID của đặt sân cần lấy dịch vụ.</param>
+        /// <param name="page">Số trang (mặc định: 1).</param>
+        /// <param name="pageSize">Số mục mỗi trang (mặc định: 10).</param>
+        /// <returns>Danh sách dịch vụ của đặt sân.</returns>
+        /// <response code="200">Trả về danh sách dịch vụ.</response>
+        /// <response code="400">Tham số không hợp lệ.</response>
+        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
+        /// <response code="403">Không có quyền xem dịch vụ.</response>
+        /// <response code="404">Không tìm thấy đặt sân.</response>
         [HttpGet("{bookingId}/services")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -293,7 +364,17 @@ namespace api.Controllers
             }
         }
 
-        // 6.8 Update Booking
+        /// <summary>
+        /// Cập nhật thông tin đặt sân (chỉ dành cho chủ sân).
+        /// </summary>
+        /// <param name="bookingId">ID của đặt sân cần cập nhật.</param>
+        /// <param name="request">Thông tin cập nhật.</param>
+        /// <returns>Thông tin đặt sân sau khi cập nhật.</returns>
+        /// <response code="200">Cập nhật đặt sân thành công.</response>
+        /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
+        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
+        /// <response code="403">Không có quyền cập nhật đặt sân.</response>
+        /// <response code="404">Không tìm thấy đặt sân.</response>
         [HttpPut("{bookingId}")]
         [Authorize(Roles = "Owner")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -333,7 +414,16 @@ namespace api.Controllers
             }
         }
 
-        // 6.9 Confirm Booking
+        /// <summary>
+        /// Xác nhận đặt sân (chỉ dành cho chủ sân).
+        /// </summary>
+        /// <param name="bookingId">ID của đặt sân cần xác nhận.</param>
+        /// <returns>Thông tin đặt sân sau khi xác nhận.</returns>
+        /// <response code="200">Xác nhận đặt sân thành công.</response>
+        /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
+        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
+        /// <response code="403">Không có quyền xác nhận đặt sân.</response>
+        /// <response code="404">Không tìm thấy đặt sân.</response>
         [HttpPost("{bookingId}/confirm")]
         [Authorize(Roles = "Owner")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -366,7 +456,17 @@ namespace api.Controllers
             }
         }
 
-        // 6.10 Reschedule Booking
+        /// <summary>
+        /// Đổi lịch đặt sân (chỉ dành cho người dùng).
+        /// </summary>
+        /// <param name="bookingId">ID của đặt sân cần đổi lịch.</param>
+        /// <param name="request">Thông tin lịch mới.</param>
+        /// <returns>Thông tin đặt sân sau khi đổi lịch.</returns>
+        /// <response code="200">Đổi lịch đặt sân thành công.</response>
+        /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
+        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
+        /// <response code="403">Không có quyền đổi lịch đặt sân.</response>
+        /// <response code="404">Không tìm thấy đặt sân.</response>
         [HttpPost("{bookingId}/reschedule")]
         [Authorize(Roles = "User")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -406,7 +506,16 @@ namespace api.Controllers
             }
         }
 
-        // 6.11 Cancel Booking
+        /// <summary>
+        /// Hủy đặt sân (dành cho người dùng hoặc chủ sân).
+        /// </summary>
+        /// <param name="bookingId">ID của đặt sân cần hủy.</param>
+        /// <returns>Thông tin đặt sân sau khi hủy.</returns>
+        /// <response code="200">Hủy đặt sân thành công.</response>
+        /// <response code="400">Dữ liệu đầu vào không hợp lệ.</response>
+        /// <response code="401">Chưa đăng nhập hoặc token không hợp lệ.</response>
+        /// <response code="403">Không có quyền hủy đặt sân.</response>
+        /// <response code="404">Không tìm thấy đặt sân.</response>
         [HttpPost("{bookingId}/cancel")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
