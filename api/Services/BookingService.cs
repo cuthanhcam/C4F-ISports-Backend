@@ -8,6 +8,7 @@ using api.Interfaces;
 using api.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Transactions;
+using api.Dtos.Payment;
 
 namespace api.Services
 {
@@ -378,7 +379,16 @@ namespace api.Services
                 response.TotalPrice = totalPrice;
                 response.Discount = discount;
                 response.FinalPrice = totalPrice - discount;
-                response.PaymentUrl = await _paymentService.GeneratePaymentUrlAsync(mainBooking.BookingId, response.FinalPrice);
+
+                // Tạo thanh toán và lấy PaymentUrl
+                var paymentRequest = new CreatePaymentRequestDto
+                {
+                    MainBookingId = mainBooking.BookingId,
+                    Amount = response.FinalPrice,
+                    PaymentMethod = "VNPay" // Giả định sử dụng VNPay
+                };
+                var paymentResponse = await _paymentService.CreatePaymentAsync(user, paymentRequest);
+                response.PaymentUrl = paymentResponse.PaymentUrl;
                 response.Message = "Đặt sân thành công";
 
                 await transaction.CommitAsync();
