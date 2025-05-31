@@ -19,6 +19,9 @@ namespace api.Models
         [StringLength(50)]
         public string? PaymentMethod { get; set; }
 
+        [StringLength(500), Url]
+        public string? PaymentUrl { get; set; }
+
         [StringLength(100)]
         public string? TransactionId { get; set; }
 

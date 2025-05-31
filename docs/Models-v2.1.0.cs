@@ -100,7 +100,7 @@ namespace api.Models
         public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
         public ICollection<RescheduleRequest> RescheduleRequests { get; set; } = new List<RescheduleRequest>();
-        
+
     }
 }
 namespace api.Models
@@ -426,6 +426,9 @@ namespace api.Models
         [StringLength(50)]
         public string? PaymentMethod { get; set; }
 
+        [StringLength(500), Url]
+        public string? PaymentUrl { get; set; }
+
         [StringLength(100)]
         public string? TransactionId { get; set; }
 
@@ -459,7 +462,7 @@ namespace api.Models
 
         [Required]
         public List<string> AppliesToDays { get; set; } = new List<string>(); // Monday, Tuesday, ...
-        
+
         public ICollection<TimeSlot> TimeSlots { get; set; } = new List<TimeSlot>();
     }
 }
@@ -530,6 +533,9 @@ namespace api.Models
         [StringLength(20), RegularExpression("^(Pending|Approved|Rejected)$")]
         public string Status { get; set; } = "Pending";
 
+        [StringLength(1000)]
+        public string? Note { get; set; }
+        
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletedAt { get; set; } // Hỗ trợ soft delete
@@ -592,7 +598,7 @@ namespace api.Models
     public class SearchHistory
     {
         [Key]
-        public int SearchId { get; set; } 
+        public int SearchId { get; set; }
 
         [Required]
         public int UserId { get; set; }
