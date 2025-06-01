@@ -50,45 +50,57 @@ namespace api.Services
 
             try
             {
-                // Xây dựng truy vấn cơ bản
-                var query = await _unitOfWork.Repository<Field>()
-                    .FindAsQueryableAsync(f => f.Status != "Deleted" && f.DeletedAt == null);
+                // Start with a base query
+                var query = _unitOfWork.Repository<Field>()
+                    .FindQueryable(f => f.Status != "Deleted" && f.DeletedAt == null)
+                    .AsNoTracking();
 
-                // Chuẩn hóa và áp dụng bộ lọc City
+                // Apply server-side filters that EF Core can translate
                 if (!string.IsNullOrEmpty(filter.City))
                 {
-                    var normalizedCity = filter.City.Trim().ToLower();
-                    query = query.Where(f => f.City != null && f.City.ToLower() == normalizedCity);
-                    _logger.LogInformation("Áp dụng bộ lọc City: {City}", normalizedCity);
+                    query = query.Where(f => f.City != null);
                 }
-
-                // Chuẩn hóa và áp dụng bộ lọc District
                 if (!string.IsNullOrEmpty(filter.District))
                 {
-                    var normalizedDistrict = filter.District.Trim().ToLower();
-                    query = query.Where(f => f.District != null && f.District.ToLower() == normalizedDistrict);
+                    query = query.Where(f => f.District != null);
+                }
 
-                    // Kiểm tra District thuộc City (nếu City được cung cấp)
+                // Include related entities
+                query = query
+                    .Include(f => f.SubFields).ThenInclude(sf => sf.PricingRules).ThenInclude(pr => pr.TimeSlots)
+                    .Include(f => f.FieldServices)
+                    .Include(f => f.FieldAmenities)
+                    .Include(f => f.FieldImages);
+
+                // Materialize the query to a list for client-side evaluation
+                var fields = await query.ToListAsync();
+
+                // Apply client-side filters for standardized names
+                if (!string.IsNullOrEmpty(filter.City))
+                {
+                    var standardizedCity = CommonUtils.StandardizeLocationName(filter.City);
+                    fields = fields.Where(f => CommonUtils.StandardizeLocationName(f.City) == standardizedCity).ToList();
+                    _logger.LogInformation("Áp dụng bộ lọc City: {City}", standardizedCity);
+                }
+
+                if (!string.IsNullOrEmpty(filter.District))
+                {
+                    var standardizedDistrict = CommonUtils.StandardizeLocationName(filter.District);
+                    fields = fields.Where(f => CommonUtils.StandardizeLocationName(f.District) == standardizedDistrict).ToList();
+
+                    // Validate District belongs to City (if City is provided)
                     if (!string.IsNullOrEmpty(filter.City))
                     {
-                        var normalizedCity = filter.City.Trim().ToLower();
-
-                        // Lấy danh sách các district hợp lệ của city đã chọn - sửa để sử dụng ToLower thay vì ToLowerInvariant
-                        var fieldsInCity = await _unitOfWork.Repository<Field>()
-                            .FindAsQueryableAsync(f => f.City != null && f.City.ToLower() == normalizedCity && f.DeletedAt == null);
-
-                        // Chuyển đổi sang client evaluation cho phép district kiểm tra
-                        var validDistricts = await fieldsInCity
-                            .Select(f => f.District)
-                            .Where(d => d != null)
+                        var standardizedCity = CommonUtils.StandardizeLocationName(filter.City);
+                        var validDistricts = fields
+                            .Where(f => CommonUtils.StandardizeLocationName(f.City) == standardizedCity)
+                            .Select(f => CommonUtils.StandardizeLocationName(f.District))
                             .Distinct()
-                            .ToListAsync();
+                            .ToList();
 
-                        validDistricts = validDistricts.Select(d => d.Trim().ToLower()).ToList();
-
-                        if (!validDistricts.Contains(normalizedDistrict))
+                        if (!validDistricts.Contains(standardizedDistrict))
                         {
-                            _logger.LogWarning("District {District} không thuộc City {City}.", normalizedDistrict, normalizedCity);
+                            _logger.LogWarning("District {District} không thuộc City {City}.", standardizedDistrict, standardizedCity);
                             return new PagedResult<FieldResponseDto>
                             {
                                 Data = new List<FieldResponseDto>(),
@@ -98,21 +110,14 @@ namespace api.Services
                             };
                         }
                     }
-                    _logger.LogInformation("Áp dụng bộ lọc District: {District}", normalizedDistrict);
+                    _logger.LogInformation("Áp dụng bộ lọc District: {District}", standardizedDistrict);
                 }
 
-                // Bao gồm các bảng liên quan
-                query = query
-                    .Include(f => f.SubFields).ThenInclude(sf => sf.PricingRules).ThenInclude(pr => pr.TimeSlots)
-                    .Include(f => f.FieldServices)
-                    .Include(f => f.FieldAmenities)
-                    .Include(f => f.FieldImages);
+                // Count total records after client-side filtering
+                var total = fields.Count;
 
-                // Tính tổng số bản ghi
-                var total = await query.CountAsync();
-
-                // Lấy dữ liệu phân trang
-                var pagedFields = await query
+                // Apply paging on the client-side list
+                var pagedFields = fields
                     .Skip((filter.Page - 1) * filter.PageSize)
                     .Take(filter.PageSize)
                     .Select(f => new FieldResponseDto
@@ -121,8 +126,8 @@ namespace api.Services
                         FieldName = f.FieldName,
                         Description = f.Description,
                         Address = f.Address,
-                        City = f.City,
-                        District = f.District,
+                        City = f.City, // Keep original value
+                        District = f.District, // Keep original value
                         Latitude = f.Latitude,
                         Longitude = f.Longitude,
                         OpenTime = f.OpenTime.ToString(@"hh\:mm"),
@@ -180,7 +185,7 @@ namespace api.Services
                             UploadedAt = fi.UploadedAt
                         }).ToList()
                     })
-                    .ToListAsync();
+                    .ToList();
 
                 var result = new PagedResult<FieldResponseDto>
                 {

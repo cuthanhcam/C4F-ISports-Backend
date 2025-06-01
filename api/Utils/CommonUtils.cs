@@ -23,7 +23,12 @@ namespace api.Utils
         }
 
         private static double ToRadians(double deg) => deg * Math.PI / 180;
-        
+
+        private static readonly string[] PrefixesToRemove =
+        {
+            "thành phố", "thanh pho", "tp", "quận", "quan", "huyện", "huyen", "thị xã", "thi xa"
+        };
+
         public static string NormalizeVietnameseString(string input)
         {
             if (string.IsNullOrEmpty(input)) return input;
@@ -38,6 +43,27 @@ namespace api.Utils
                 }
             }
             return result.ToString().ToLowerInvariant().Trim();
+        }
+
+        public static string StandardizeLocationName(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return input;
+
+            // Chuyển về chữ thường và loại bỏ khoảng trắng thừa
+            var cleanedInput = input.ToLowerInvariant().Trim();
+
+            // Loại bỏ các tiền tố
+            foreach (var prefix in PrefixesToRemove)
+            {
+                if (cleanedInput.StartsWith(prefix + " "))
+                {
+                    cleanedInput = cleanedInput.Substring(prefix.Length).Trim();
+                    break;
+                }
+            }
+
+            // Áp dụng NormalizeVietnameseString để bỏ dấu
+            return NormalizeVietnameseString(cleanedInput);
         }
     }
 
