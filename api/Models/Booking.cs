@@ -63,6 +63,6 @@ namespace api.Models
         public ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
         public ICollection<RescheduleRequest> RescheduleRequests { get; set; } = new List<RescheduleRequest>();
-        
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }

@@ -12,6 +12,7 @@ namespace api.Models
         public int ReviewId { get; set; }
         public int UserId { get; set; }
         public int FieldId { get; set; }
+        public int BookingId { get; set; }
 
         [Required, Range(1, 5)]
         public int Rating { get; set; }
@@ -27,8 +28,10 @@ namespace api.Models
 
         public DateTime? ReplyDate { get; set; }
         public bool IsVisible { get; set; } = true;
+        public DateTime? DeletedAt { get; set; }
 
         public User User { get; set; }
         public Field Field { get; set; }
+        public Booking Booking { get; set; }
     }
 }
