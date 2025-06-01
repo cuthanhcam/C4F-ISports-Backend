@@ -13,7 +13,7 @@ namespace api.Data.Seeders
             if (!await context.FieldPricings.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding FieldPricings...");
-                var subField = await context.SubFields.FirstOrDefaultAsync(sf => sf.SubFieldName == "Sân 5A");
+                var subField = await context.SubFields.IgnoreQueryFilters().FirstOrDefaultAsync(sf => sf.SubFieldName == "Sân 5A");
                 if (subField == null)
                 {
                     logger?.LogError("No SubField found for seeding FieldPricings.");
@@ -25,21 +25,19 @@ namespace api.Data.Seeders
                     new FieldPricing
                     {
                         SubFieldId = subField.SubFieldId,
-                        SubField = subField,
                         StartTime = new TimeSpan(6, 0, 0),
                         EndTime = new TimeSpan(12, 0, 0),
                         DayOfWeek = 0, // Sunday
-                        Price = 300000,
+                        Price = 300000m,
                         IsActive = true
                     },
                     new FieldPricing
                     {
                         SubFieldId = subField.SubFieldId,
-                        SubField = subField,
                         StartTime = new TimeSpan(12, 0, 0),
                         EndTime = new TimeSpan(18, 0, 0),
                         DayOfWeek = 0, // Sunday
-                        Price = 400000,
+                        Price = 400000m,
                         IsActive = true
                     }
                 };
@@ -52,7 +50,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Failed to seed FieldPricings. StackTrace: {StackTrace}", ex.StackTrace);
+                    logger?.LogError(ex, "Failed to seed FieldPricings.");
                     throw;
                 }
             }

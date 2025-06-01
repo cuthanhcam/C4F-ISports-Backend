@@ -14,7 +14,7 @@ namespace api.Data.Seeders
             if (!await context.Notifications.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Notifications...");
-                var user = await context.Users.FirstOrDefaultAsync();
+                var user = await context.Users.IgnoreQueryFilters().FirstOrDefaultAsync();
                 if (user == null)
                 {
                     logger?.LogError("No User found for seeding Notifications.");
@@ -26,7 +26,6 @@ namespace api.Data.Seeders
                     new Notification
                     {
                         UserId = user.UserId,
-                        User = user,
                         Title = "Xác nhận đặt sân",
                         Content = "Đặt sân của bạn tại Sân ABC đã được xác nhận.",
                         NotificationType = "Booking",
@@ -43,7 +42,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Failed to seed Notifications. StackTrace: {StackTrace}", ex.StackTrace);
+                    logger?.LogError(ex, "Failed to seed Notifications.");
                     throw;
                 }
             }

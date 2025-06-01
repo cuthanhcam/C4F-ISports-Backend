@@ -13,8 +13,9 @@ namespace api.Data.Seeders
             if (!await context.FavoriteFields.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding FavoriteFields...");
-                var user = await context.Users.FirstOrDefaultAsync();
-                var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
+                var user = await context.Users.IgnoreQueryFilters().FirstOrDefaultAsync();
+                var field = await context.Fields.IgnoreQueryFilters().FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
+
                 if (user == null || field == null)
                 {
                     logger?.LogError("No User or Field found for seeding FavoriteFields.");
@@ -23,15 +24,13 @@ namespace api.Data.Seeders
 
                 var favoriteFields = new[]
                 {
-                    new FavoriteField
-                    {
-                        UserId = user.UserId,
-                        User = user,
-                        FieldId = field.FieldId,
-                        Field = field,
-                        AddedDate = DateTime.UtcNow
-                    }
-                };
+            new FavoriteField
+            {
+                UserId = user.UserId,
+                FieldId = field.FieldId,
+                AddedDate = DateTime.UtcNow
+            }
+        };
 
                 try
                 {
@@ -41,7 +40,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Failed to seed FavoriteFields. StackTrace: {StackTrace}", ex.StackTrace);
+                    logger?.LogError(ex, "Failed to seed FavoriteFields.");
                     throw;
                 }
             }

@@ -13,7 +13,7 @@ namespace api.Data.Seeders
             if (!await context.FieldServices.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding FieldServices...");
-                var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
+                var field = await context.Fields.IgnoreQueryFilters().FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
                 if (field == null)
                 {
                     logger?.LogError("No Field found for seeding FieldServices.");
@@ -25,9 +25,8 @@ namespace api.Data.Seeders
                     new FieldService
                     {
                         FieldId = field.FieldId,
-                        Field = field,
                         ServiceName = "Nước uống",
-                        Price = 10000,
+                        Price = 10000m,
                         Description = "Nước suối đóng chai 500ml",
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow,
@@ -43,7 +42,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Failed to seed FieldServices. StackTrace: {StackTrace}", ex.StackTrace);
+                    logger?.LogError(ex, "Failed to seed FieldServices.");
                     throw;
                 }
             }

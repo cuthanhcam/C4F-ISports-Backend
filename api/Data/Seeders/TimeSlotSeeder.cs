@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace api.Data.Seeders
@@ -12,82 +11,75 @@ namespace api.Data.Seeders
     {
         public static async Task SeedAsync(ApplicationDbContext context, ILogger logger = null)
         {
-            try
+            if (!await context.Set<TimeSlot>().IgnoreQueryFilters().AnyAsync())
             {
-                if (await context.TimeSlots.AnyAsync())
-                {
-                    logger?.LogInformation("TimeSlots đã tồn tại, bỏ qua seeding.");
-                    return;
-                }
+                logger?.LogInformation("Seeding TimeSlots...");
 
-                logger?.LogInformation("Bắt đầu seeding TimeSlots...");
-
-                // Create standard time slots from 5:00 to 23:00 with 30-minute intervals
                 var timeSlots = new List<TimeSlot>();
-                
-                // Morning prices (lower)
+
                 for (int hour = 5; hour < 12; hour++)
                 {
                     timeSlots.Add(new TimeSlot
                     {
                         StartTime = new TimeSpan(hour, 0, 0),
                         EndTime = new TimeSpan(hour, 30, 0),
-                        PricePerSlot = 100000M // 100k VND for morning slots
+                        PricePerSlot = 100000m
                     });
-                    
                     timeSlots.Add(new TimeSlot
                     {
                         StartTime = new TimeSpan(hour, 30, 0),
                         EndTime = new TimeSpan(hour + 1, 0, 0),
-                        PricePerSlot = 100000M
+                        PricePerSlot = 100000m
                     });
                 }
-                
-                // Afternoon prices (medium)
+
                 for (int hour = 12; hour < 17; hour++)
                 {
                     timeSlots.Add(new TimeSlot
                     {
                         StartTime = new TimeSpan(hour, 0, 0),
                         EndTime = new TimeSpan(hour, 30, 0),
-                        PricePerSlot = 150000M // 150k VND for afternoon slots
+                        PricePerSlot = 150000m
                     });
-                    
                     timeSlots.Add(new TimeSlot
                     {
                         StartTime = new TimeSpan(hour, 30, 0),
                         EndTime = new TimeSpan(hour + 1, 0, 0),
-                        PricePerSlot = 150000M
+                        PricePerSlot = 150000m
                     });
                 }
-                
-                // Evening prices (higher)
+
                 for (int hour = 17; hour < 23; hour++)
                 {
                     timeSlots.Add(new TimeSlot
                     {
                         StartTime = new TimeSpan(hour, 0, 0),
                         EndTime = new TimeSpan(hour, 30, 0),
-                        PricePerSlot = 200000M // 200k VND for evening slots (peak hours)
+                        PricePerSlot = 200000m
                     });
-                    
                     timeSlots.Add(new TimeSlot
                     {
                         StartTime = new TimeSpan(hour, 30, 0),
                         EndTime = hour == 22 ? new TimeSpan(23, 0, 0) : new TimeSpan(hour + 1, 0, 0),
-                        PricePerSlot = 200000M
+                        PricePerSlot = 200000m
                     });
                 }
 
-                await context.TimeSlots.AddRangeAsync(timeSlots);
-                await context.SaveChangesAsync();
-
-                logger?.LogInformation("Đã seed {Count} TimeSlots thành công.", timeSlots.Count);
+                try
+                {
+                    await context.Set<TimeSlot>().AddRangeAsync(timeSlots);
+                    await context.SaveChangesAsync();
+                    logger?.LogInformation("TimeSlots seeded successfully. TimeSlots: {Count}", await context.Set<TimeSlot>().CountAsync());
+                }
+                catch (Exception ex)
+                {
+                    logger?.LogError(ex, "Failed to seed TimeSlots.");
+                    throw;
+                }
             }
-            catch (Exception ex)
+            else
             {
-                logger?.LogError(ex, "Lỗi khi seed TimeSlots: {Message}", ex.Message);
-                throw;
+                logger?.LogInformation("TimeSlots already seeded. Skipping...");
             }
         }
     }

@@ -14,8 +14,8 @@ namespace api.Data.Seeders
             if (!await context.SearchHistories.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding SearchHistories...");
-                var user = await context.Users.FirstOrDefaultAsync();
-                var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
+                var user = await context.Users.IgnoreQueryFilters().FirstOrDefaultAsync();
+                var field = await context.Fields.IgnoreQueryFilters().FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
                 if (user == null)
                 {
                     logger?.LogError("No User found for seeding SearchHistories.");
@@ -30,7 +30,6 @@ namespace api.Data.Seeders
                         Keyword = "Sân bóng Quận 1",
                         SearchDateTime = DateTime.UtcNow,
                         FieldId = field?.FieldId,
-                        Field = field,
                         Latitude = 10.7769m,
                         Longitude = 106.7009m
                     }
@@ -44,7 +43,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Failed to seed SearchHistories. StackTrace: {StackTrace}", ex.StackTrace);
+                    logger?.LogError(ex, "Failed to seed SearchHistories.");
                     throw;
                 }
             }

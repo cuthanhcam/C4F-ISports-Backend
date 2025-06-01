@@ -13,7 +13,7 @@ namespace api.Data.Seeders
             if (!await context.FieldDescriptions.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding FieldDescriptions...");
-                var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
+                var field = await context.Fields.IgnoreQueryFilters().FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
                 if (field == null)
                 {
                     logger?.LogError("No Field found for seeding FieldDescriptions.");
@@ -22,13 +22,12 @@ namespace api.Data.Seeders
 
                 var fieldDescriptions = new[]
                 {
-                    new FieldDescription
-                    {
-                        FieldId = field.FieldId,
-                        Field = field,
-                        Description = "Sân ABC là một trong những sân bóng đá chất lượng cao tại TP.HCM, với cỏ nhân tạo hiện đại và hệ thống chiếu sáng tốt."
-                    }
-                };
+            new FieldDescription
+            {
+                FieldId = field.FieldId,
+                Description = "Sân ABC là một trong những sân bóng đá chất lượng cao tại TP.HCM, với cỏ nhân tạo hiện đại và hệ thống chiếu sáng tốt."
+            }
+        };
 
                 try
                 {
@@ -38,7 +37,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Failed to seed FieldDescriptions. StackTrace: {StackTrace}", ex.StackTrace);
+                    logger?.LogError(ex, "Failed to seed FieldDescriptions.");
                     throw;
                 }
             }

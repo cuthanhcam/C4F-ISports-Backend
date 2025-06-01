@@ -12,7 +12,7 @@ namespace api.Data.Seeders
             if (!await context.RefreshTokens.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding RefreshTokens...");
-                var account = await context.Accounts.FirstOrDefaultAsync(a => a.Email == "user@gmail.com");
+                var account = await context.Accounts.IgnoreQueryFilters().FirstOrDefaultAsync(a => a.Email == "user@gmail.com");
                 if (account == null)
                 {
                     logger?.LogError("No Account found for seeding RefreshTokens.");
@@ -24,7 +24,6 @@ namespace api.Data.Seeders
                     new RefreshToken
                     {
                         AccountId = account.AccountId,
-                        Account = account,
                         Token = "sample-refresh-token-123",
                         Expires = DateTime.UtcNow.AddDays(7),
                         Created = DateTime.UtcNow
@@ -39,7 +38,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Failed to seed RefreshTokens. StackTrace: {StackTrace}", ex.StackTrace);
+                    logger?.LogError(ex, "Failed to seed RefreshTokens.");
                     throw;
                 }
             }

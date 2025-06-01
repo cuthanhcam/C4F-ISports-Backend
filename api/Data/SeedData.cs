@@ -28,7 +28,7 @@ namespace api.Data
             {        
                 await AccountSeeder.SeedAsync(context, logger);
                 logger.LogInformation("AccountSeeder hoàn tất. Accounts: {Count}", await context.Accounts.IgnoreQueryFilters().CountAsync());
-                /*
+                
                 await SportSeeder.SeedAsync(context, logger);
                 logger.LogInformation("SportSeeder hoàn tất. Sports: {Count}", await context.Sports.IgnoreQueryFilters().CountAsync());
 
@@ -94,7 +94,7 @@ namespace api.Data
 
                 await RefreshTokenSeeder.SeedAsync(context, logger);
                 logger.LogInformation("RefreshTokenSeeder hoàn tất. RefreshTokens: {Count}", await context.RefreshTokens.IgnoreQueryFilters().CountAsync());
-                */
+                
                 logger.LogInformation("Seeding cơ sở dữ liệu hoàn tất thành công.");
             }
             catch (Exception ex)

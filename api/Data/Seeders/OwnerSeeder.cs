@@ -12,7 +12,7 @@ namespace api.Data.Seeders
             if (!await context.Owners.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Owners...");
-                var account = await context.Accounts.FirstOrDefaultAsync(a => a.Email == "owner@gmail.com");
+                var account = await context.Accounts.IgnoreQueryFilters().FirstOrDefaultAsync(a => a.Email == "owner@gmail.com");
                 if (account == null)
                 {
                     logger?.LogError("No Account found for seeding Owners.");
@@ -24,7 +24,6 @@ namespace api.Data.Seeders
                     new Owner
                     {
                         AccountId = account.AccountId,
-                        Account = account,
                         FullName = "Nguyen Van Chu",
                         Phone = "0123456789",
                         Description = "Chủ sở hữu sân thể thao ABC",
@@ -41,7 +40,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Failed to seed Owners. StackTrace: {StackTrace}", ex.StackTrace);
+                    logger?.LogError(ex, "Failed to seed Owners.");
                     throw;
                 }
             }
