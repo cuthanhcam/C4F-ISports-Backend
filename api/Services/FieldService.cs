@@ -48,59 +48,71 @@ namespace api.Services
         {
             _logger.LogInformation("Lấy danh sách sân với bộ lọc: {@Filter}", filter);
 
-            var cacheKey = $"fields_{filter.Page}_{filter.PageSize}_{filter.City}_{filter.District}_{filter.SportId}_{filter.Search}_{filter.Latitude}_{filter.Longitude}_{filter.Radius}_{filter.MinPrice}_{filter.MaxPrice}_{filter.SortBy}_{filter.SortOrder}";
-            var cachedResult = await _cache.GetRecordAsync<PagedResult<FieldResponseDto>>(cacheKey);
-            if (cachedResult != null)
-            {
-                _logger.LogInformation("Trả về danh sách sân từ cache.");
-                return cachedResult;
-            }
-
             try
             {
+                // Xây dựng truy vấn cơ bản
                 var query = await _unitOfWork.Repository<Field>()
                     .FindAsQueryableAsync(f => f.Status != "Deleted" && f.DeletedAt == null);
 
-                // Áp dụng bộ lọc
+                // Chuẩn hóa và áp dụng bộ lọc City
                 if (!string.IsNullOrEmpty(filter.City))
-                    query = query.Where(f => f.City == filter.City);
-                if (!string.IsNullOrEmpty(filter.District))
-                    query = query.Where(f => f.District == filter.District);
-                if (filter.SportId.HasValue)
-                    query = query.Where(f => f.SportId == filter.SportId);
-                if (!string.IsNullOrEmpty(filter.Search))
-                    query = query.Where(f => f.FieldName.Contains(filter.Search) || f.Address.Contains(filter.Search));
-                if (filter.MinPrice.HasValue)
-                    query = query.Where(f => f.SubFields.Any(sf => sf.DefaultPricePerSlot >= filter.MinPrice || sf.PricingRules.Any(pr => pr.TimeSlots.Any(ts => ts.PricePerSlot >= filter.MinPrice))));
-                if (filter.MaxPrice.HasValue)
-                    query = query.Where(f => f.SubFields.Any(sf => sf.DefaultPricePerSlot <= filter.MaxPrice || sf.PricingRules.Any(pr => pr.TimeSlots.Any(ts => ts.PricePerSlot <= filter.MaxPrice))));
-                if (filter.Latitude.HasValue && filter.Longitude.HasValue)
                 {
-                    query = query.Where(f => CommonUtils.CalculateDistance(f.Latitude, f.Longitude, filter.Latitude.Value, filter.Longitude.Value) <= filter.Radius);
+                    var normalizedCity = filter.City.Trim().ToLower();
+                    query = query.Where(f => f.City != null && f.City.ToLower() == normalizedCity);
+                    _logger.LogInformation("Áp dụng bộ lọc City: {City}", normalizedCity);
                 }
 
-                // Sắp xếp
-                query = filter.SortBy switch
+                // Chuẩn hóa và áp dụng bộ lọc District
+                if (!string.IsNullOrEmpty(filter.District))
                 {
-                    "averageRating" => filter.SortOrder == "asc" ? query.OrderBy(f => f.AverageRating) : query.OrderByDescending(f => f.AverageRating),
-                    "distance" when filter.Latitude.HasValue && filter.Longitude.HasValue => filter.SortOrder == "asc"
-                        ? query.OrderBy(f => CommonUtils.CalculateDistance(f.Latitude, f.Longitude, filter.Latitude.Value, filter.Longitude.Value))
-                        : query.OrderByDescending(f => CommonUtils.CalculateDistance(f.Latitude, f.Longitude, filter.Latitude.Value, filter.Longitude.Value)),
-                    "price" => filter.SortOrder == "asc"
-                        ? query.OrderBy(f => f.SubFields.Min(sf => sf.DefaultPricePerSlot))
-                        : query.OrderByDescending(f => f.SubFields.Max(sf => sf.DefaultPricePerSlot)),
-                    _ => filter.SortOrder == "asc" ? query.OrderBy(f => f.FieldId) : query.OrderByDescending(f => f.FieldId)
-                };
+                    var normalizedDistrict = filter.District.Trim().ToLower();
+                    query = query.Where(f => f.District != null && f.District.ToLower() == normalizedDistrict);
+
+                    // Kiểm tra District thuộc City (nếu City được cung cấp)
+                    if (!string.IsNullOrEmpty(filter.City))
+                    {
+                        var normalizedCity = filter.City.Trim().ToLower();
+
+                        // Lấy danh sách các district hợp lệ của city đã chọn - sửa để sử dụng ToLower thay vì ToLowerInvariant
+                        var fieldsInCity = await _unitOfWork.Repository<Field>()
+                            .FindAsQueryableAsync(f => f.City != null && f.City.ToLower() == normalizedCity && f.DeletedAt == null);
+
+                        // Chuyển đổi sang client evaluation cho phép district kiểm tra
+                        var validDistricts = await fieldsInCity
+                            .Select(f => f.District)
+                            .Where(d => d != null)
+                            .Distinct()
+                            .ToListAsync();
+
+                        validDistricts = validDistricts.Select(d => d.Trim().ToLower()).ToList();
+
+                        if (!validDistricts.Contains(normalizedDistrict))
+                        {
+                            _logger.LogWarning("District {District} không thuộc City {City}.", normalizedDistrict, normalizedCity);
+                            return new PagedResult<FieldResponseDto>
+                            {
+                                Data = new List<FieldResponseDto>(),
+                                Total = 0,
+                                Page = filter.Page,
+                                PageSize = filter.PageSize
+                            };
+                        }
+                    }
+                    _logger.LogInformation("Áp dụng bộ lọc District: {District}", normalizedDistrict);
+                }
+
+                // Bao gồm các bảng liên quan
+                query = query
+                    .Include(f => f.SubFields).ThenInclude(sf => sf.PricingRules).ThenInclude(pr => pr.TimeSlots)
+                    .Include(f => f.FieldServices)
+                    .Include(f => f.FieldAmenities)
+                    .Include(f => f.FieldImages);
 
                 // Tính tổng số bản ghi
                 var total = await query.CountAsync();
 
                 // Lấy dữ liệu phân trang
                 var pagedFields = await query
-                    .Include(f => f.SubFields).ThenInclude(sf => sf.PricingRules).ThenInclude(pr => pr.TimeSlots)
-                    .Include(f => f.FieldServices)
-                    .Include(f => f.FieldAmenities)
-                    .Include(f => f.FieldImages)
                     .Skip((filter.Page - 1) * filter.PageSize)
                     .Take(filter.PageSize)
                     .Select(f => new FieldResponseDto
@@ -117,9 +129,6 @@ namespace api.Services
                         CloseTime = f.CloseTime.ToString(@"hh\:mm"),
                         AverageRating = f.AverageRating,
                         SportId = f.SportId,
-                        Distance = filter.Latitude.HasValue && filter.Longitude.HasValue
-                            ? CommonUtils.CalculateDistance(f.Latitude, f.Longitude, filter.Latitude.Value, filter.Longitude.Value)
-                            : null,
                         MinPricePerSlot = f.SubFields.Any() ? f.SubFields.Min(sf => sf.DefaultPricePerSlot) : 0,
                         MaxPricePerSlot = f.SubFields.Any() ? f.SubFields.Max(sf => sf.DefaultPricePerSlot) : 0,
                         SubFields = f.SubFields.Select(sf => new SubFieldResponseDto
@@ -181,10 +190,7 @@ namespace api.Services
                     PageSize = filter.PageSize
                 };
 
-                await _cache.SetRecordAsync(cacheKey, result, TimeSpan.FromMinutes(5));
-                await _cache.SetRecordAsync("fields_keys", new List<string> { cacheKey }, TimeSpan.FromHours(24));
-                _logger.LogInformation("Lưu danh sách sân vào cache với key: {CacheKey}", cacheKey);
-
+                _logger.LogInformation("Lấy danh sách sân thành công, tổng số bản ghi: {Total}", total);
                 return result;
             }
             catch (Exception ex)

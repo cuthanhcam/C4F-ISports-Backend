@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 
@@ -21,6 +23,22 @@ namespace api.Utils
         }
 
         private static double ToRadians(double deg) => deg * Math.PI / 180;
+        
+        public static string NormalizeVietnameseString(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return input;
+            var normalized = input.Normalize(NormalizationForm.FormD);
+            var result = new StringBuilder();
+            foreach (var c in normalized)
+            {
+                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    result.Append(c);
+                }
+            }
+            return result.ToString().ToLowerInvariant().Trim();
+        }
     }
 
     public static class DistributedCacheExtensions
