@@ -288,7 +288,7 @@ void ConfigureServices(WebApplicationBuilder builder)
     builder.Services.Configure<VNPaySettings>(builder.Configuration.GetSection("VNPay"));
     builder.Services.AddSingleton<IVnpay, Vnpay>(); // Đăng ký IVnpayService
     builder.Services.AddScoped<IPaymentService, PaymentService>();
-    
+    builder.Services.AddScoped<IReviewService, ReviewService>();
 
     // Logging
     builder.Services.AddLogging(logging =>

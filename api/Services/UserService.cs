@@ -441,6 +441,7 @@ namespace api.Services
             .Select(b => new BookingHistoryDto
             {
                 BookingId = b.BookingId,
+                FieldId = b.SubField.FieldId,
                 FieldName = b.SubField.Field.FieldName,
                 SubFieldName = b.SubField.SubFieldName,
                 BookingDate = b.BookingDate,

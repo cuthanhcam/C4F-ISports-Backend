@@ -7,6 +7,8 @@ namespace api.Dtos.User
         [Range(1, int.MaxValue, ErrorMessage = "BookingId phải là số dương.")]
         public int BookingId { get; set; }
 
+        public int FieldId { get; set; }
+
         [Required(ErrorMessage = "Tên sân là bắt buộc.")]
         [StringLength(100, ErrorMessage = "Tên sân không được vượt quá 100 ký tự.")]
         public string FieldName { get; set; } = string.Empty;
