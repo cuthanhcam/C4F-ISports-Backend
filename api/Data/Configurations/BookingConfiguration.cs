@@ -71,6 +71,11 @@ namespace api.Data.Configurations
                 .WithOne(rr => rr.Booking)
                 .HasForeignKey(rr => rr.BookingId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(b => b.Reviews)
+                .WithOne(r => r.Booking)
+                .HasForeignKey(r => r.BookingId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
