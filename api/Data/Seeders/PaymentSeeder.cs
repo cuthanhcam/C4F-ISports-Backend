@@ -13,7 +13,7 @@ namespace api.Data.Seeders
             if (!await context.Payments.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Payments...");
-                var booking = await context.Bookings.FirstOrDefaultAsync();
+                var booking = await context.Bookings.IgnoreQueryFilters().FirstOrDefaultAsync();
                 if (booking == null)
                 {
                     logger?.LogError("No Booking found for seeding Payments.");
@@ -25,7 +25,6 @@ namespace api.Data.Seeders
                     new Payment
                     {
                         BookingId = booking.BookingId,
-                        Booking = booking,
                         Amount = booking.TotalPrice,
                         PaymentMethod = "CreditCard",
                         TransactionId = "TXN123456",
@@ -44,7 +43,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Failed to seed Payments. StackTrace: {StackTrace}", ex.StackTrace);
+                    logger?.LogError(ex, "Failed to seed Payments.");
                     throw;
                 }
             }

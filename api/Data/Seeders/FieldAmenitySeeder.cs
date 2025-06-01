@@ -13,7 +13,7 @@ namespace api.Data.Seeders
             if (!await context.FieldAmenities.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding FieldAmenities...");
-                var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
+                var field = await context.Fields.IgnoreQueryFilters().FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
                 if (field == null)
                 {
                     logger?.LogError("No Field found for seeding FieldAmenities.");
@@ -22,27 +22,25 @@ namespace api.Data.Seeders
 
                 var fieldAmenities = new[]
                 {
-                    new FieldAmenity
-                    {
-                        FieldId = field.FieldId,
-                        Field = field,
-                        AmenityName = "Phòng thay đồ",
-                        Description = "Phòng thay đồ sạch sẽ với tủ khóa",
-                        IconUrl = "https://example.com/icons/dressing-room.png",
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    },
-                    new FieldAmenity
-                    {
-                        FieldId = field.FieldId,
-                        Field = field,
-                        AmenityName = "Bãi đỗ xe",
-                        Description = "Bãi đỗ xe rộng rãi",
-                        IconUrl = "https://example.com/icons/parking.png",
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    }
-                };
+            new FieldAmenity
+            {
+                FieldId = field.FieldId,
+                AmenityName = "Phòng thay đồ",
+                Description = "Phòng thay đồ sạch sẽ với tủ khóa",
+                IconUrl = "https://res.cloudinary.com/demo/image/upload/v1234567890/dressing-room.png",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new FieldAmenity
+            {
+                FieldId = field.FieldId,
+                AmenityName = "Bãi đỗ xe",
+                Description = "Bãi đỗ xe rộng rãi",
+                IconUrl = "https://res.cloudinary.com/demo/image/upload/v1234567890/parking.png",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }
+        };
 
                 try
                 {
@@ -52,7 +50,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Failed to seed FieldAmenities. StackTrace: {StackTrace}", ex.StackTrace);
+                    logger?.LogError(ex, "Failed to seed FieldAmenities.");
                     throw;
                 }
             }

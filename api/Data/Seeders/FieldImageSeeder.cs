@@ -14,7 +14,7 @@ namespace api.Data.Seeders
             if (!await context.FieldImages.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding FieldImages...");
-                var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
+                var field = await context.Fields.IgnoreQueryFilters().FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
                 if (field == null)
                 {
                     logger?.LogError("No Field found for seeding FieldImages.");
@@ -23,17 +23,16 @@ namespace api.Data.Seeders
 
                 var fieldImages = new[]
                 {
-                    new FieldImage
-                    {
-                        FieldId = field.FieldId,
-                        Field = field,
-                        ImageUrl = "https://example.com/images/field-abc.jpg",
-                        PublicId = "field-abc-1",
-                        Thumbnail = "https://example.com/images/field-abc-thumb.jpg",
-                        IsPrimary = true,
-                        UploadedAt = DateTime.UtcNow
-                    }
-                };
+            new FieldImage
+            {
+                FieldId = field.FieldId,
+                ImageUrl = "https://res.cloudinary.com/demo/image/upload/v1234567890/field-abc.jpg",
+                PublicId = "field-abc-1",
+                Thumbnail = "https://res.cloudinary.com/demo/image/upload/v1234567890/field-abc-thumb.jpg",
+                IsPrimary = true,
+                UploadedAt = DateTime.UtcNow
+            }
+        };
 
                 try
                 {
@@ -43,7 +42,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Failed to seed FieldImages. StackTrace: {StackTrace}", ex.StackTrace);
+                    logger?.LogError(ex, "Failed to seed FieldImages.");
                     throw;
                 }
             }

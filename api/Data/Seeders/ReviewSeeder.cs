@@ -13,8 +13,8 @@ namespace api.Data.Seeders
             if (!await context.Reviews.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Reviews...");
-                var user = await context.Users.FirstOrDefaultAsync();
-                var field = await context.Fields.FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
+                var user = await context.Users.IgnoreQueryFilters().FirstOrDefaultAsync();
+                var field = await context.Fields.IgnoreQueryFilters().FirstOrDefaultAsync(f => f.FieldName == "Sân ABC");
                 if (user == null || field == null)
                 {
                     logger?.LogError("No User or Field found for seeding Reviews.");
@@ -26,9 +26,7 @@ namespace api.Data.Seeders
                     new Review
                     {
                         UserId = user.UserId,
-                        User = user,
                         FieldId = field.FieldId,
-                        Field = field,
                         Rating = 5,
                         Comment = "Sân rất đẹp, dịch vụ tốt, sẽ quay lại!",
                         CreatedAt = DateTime.UtcNow,
@@ -45,7 +43,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Failed to seed Reviews. StackTrace: {StackTrace}", ex.StackTrace);
+                    logger?.LogError(ex, "Failed to seed Reviews.");
                     throw;
                 }
             }

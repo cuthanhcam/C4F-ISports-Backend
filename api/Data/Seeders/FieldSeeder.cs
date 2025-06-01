@@ -14,8 +14,8 @@ namespace api.Data.Seeders
             if (!await context.Fields.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Fields...");
-                var sport = await context.Sports.FirstOrDefaultAsync(s => s.SportName == "Football");
-                var owner = await context.Owners.FirstOrDefaultAsync();
+                var sport = await context.Sports.IgnoreQueryFilters().FirstOrDefaultAsync(s => s.SportName == "Football");
+                var owner = await context.Owners.IgnoreQueryFilters().FirstOrDefaultAsync();
                 if (sport == null || owner == null)
                 {
                     logger?.LogError("No Sport or Owner found for seeding Fields.");
@@ -27,9 +27,7 @@ namespace api.Data.Seeders
                     new Field
                     {
                         SportId = sport.SportId,
-                        Sport = sport,
                         OwnerId = owner.OwnerId,
-                        Owner = owner,
                         FieldName = "Sân ABC",
                         Description = "Sân bóng đá chất lượng cao",
                         Address = "123 Đường ABC, Quận 1, TP.HCM",
@@ -40,7 +38,7 @@ namespace api.Data.Seeders
                         Longitude = 106.7009,
                         City = "Ho Chi Minh",
                         District = "Quan 1",
-                        AverageRating = 4.5m,
+                        AverageRating = 0,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     }
@@ -54,7 +52,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Failed to seed Fields. StackTrace: {StackTrace}", ex.StackTrace);
+                    logger?.LogError(ex, "Failed to seed Fields.");
                     throw;
                 }
             }

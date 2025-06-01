@@ -15,9 +15,10 @@ namespace api.Data.Seeders
             if (!await context.Bookings.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding Bookings...");
-                var user = await context.Users.FirstOrDefaultAsync();
-                var subField = await context.SubFields.FirstOrDefaultAsync(sf => sf.SubFieldName == "Sân 5A");
-                var promotion = await context.Promotions.FirstOrDefaultAsync();
+                var user = await context.Users.IgnoreQueryFilters().FirstOrDefaultAsync();
+                var subField = await context.SubFields.IgnoreQueryFilters().FirstOrDefaultAsync(sf => sf.SubFieldName == "Sân 5A");
+                var promotion = await context.Promotions.IgnoreQueryFilters().FirstOrDefaultAsync();
+
                 if (user == null || subField == null)
                 {
                     logger?.LogError("No User or SubField found for seeding Bookings.");
@@ -29,49 +30,42 @@ namespace api.Data.Seeders
                     var booking = new Booking
                     {
                         UserId = user.UserId,
-                        User = user,
                         SubFieldId = subField.SubFieldId,
-                        SubField = subField,
                         BookingDate = DateTime.UtcNow.AddDays(1),
                         TotalPrice = 450000m,
-                        Status = "Confirmed",
-                        PaymentStatus = "Paid",
+                        Status = "Confirmed", // Đảm bảo khớp với RegularExpression
+                        PaymentStatus = "Paid", // Đảm bảo khớp với RegularExpression
                         Notes = "Đặt sân cho đội bóng công ty.",
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
                         IsReminderSent = false,
-                        PromotionId = promotion?.PromotionId
+                        PromotionId = promotion?.PromotionId // Chỉ gán nếu promotion tồn tại
                     };
 
-                    // Create and add time slots separately
                     var timeSlots = new List<BookingTimeSlot>
-                    {
-                        new BookingTimeSlot
-                        {
-                            StartTime = TimeSpan.Parse("17:00"),
-                            EndTime = TimeSpan.Parse("17:30"),
-                            Price = 225000m
-                        },
-                        new BookingTimeSlot
-                        {
-                            StartTime = TimeSpan.Parse("17:30"),
-                            EndTime = TimeSpan.Parse("18:00"),
-                            Price = 225000m
-                        }
-                    };
+            {
+                new BookingTimeSlot
+                {
+                    StartTime = TimeSpan.Parse("17:00"),
+                    EndTime = TimeSpan.Parse("17:30"),
+                    Price = 225000m
+                },
+                new BookingTimeSlot
+                {
+                    StartTime = TimeSpan.Parse("17:30"),
+                    EndTime = TimeSpan.Parse("18:00"),
+                    Price = 225000m
+                }
+            };
 
-                    // First save the booking
                     await context.Bookings.AddAsync(booking);
                     await context.SaveChangesAsync();
 
-                    // Then assign booking ID to each time slot
                     foreach (var slot in timeSlots)
                     {
                         slot.BookingId = booking.BookingId;
-                        slot.Booking = booking;
                     }
 
-                    // Add time slots to the booking
                     booking.TimeSlots = timeSlots;
                     await context.BookingTimeSlots.AddRangeAsync(timeSlots);
                     await context.SaveChangesAsync();
@@ -80,7 +74,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Error seeding Bookings: {Message}", ex.Message);
+                    logger?.LogError(ex, "Error seeding Bookings.");
                     throw;
                 }
             }

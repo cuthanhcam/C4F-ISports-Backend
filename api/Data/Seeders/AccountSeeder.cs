@@ -14,38 +14,35 @@ namespace api.Data.Seeders
             {
                 logger?.LogInformation("Seeding Accounts...");
                 var accounts = new List<Account>
-                {
-                    new Account
-                    {
-                        Email = "admin@gmail.com",
-                        Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
-                        Role = "Admin",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        VerificationToken = null,
-                        VerificationTokenExpiry = null
-                    },
-                    new Account
-                    {
-                        Email = "owner@gmail.com",
-                        Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
-                        Role = "Owner",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        VerificationToken = null,
-                        VerificationTokenExpiry = null
-                    },
-                    new Account
-                    {
-                        Email = "user@gmail.com",
-                        Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
-                        Role = "User",
-                        IsActive = true,
-                        CreatedAt = DateTime.UtcNow,
-                        VerificationToken = null,
-                        VerificationTokenExpiry = null
-                    }
-                };
+        {
+            new Account
+            {
+                Email = "admin@gmail.com",
+                Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
+                Role = "Admin",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new Account
+            {
+                Email = "owner@gmail.com",
+                Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
+                Role = "Owner",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new Account
+            {
+                Email = "user@gmail.com",
+                Password = BCrypt.Net.BCrypt.HashPassword("Password123!"),
+                Role = "User",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }
+        };
 
                 try
                 {
@@ -55,7 +52,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Failed to seed Accounts. StackTrace: {StackTrace}", ex.StackTrace);
+                    logger?.LogError(ex, "Failed to seed Accounts.");
                     throw;
                 }
             }

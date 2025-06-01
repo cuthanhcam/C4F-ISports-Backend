@@ -13,8 +13,8 @@ namespace api.Data.Seeders
             if (!await context.BookingServices.IgnoreQueryFilters().AnyAsync())
             {
                 logger?.LogInformation("Seeding BookingServices...");
-                var booking = await context.Bookings.FirstOrDefaultAsync();
-                var fieldService = await context.FieldServices.FirstOrDefaultAsync();
+                var booking = await context.Bookings.IgnoreQueryFilters().FirstOrDefaultAsync();
+                var fieldService = await context.FieldServices.IgnoreQueryFilters().FirstOrDefaultAsync();
                 if (booking == null || fieldService == null)
                 {
                     logger?.LogError("No Booking or FieldService found for seeding BookingServices.");
@@ -23,17 +23,15 @@ namespace api.Data.Seeders
 
                 var bookingServices = new[]
                 {
-                    new BookingService
-                    {
-                        BookingId = booking.BookingId,
-                        Booking = booking,
-                        FieldServiceId = fieldService.FieldServiceId,
-                        FieldService = fieldService,
-                        Quantity = 5,
-                        Price = fieldService.Price * 5,
-                        Description = "Mua 5 chai nước suối"
-                    }
-                };
+            new BookingService
+            {
+                BookingId = booking.BookingId,
+                FieldServiceId = fieldService.FieldServiceId,
+                Quantity = 5,
+                Price = fieldService.Price * 5,
+                Description = "Mua 5 chai nước suối"
+            }
+        };
 
                 try
                 {
@@ -43,7 +41,7 @@ namespace api.Data.Seeders
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogError(ex, "Failed to seed BookingServices. StackTrace: {StackTrace}", ex.StackTrace);
+                    logger?.LogError(ex, "Failed to seed BookingServices.");
                     throw;
                 }
             }
